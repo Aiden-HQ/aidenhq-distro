@@ -1,6 +1,8 @@
 #!/bin/sh
 # shellcheck disable=SC2016  # single-quoted sh -c bodies and $releasever are meant literally
-# AidenHQ installer: turns a Linux server into a running AidenHQ, then hands you one link for the rest.
+# AidenHQ installer: turns a Linux server into a running AidenHQ, then hands you one link for the rest. On a Mac it makes
+# an Ubuntu VM (Lima) and runs the Linux install inside it (AIDENHQ_VM_CPUS / _MEMORY / _DISK, AIDENHQ_KEEP_AWAKE=1|0,
+# AIDENHQ_CONFIRM_DELETE_VM=1 for an unattended --uninstall; see INSTALL.md, On a Mac).
 #
 #   curl -fsSL https://get.aidenhq.ai | sh
 #   curl -fsSL https://get.aidenhq.ai | sh -s -- --dry-run          # print the plan, change nothing
@@ -147,7 +149,6 @@ usage() {
 detect_platform() {
   case "$(uname -s)" in
     Linux) ;;
-    Darwin) die "macOS can't host AidenHQ. Use a Linux server or VM (Ubuntu 24.04 recommended), then run this there." ;;
     MINGW*|MSYS*|CYGWIN*|Windows*) die "Windows can't host AidenHQ. Use a Linux server or VM (Ubuntu 24.04 recommended)." ;;
     *) die "$(uname -s) isn't supported. Use a Linux server or VM (Ubuntu 24.04 recommended)." ;;
   esac
@@ -535,6 +536,8 @@ finish() {
     printf '\n%sDry run done.%s A real run ends with:\n' "$Y" "$N"; SETUP_URL="https://<board-host>/setup/<one-time-token>"
     [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 $SVC@<this-host>"
   fi
+  # Inside a Mac's VM (the macOS path below): the Mac prints the way in, so only the machine-readable line is needed.
+  if [ -n "${AIDENHQ_MAC_VM:-}" ]; then [ -z "$SETUP_URL" ] || printf '\nAIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"; return 0; fi
   printf '\n%sAidenHQ is running.%s\n\n' "$G$B" "$N"
   if [ -n "$SSH_TUNNEL" ]; then
     printf '  The board listens on this server only. On your laptop, open this tunnel first and leave it running:\n\n    %s%s%s\n\n' "$B" "$SSH_TUNNEL" "$N"
@@ -575,6 +578,298 @@ uninstall() {
   printf '  Docker volumes (docker volume ls), packages (Docker, Node, Tailscale; held: apt-mark showhold), system units aidenhq-*.\n'
 }
 
+# ------------------------------------------------------------------------------------------------ macOS: a Linux VM
+# AidenHQ's gates need Linux (bwrap user namespaces, pasta, gVisor, the gocryptfs vault, systemd, AppArmor), so on a Mac
+# this script makes an Ubuntu 24.04 VM with Lima (Apple's Virtualization.framework) and runs its own Linux path inside
+# it, unchanged. Only the board's browser port (3121) is forwarded, to this Mac's localhost. Never uses sudo.
+LIMA_VERSION=2.3.0 LIMA_MIN=2.0.0   # v2.3.0 published 2026-11-06; an existing limactl at LIMA_MIN or newer is used
+LIMA_SHA256_arm64=b7af444bd8f91d3c307477e562f2cf3bd7595d62b9429185e4fa841563578cfc
+LIMA_SHA256_x86_64=d58bc7d6b8158d638720d8c8fdb17eb58527dfead6a29a5b60f48a35ee4a65a6
+UBUNTU_IMG=https://cloud-images.ubuntu.com/releases/noble/release-20261017/ubuntu-24.04-server-cloudimg   # 2026-10-17
+UBUNTU_SHA256_arm64=50e24e1fb79e89116e939d90aa7738f7af48c442fa1bc2510131e0b39c50348e
+UBUNTU_SHA256_amd64=04e8f2461a16a44e78a370284471f29616cdd9baf1893df25807b71f985b6c94
+VM=aidenhq VM_AGENT=ai.aidenhq.vm
+
+ver_ge() { awk -v a="$1" -v b="$2" 'BEGIN { split(a, x, "."); split(b, y, ".")
+  for (i = 1; i <= 3; i++) { if (x[i] + 0 > y[i] + 0) exit 0; if (x[i] + 0 < y[i] + 0) exit 1 } exit 0 }'; }
+vm_state() { [ -x "${LIMACTL:-}" ] && "$LIMACTL" list --format '{{.Status}}' "$VM" 2>/dev/null || :; }   # '' = no VM
+vm_sh() { "$LIMACTL" shell --workdir / "$VM" "$@"; }
+
+mac_detect() {
+  MACOS=$(sw_vers -productVersion 2>/dev/null) || die "can't read the macOS version (sw_vers)"
+  [ "${MACOS%%.*}" -ge 13 ] 2>/dev/null || die "macOS $MACOS is too old: AidenHQ's VM (Lima on Apple's Virtualization framework) needs macOS 13 or later"
+  case "$(uname -m)" in
+    arm64) MARCH=arm64 IMG_ARCH=aarch64 IMG=$UBUNTU_IMG-arm64.img IMG_SHA256=$UBUNTU_SHA256_arm64 LIMA_SHA256=$LIMA_SHA256_arm64 ;;
+    x86_64) MARCH=x86_64 IMG_ARCH=x86_64 IMG=$UBUNTU_IMG-amd64.img IMG_SHA256=$UBUNTU_SHA256_amd64 LIMA_SHA256=$LIMA_SHA256_x86_64 ;;
+    *) die "CPU architecture $(uname -m) isn't supported (Apple silicon and Intel Macs are)." ;;
+  esac
+  MCORES=$(sysctl -n hw.ncpu) MRAM_GB=$(($(sysctl -n hw.memsize) / 1073741824))
+  LIMA_HOME="${LIMA_HOME:-$HOME/.lima}"; export LIMA_HOME
+  p=$LIMA_HOME; while [ ! -d "$p" ]; do p=$(dirname "$p"); done
+  MFREE_GB=$(df -Pk "$p" | awk 'NR==2 { print int($4 / 1048576) }')
+  LIMACTL=''
+  for c in "$HOME/.aidenhq/lima/bin/limactl" "$(command -v limactl 2>/dev/null || :)"; do   # ours first, then PATH (Homebrew)
+    [ -n "$c" ] && [ -x "$c" ] || continue
+    LIMA_HAVE=$("$c" --version 2>/dev/null | awk '{ print $NF }')
+    if ver_ge "${LIMA_HAVE:-0}" "$LIMA_MIN"; then LIMACTL=$c; break; fi
+  done
+  :
+}
+
+# VM size from the Mac: half its cores (4..8) and half its memory (8..16 GB, leaving macOS at least 4), a 100 GB disk.
+# AIDENHQ_VM_CPUS, AIDENHQ_VM_MEMORY (GB) and AIDENHQ_VM_DISK (GB) override them; they apply when the VM is made.
+mac_size() {
+  for x in "${AIDENHQ_VM_CPUS:-}" "${AIDENHQ_VM_MEMORY:-}" "${AIDENHQ_VM_DISK:-}"; do
+    case "$x" in *[!0-9]*) die "AIDENHQ_VM_CPUS, AIDENHQ_VM_MEMORY and AIDENHQ_VM_DISK are whole numbers, not '$x'" ;; esac
+  done
+  c=$((MCORES / 2)); [ "$c" -lt 4 ] && c=4; [ "$c" -gt 8 ] && c=8; [ "$c" -gt "$MCORES" ] && c=$MCORES
+  m=$((MRAM_GB / 2)); [ "$m" -lt 8 ] && m=8; [ "$m" -gt 16 ] && m=16; [ "$m" -gt $((MRAM_GB - 4)) ] && m=$((MRAM_GB - 4))
+  VM_CPUS=${AIDENHQ_VM_CPUS:-$c} VM_MEM=${AIDENHQ_VM_MEMORY:-$m} VM_DISK=${AIDENHQ_VM_DISK:-100}
+  [ "$VM_CPUS" -ge "$MIN_CORES" ] || refuse "the VM would get $VM_CPUS CPU(s); AidenHQ needs at least $MIN_CORES (4 recommended)"
+  [ "$VM_MEM" -ge 6 ] || refuse "this Mac ($MRAM_GB GB) can give the VM only $VM_MEM GB of memory; AidenHQ needs 6 GB (8 recommended), so a Mac with 12 GB or more"
+  [ "$VM_DISK" -ge "$MIN_DISK_GB" ] || refuse "a $VM_DISK GB VM disk is too small; AidenHQ needs $MIN_DISK_GB GB (100 recommended)"
+  [ -n "$(vm_state)" ] && return 0
+  [ "$MFREE_GB" -ge "$MIN_DISK_GB" ] || refuse "$MFREE_GB GB free on this Mac; the VM's disk grows to ~$MIN_DISK_GB GB as the images land: free some space"
+  [ "$MFREE_GB" -ge "$MIN_DISK_GB" ] && [ "$MFREE_GB" -lt "$VM_DISK" ] && warn "$MFREE_GB GB free: enough to start, but the VM's disk can grow to $VM_DISK GB"
+  if nc -z 127.0.0.1 3121 >/dev/null 2>&1; then refuse "port 3121 on this Mac is taken (lsof -nP -iTCP:3121): the board is forwarded there"; fi
+  :
+}
+
+mac_lima() {
+  step "Lima (the VM manager)"
+  if [ -n "$LIMACTL" ]; then say "Lima $LIMA_HAVE: $LIMACTL"; return 0; fi
+  url="https://github.com/lima-vm/lima/releases/download/v$LIMA_VERSION/lima-$LIMA_VERSION-Darwin-$MARCH.tar.gz"
+  LIMACTL="$HOME/.aidenhq/lima/bin/limactl"
+  if [ "$DRY" = 1 ]; then say "would install Lima $LIMA_VERSION into ~/.aidenhq/lima from $url (sha256 checked)"; return 0; fi
+  fetch "$url" "$TMPD/lima.tgz" || die "can't download $url"
+  got=$(sha256 "$TMPD/lima.tgz")
+  [ "$got" = "$LIMA_SHA256" ] || die "the Lima download's digest $got isn't the pinned $LIMA_SHA256"
+  rm -rf "$HOME/.aidenhq/lima"; mkdir -p "$HOME/.aidenhq/lima"
+  tar -xzf "$TMPD/lima.tgz" -C "$HOME/.aidenhq/lima" || die "can't unpack Lima into ~/.aidenhq/lima"
+  say "installed Lima $LIMA_VERSION into ~/.aidenhq/lima (digest checked)"
+}
+
+mac_template() {
+  cat <<EOF
+# AidenHQ's VM, made by install.sh. Resize (stopped): limactl edit $VM --cpus N --memory GB --disk GB (the disk only grows).
+minimumLimaVersion: $LIMA_MIN
+vmType: vz
+images:
+- location: $IMG
+  arch: $IMG_ARCH
+  digest: sha256:$IMG_SHA256
+cpus: $VM_CPUS
+memory: ${VM_MEM}GiB
+disk: ${VM_DISK}GiB
+# Nothing of the Mac is shared: Engineer jobs run in here.
+mounts: []
+containerd:
+  system: false
+  user: false
+# The board's browser listener only, to this Mac's localhost; every other guest port stays in the VM.
+portForwards:
+- guestPort: 3121
+  hostIP: 127.0.0.1
+- guestIP: 127.0.0.1
+  guestPortRange: [1, 65535]
+  proto: any
+  ignore: true
+- guestIP: 0.0.0.0
+  guestPortRange: [1, 65535]
+  proto: any
+  ignore: true
+EOF
+}
+
+# Keep the Mac awake while the VM runs? Asked once (default yes); a rerun keeps the answer; AIDENHQ_KEEP_AWAKE=1|0 sets it.
+mac_keep_awake() {
+  plist="$HOME/Library/LaunchAgents/$VM_AGENT.plist"
+  case "${AIDENHQ_KEEP_AWAKE:-}" in
+    1|true|yes) AWAKE=1 ;;
+    0|false|no) AWAKE=0 ;;
+    *) if [ -f "$plist" ]; then if grep -q caffeinate "$plist"; then AWAKE=1; else AWAKE=0; fi
+       elif [ "$NONINT" = 1 ] || [ "$DRY" = 1 ]; then AWAKE=0
+       else
+         printf '    Keep this Mac awake while AidenHQ runs? On power only; when it sleeps, every agent pauses. [Y/n] ' >/dev/tty
+         read -r a </dev/tty || a=n
+         case "$a" in [nN]*) AWAKE=0 ;; *) AWAKE=1 ;; esac
+       fi ;;
+  esac
+}
+
+# The LaunchAgent: starts the VM at login (launchd owns it, like `limactl autostart`), under `caffeinate -s` when kept awake.
+mac_agent_plist() {
+  case "$LIMACTL$LIMA_HOME$HOME" in *[\&\<\>]*) die "a path with &, < or > can't go in a launchd plist: $LIMACTL" ;; esac
+  awake=''; [ "$AWAKE" = 1 ] && awake='<string>/usr/bin/caffeinate</string><string>-s</string>'
+  cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$VM_AGENT</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>LIMA_HOME</key><string>$LIMA_HOME</string><key>PATH</key><string>$(dirname "$LIMACTL"):/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <key>ProgramArguments</key>
+  <array>$awake<string>$LIMACTL</string><string>start</string><string>$VM</string><string>--foreground</string></array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
+  <key>StandardOutPath</key><string>$HOME/.aidenhq/vm.log</string>
+  <key>StandardErrorPath</key><string>$HOME/.aidenhq/vm.log</string>
+  <key>ProcessType</key><string>Background</string>
+</dict>
+</plist>
+EOF
+}
+
+mac_vm() {
+  step "Linux VM '$VM' (Ubuntu 24.04 on Apple's Virtualization framework)"
+  st=$(vm_state)
+  if [ -z "$st" ]; then
+    say "making it: $VM_CPUS CPUs, $VM_MEM GB memory, a $VM_DISK GB disk (a sparse file in $LIMA_HOME/$VM: it takes only what is used)"
+    mac_template >"$TMPD/$VM.yaml"
+    [ "$DRY" = 1 ] || say "the first start downloads Ubuntu 24.04 (~600 MB, digest checked) and boots it"
+    run "$LIMACTL" --tty=false start --name "$VM" "$TMPD/$VM.yaml" || die "Lima couldn't make the VM (log: $LOG)"
+  else say "exists ($st); its size stays as made (resize: limactl stop $VM; limactl edit $VM --cpus N --memory GB --disk GB)"; fi
+  mac_agent_plist >"$TMPD/plist"
+  dom="gui/$(id -u)" changed=1
+  [ -f "$plist" ] && cmp -s "$TMPD/plist" "$plist" && changed=0
+  if [ "$DRY" = 1 ]; then
+    [ "$changed" = 0 ] || say "would write $plist (start at login$([ "$AWAKE" = 1 ] && echo ', awake on power')) and load it"
+    return 0
+  fi
+  if [ "$changed" = 1 ]; then
+    # An old agent takes its VM down with it; bootout returns before the job is gone.
+    if launchctl bootout "$dom/$VM_AGENT" >/dev/null 2>&1; then
+      n=0; while launchctl print "$dom/$VM_AGENT" >/dev/null 2>&1 && [ "$n" -lt 60 ]; do sleep 1; n=$((n + 1)); done
+    fi
+    mkdir -p "$(dirname "$plist")" "$HOME/.aidenhq"; cp "$TMPD/plist" "$plist"
+  fi
+  # launchd owns the VM from here (and caffeinate with it), so a VM started by hand is handed over.
+  if ! launchctl print "$dom/$VM_AGENT" >/dev/null 2>&1; then
+    [ "$(vm_state)" != Running ] || run "$LIMACTL" --tty=false stop "$VM"
+    run launchctl bootstrap "$dom" "$plist" || die "launchctl couldn't load $plist"
+  elif [ "$(vm_state)" != Running ]; then run launchctl kickstart "$dom/$VM_AGENT"; fi
+  n=0
+  until [ "$(vm_state)" = Running ] && vm_sh true >/dev/null 2>&1; do
+    n=$((n + 1)); [ "$n" -le 120 ] || die "the VM didn't come up in 10 minutes: see ~/.aidenhq/vm.log and $LIMA_HOME/$VM/ha.stderr.log"
+    sleep 5
+  done
+  say "running; starts at login ($plist)"
+}
+
+# The installer for the VM: AIDENHQ_INSTALLER_FILE, else this file when run from one, else get.aidenhq.ai (curl | sh).
+mac_installer() {
+  if [ -n "${AIDENHQ_INSTALLER_FILE:-}" ]; then echo "$AIDENHQ_INSTALLER_FILE"
+  elif [ -f "$0" ] && grep -q '^DISTRO_REPO=' "$0" 2>/dev/null; then echo "$0"
+  else fetch https://get.aidenhq.ai "$TMPD/install.sh" || die "can't download the installer for the VM"; echo "$TMPD/install.sh"; fi
+}
+
+mac_inner() {
+  step "AidenHQ in the VM (this installer's Linux path)"
+  set -- --release "$REL"
+  [ "$DRY" = 1 ] && set -- "$@" --dry-run
+  [ "$NO_TS" = 1 ] && set -- "$@" --no-tailscale
+  [ "$VERBOSE" = 1 ] && set -- "$@" --verbose
+  [ "$NONINT" = 1 ] && set -- "$@" --non-interactive
+  [ -z "$DIR" ] || set -- "$@" --dir "$DIR"
+  if [ "$DRY" = 1 ] && [ "$(vm_state)" != Running ]; then say "would run in the VM: sh install.sh $*"; return 0; fi
+  src=$(mac_installer)
+  # Secrets go over the VM's stdin into a 0600 file that the VM sources, then shreds: never argv, never Lima's YAML.
+  (umask 077; : >"$TMPD/secrets")
+  if [ "$DRY" = 0 ]; then
+    for k in $SECRET_KEYS AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN; do
+      eval "v=\${$k:-}"; [ -z "$v" ] || { safe_val "$k" "$v"; printf '%s="%s"\n' "$k" "$v" >>"$TMPD/secrets"; }
+    done
+  fi
+  vm_sh sh -c 'umask 077; cat >"$HOME/.aidenhq-install.env"' <"$TMPD/secrets" || die "can't reach the VM"
+  rm -f "$TMPD/secrets"
+  vm_sh sh -c 'cat >"$HOME/.aidenhq-install.sh"' <"$src" || die "can't copy the installer into the VM"
+  w='f=$HOME/.aidenhq-install.env; set -a; . "$f"; set +a; shred -u "$f" 2>/dev/null || rm -f "$f"
+    exec sh "$HOME/.aidenhq-install.sh" "$@"'
+  if [ -n "${AIDENHQ_RELEASE_FILE:-}" ]; then   # a Mac path: the VM gets a copy
+    vm_sh sh -c 'cat >"$HOME/.aidenhq-release.json"' <"$AIDENHQ_RELEASE_FILE" || die "can't read AIDENHQ_RELEASE_FILE=$AIDENHQ_RELEASE_FILE"
+    w="AIDENHQ_RELEASE_FILE=\$HOME/.aidenhq-release.json; export AIDENHQ_RELEASE_FILE; $w"
+  fi
+  set -- sh -c "$w" aidenhq-install "$@"
+  for k in AIDENHQ_RELEASE_URL AIDENHQ_GIT_BASE MODULES; do eval "v=\${$k:-}"; [ -z "$v" ] || set -- "$k=$v" "$@"; done
+  set -- env AIDENHQ_MAC_VM=1 AIDENHQ_OWNER_EMAIL="${AIDENHQ_OWNER_EMAIL:-}" \
+    AIDENHQ_OWNER_NAME="${AIDENHQ_OWNER_NAME:-$(id -F 2>/dev/null || id -un)}" "$@"
+  # A terminal goes through (Tailscale's sign-in link, prompts); without one the VM's run is non-interactive too.
+  in=/dev/null; [ "$NONINT" = 0 ] && (: </dev/tty) 2>/dev/null && in=/dev/tty
+  log "+ limactl shell $VM (the Linux installer)"
+  { vm_sh "$@" <"$in" 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } | tee -a "$LOG" "$TMPD/inner.out"
+  rc=$(cat "$TMPD/rc")
+  # The VM's installer has already said where and why (STEP cleared: no second log tail).
+  [ "$rc" = 0 ] || { STEP=''; die "the install in the VM stopped (exit $rc). The VM stays; fix the cause and run the same command again."; }
+  SETUP_URL=$(tr -d '\r' <"$TMPD/inner.out" | sed -n 's/^AIDENHQ_SETUP_URL=//p' | tail -1)
+  # Without Tailscale the board is the VM's loopback 3121, which Lima forwards to this Mac's.
+  case "$SETUP_URL" in http://*:3121/*) SETUP_URL="http://127.0.0.1:3121/${SETUP_URL#http://*:3121/}" ;; esac
+}
+
+mac_finish() {
+  lc=limactl; [ "$(command -v limactl 2>/dev/null)" = "$LIMACTL" ] || lc=$LIMACTL
+  if [ "$DRY" = 1 ]; then printf '\n%sDry run done.%s Nothing on this Mac changed. A real run ends with the link to open here.\n' "$Y" "$N"; return 0; fi
+  printf '\n%sAidenHQ is running in its Linux VM on this Mac.%s\n\n' "$G$B" "$N"
+  if [ -n "$SETUP_URL" ]; then
+    printf '  Open this link in a browser on this Mac (one use, 72 hours):\n\n    %s%s%s\n\n' "$B" "$SETUP_URL" "$N"
+    case "$SETUP_URL" in
+      http://127.0.0.1:3121/*) printf '  The VM'"'"'s board port (3121) is forwarded to this Mac'"'"'s localhost; nothing else in the VM is.\n' ;;
+      *) printf '  This Mac (and any device you use) must be on the same tailnet as the VM.\n' ;;
+    esac
+  else printf '  The setup link is in the log: %s\n' "$LOG"; fi
+  printf '  The VM: %s shell %s (a shell in it), %s stop %s. It starts when you log in (%s).\n' "$lc" "$VM" "$lc" "$VM" "$plist"
+  if [ "$AWAKE" = 1 ]; then printf '  This Mac stays awake on power while the VM runs. On battery, or with a laptop lid closed, it still sleeps, and every agent pauses.\n'
+  else printf '  When this Mac sleeps, every agent pauses until it wakes. To keep it awake on power, run this again with AIDENHQ_KEEP_AWAKE=1.\n'; fi
+  if vm_sh sudo -n test -e /root/aidenhq-vault-recovery.txt 2>/dev/null; then
+    printf '  Vault recovery key: %s shell %s sudo cat /root/aidenhq-vault-recovery.txt, store it, then shred it (sudo shred -u).\n' "$lc" "$VM"
+  fi
+  printf '  Install log: %s\n\n' "$LOG"
+  [ -z "$SETUP_URL" ] || printf 'AIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
+}
+
+# Uninstall on a Mac deletes the VM, and with it everything AidenHQ kept in it: confirmed by typing, or AIDENHQ_CONFIRM_DELETE_VM=1.
+mac_uninstall() {
+  step "Uninstall: delete the VM '$VM' and its login agent"
+  plist="$HOME/Library/LaunchAgents/$VM_AGENT.plist" st=$(vm_state)
+  say "this deletes $LIMA_HOME/$VM and everything in it: AidenHQ's data, its vault and the instance checkout."
+  say "unlike on Linux, nothing is kept. To keep a backup, copy it out first (limactl shell $VM, then the product's backup)."
+  if [ "$DRY" = 1 ]; then say "would remove $plist and delete the VM ($([ -n "$st" ] && echo "$st" || echo 'not found'))"; return 0; fi
+  if [ "${AIDENHQ_CONFIRM_DELETE_VM:-}" != 1 ]; then
+    [ "$NONINT" = 0 ] || die "nothing deleted: with no terminal to confirm on, set AIDENHQ_CONFIRM_DELETE_VM=1"
+    printf '    Type delete to delete the VM: ' >/dev/tty; read -r a </dev/tty || a=''
+    [ "$a" = delete ] || die "nothing deleted"
+  fi
+  launchctl bootout "gui/$(id -u)/$VM_AGENT" >/dev/null 2>&1 || :
+  rm -f "$plist"
+  [ -z "$st" ] || run "$LIMACTL" --tty=false delete --force "$VM" || die "limactl couldn't delete $VM"
+  if [ -d "$HOME/.aidenhq/lima" ] && [ -z "$("$HOME/.aidenhq/lima/bin/limactl" list -q 2>/dev/null)" ]; then rm -rf "$HOME/.aidenhq/lima"; fi
+  printf '\nDeleted. Kept: Lima'"'"'s image cache (~/Library/Caches/lima; limactl prune clears it, for every Lima VM), a Lima you\n'
+  printf 'installed yourself (Homebrew), and the install log %s.\n' "$LOG"
+}
+
+mac_main() {
+  [ "$(id -u)" != 0 ] || die "on a Mac, run the installer as yourself, not with sudo: the VM belongs to your user"
+  open_log
+  mac_detect
+  [ "$DRY" = 1 ] && printf '%sDry run:%s nothing on this Mac changes.\n' "$Y" "$N"
+  if [ "$UNINSTALL" = 1 ]; then mac_uninstall; return 0; fi
+  mac_size
+  step "This Mac"
+  say "macOS $MACOS ($MARCH); $MCORES cores, $MRAM_GB GB memory, $MFREE_GB GB free"
+  say "AidenHQ runs in a Linux VM ($VM, Lima): the Linux install runs inside it, with every security gate as on a server"
+  ensure_owner_email
+  if [ -n "$REFUSALS" ]; then
+    printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would refuse' || echo 'Refusing to install')" "$N" "$REFUSALS"
+    [ "$DRY" = 1 ] || { STEP=''; exit 1; }
+    REFUSALS=''
+  fi
+  mac_keep_awake
+  mac_lima
+  mac_vm
+  mac_inner
+  mac_finish
+}
+
 # ------------------------------------------------------------------------------------------------ main
 plan_summary() {
   step "This machine"
@@ -591,6 +886,7 @@ main() {
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
   trap 'exit 130' INT TERM
+  if [ "$(uname -s)" = Darwin ]; then mac_main; return 0; fi
   detect_platform
   resolve_user
   open_log
