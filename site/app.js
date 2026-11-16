@@ -49,11 +49,11 @@
   }
 
   /* Module catalog filter */
-  var catTabs = document.querySelectorAll('.cat-tabs [role="tab"]');
+  var catTabs = document.querySelectorAll('.cat-tabs button');
   var catItems = document.querySelectorAll('.cat-list li');
   catTabs.forEach(function (t) {
     t.addEventListener('click', function () {
-      catTabs.forEach(function (o) { o.setAttribute('aria-selected', String(o === t)); });
+      catTabs.forEach(function (o) { o.setAttribute('aria-pressed', String(o === t)); });
       catItems.forEach(function (li) { li.hidden = t.dataset.f !== 'all' && li.dataset.t !== t.dataset.f; });
     });
   });
@@ -94,6 +94,8 @@
 
   function initial() {
     msgs.innerHTML = ''; cards.innerHTML = ''; typing.textContent = '';
+    say('me', 'Chase the vendor contract and tell me by Friday.');
+    say('them', 'Done. The signed redlines arrived Thursday and are filed in Drive.');
     say('them', 'Morning brief: 3 replies chased, 1 PR merged overnight, nothing needs you.');
     lane('arch', 'Idle', 0); lane('eng', 'Idle', 0); lane('ops', 'Watching 6 apps', 0); lane('fu', 'Chasing 3 replies', 62, true);
     card('t0', 'Merge PR #117 in acme-agents/brief', 'Safe write, ran at once', chip('', 'Ran'));
