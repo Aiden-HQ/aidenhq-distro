@@ -155,7 +155,7 @@ loads the secrets file if there is one, runs the installer and deletes the secre
 ssh <target> 'umask 077; cat > ~/aidenhq-install-run.sh' <<'EOF'
 #!/bin/sh
 if [ -f "$HOME/.aidenhq-secrets.env" ]; then set -a; . "$HOME/.aidenhq-secrets.env"; set +a; fi
-AIDENHQ_OWNER_EMAIL='<owner email>' sh "$HOME/aidenhq-install.sh" --non-interactive --verbose <FLAGS>
+AIDENHQ_OWNER_EMAIL='<owner email>' sh "$HOME/aidenhq-install.sh" --non-interactive <FLAGS>
 echo "AIDENHQ_INSTALL_EXIT=$?"
 shred -u "$HOME/.aidenhq-secrets.env" 2>/dev/null || rm -f "$HOME/.aidenhq-secrets.env"
 EOF
@@ -179,7 +179,8 @@ ssh <target> 'tail -n 30 ~/aidenhq-install.out'
 For a root install, poll as `aidenhq` once root logins are refused:
 `ssh aidenhq@<host> 'sudo tail -n 30 /root/aidenhq-install.out'`. See step 2.
 
-Step lines start with `==>`. The product setup's progress lines are indented. Tell the user briefly what stage it is
+Step lines start with `==>`. The product setup's progress lines are indented. (Add `--verbose` to the installer's flags
+if you want every command's output streamed there, which helps when polling a slow step.) Tell the user briefly what stage it is
 at, for example host packages or starting services. Pulling and building images can sit on one step for a long time,
 and that is normal. If nothing new appears for a long while, check that the installer is still running
 (`pgrep -f aidenhq-install` on the server) before concluding it is stuck. Don't start a second install while one is
@@ -191,7 +192,8 @@ running.
 
 ## 6. Read the result
 
-Pull the two machine-readable lines from this run's output:
+The installer's final output ends with two machine-readable lines (with or without `--verbose`). Pull them from this
+run's output:
 
 ```sh
 ssh <target> 'grep -E "^ *AIDENHQ_(SETUP_URL|SSH_TUNNEL)=" ~/aidenhq-install.out | sed "s/^ *//"'

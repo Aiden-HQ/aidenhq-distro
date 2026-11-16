@@ -133,6 +133,11 @@ expect "setup is driven unattended: env, a 0600 config, parsed links, config del
      && [ \"\$SETUP_URL\" = http://127.0.0.1:3121/setup/t ] && [ \"\$SSH_TUNNEL\" = ssh-x ] \
      && [ ! -e \"\$(sed -n 's/^cfgpath=//p' \"\$LOG\")\" ]"
 
+expect "the final output carries the two machine-readable lines, no --verbose needed" pass \
+  "DRY=0 VERBOSE=0 N='' B='' G='' Y='' LOG=/dev/null DIR=/x SETUP_URL=http://127.0.0.1:3121/setup/t SSH_TUNNEL=ssh-x
+   sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t' \
+     && printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SSH_TUNNEL=ssh-x'"
+
 # Root verification ignores the service user's .git (replace refs) and catches any tracked change.
 g init -q "$work/rv"; echo good >"$work/rv/f"; g -C "$work/rv" add -A; g -C "$work/rv" commit -qm one
 RK=$(git -C "$work/rv" rev-parse HEAD)
