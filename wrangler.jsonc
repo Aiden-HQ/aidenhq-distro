@@ -3,5 +3,9 @@
   "main": "web/worker.js",
   "compatibility_date": "2026-11-01",
   "assets": { "directory": "web/public", "binding": "ASSETS", "run_worker_first": ["/", "/install.sh"] },
-  "workers_dev": true
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "aidenhq.ai", "custom_domain": true },
+    { "pattern": "get.aidenhq.ai", "custom_domain": true }
+  ]
 }
