@@ -76,9 +76,15 @@ ssh -o BatchMode=yes <target> 'id -un; . /etc/os-release; echo "$PRETTY_NAME"; u
 - The OS must be in the table above.
 
 **The service user.** If you connect as root, the installer creates a user `aidenhq`, gives it passwordless sudo and
-root's SSH keys, and runs AidenHQ as that user. Setup then turns off root SSH login, so connect as `aidenhq@<host>`
-after the install. If you connect as a normal sudo user, AidenHQ runs as that user. Either way, the product checkout
-is `~/aidenhq` in the service user's home.
+root's SSH keys, and runs AidenHQ as that user. **Partway through the install, setup turns off root SSH login** (and
+password login), so new root connections are refused from then on. Running jobs keep going. If you connect as a
+normal sudo user, AidenHQ runs as that user and nothing changes for your logins. Either way, the product checkout is
+`~/aidenhq` in the service user's home.
+
+**Root installs: how to reach root's files later.** Once the install is running, use `ssh aidenhq@<host> 'sudo ...'`
+for every command that touches root's home. For example: `ssh aidenhq@<host> 'sudo tail -n 30 /root/aidenhq-install.out'`.
+In steps 5 to 9, wherever this guide writes `ssh <target> '<cmd> ~/<file>'`, read it as
+`ssh aidenhq@<host> 'sudo <cmd> /root/<file>'`.
 
 ## 3. Secrets (only if needed)
 
@@ -127,7 +133,8 @@ no sudo:
 ssh <target> 'curl -fsSLo ~/aidenhq-install.sh https://get.aidenhq.ai && AIDENHQ_OWNER_EMAIL=<owner email> sh ~/aidenhq-install.sh --dry-run --non-interactive'
 ```
 
-Add `--no-tailscale` if the user chose no Tailscale. Read the output:
+Add `--no-tailscale` if the user chose no Tailscale. You may read `~/aidenhq-install.sh` before running it: it is a
+plain POSIX shell script, and `sh ~/aidenhq-install.sh --help` lists its options. Read the output:
 
 - `==> This machine` shows the OS, cores, RAM, free disk and the sizing derived from them.
 - `A real run would refuse:` or `A real run would stop here` followed by `- ...` lines: each one is a blocker. Fix it
@@ -169,8 +176,14 @@ Check progress every minute or two until the last lines contain `AIDENHQ_INSTALL
 ssh <target> 'tail -n 30 ~/aidenhq-install.out'
 ```
 
+For a root install, poll as `aidenhq` once root logins are refused:
+`ssh aidenhq@<host> 'sudo tail -n 30 /root/aidenhq-install.out'`. See step 2.
+
 Step lines start with `==>`. The product setup's progress lines are indented. Tell the user briefly what stage it is
-at, for example host packages or starting services. Don't start a second install while one is running.
+at, for example host packages or starting services. Pulling and building images can sit on one step for a long time,
+and that is normal. If nothing new appears for a long while, check that the installer is still running
+(`pgrep -f aidenhq-install` on the server) before concluding it is stuck. Don't start a second install while one is
+running.
 
 - `AIDENHQ_INSTALL_EXIT=0`: go to step 6.
 - Any other exit code: the output ends with `Install stopped during: <step>` and the last log lines. Fix the cause (see
@@ -259,8 +272,10 @@ the data, the vault, the instance repo and the packages, and lists what it kept.
 
 ## 9. Hand over to the user
 
-Clean up the helper files on the server, `rm -f ~/aidenhq-install-run.sh`, and keep `~/aidenhq-install.out` until the
-user has used the link (it is `0600`). Then show the user this, filled in:
+Clean up the helper file on the server: `rm -f ~/aidenhq-install-run.sh`, or for a root install
+`ssh aidenhq@<host> 'sudo rm -f /root/aidenhq-install-run.sh'`. Make sure `~/.aidenhq-secrets.env` is gone too (the
+run script deletes it). Keep `aidenhq-install.out` until the user has used the link (it is `0600`). Then show the user
+this, filled in:
 
 ```
 ┌─ AidenHQ is installed ─────────────────────────────────────────────┐
