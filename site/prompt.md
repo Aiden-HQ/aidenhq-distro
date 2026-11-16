@@ -6,11 +6,17 @@ user. Every command is validated against the installer served at `https://get.ai
 Complete every step yourself by running the commands directly. Do not ask the user to run them. Steps: ask the
 user, check the server, secrets (only if needed), dry run, install, read the result and verify.
 
-**Rules.** The installer runs on the Linux server, never on the user's laptop. Never wrap it in `sudo`: connect as
+**Rules.** The installer runs on the Linux server, never on the user's laptop, unless the user chose their Mac (below). Never wrap it in `sudo`: connect as
 root or as a user with passwordless sudo, and it calls `sudo` itself. Secrets go only in the file in step 3, never on
 a command line, in an environment assignment or in your replies. Never read `/root/aidenhq-vault-recovery.txt`.
 Every installer step is idempotent: fix the cause and rerun the same command. Until AidenHQ's first public release,
 the install needs a GitHub token with read access to its private repositories.
+
+**On a Mac** (if the user wants AidenHQ on their Mac instead of a server): run the same command on the Mac itself, with
+`--no-tailscale` and no sudo. It installs pinned Lima, creates an Ubuntu 24.04 VM named `aidenhq` (about half the cores
+and memory, a 100 GB sparse disk) and runs the Linux install inside it. Open the printed `http://127.0.0.1:3121/...` link
+on the Mac; no tunnel is needed. Needs macOS 13+, 12 GB memory and 60 GB free. A sleeping Mac pauses every agent, so
+recommend "keep awake" (on power). Skip step 2.
 
 ## 1. Ask the user
 
