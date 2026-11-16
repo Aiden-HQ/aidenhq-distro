@@ -162,7 +162,7 @@ printf '%s\n' "$@" >"$d/args.$n"
 case "$1" in
   --version) echo "limactl version ${STUB_LIMA_VERSION:-2.3.0}" ;;
   list) [ -n "${STUB_STATE:-}" ] || exit 1; echo "$STUB_STATE" ;;
-  shell) cat >"$d/stdin.$n"; case "$*" in *aidenhq-install*) printf 'AIDENHQ_SETUP_URL=http://lima-aidenhq:3121/setup/t\r\n' ;; esac ;;
+  shell) cat >"$d/stdin.$n"; case "$*" in *setup-url*) printf 'http://lima-aidenhq:3121/setup/t\r\n' ;; esac ;;
 esac
 EOS
 chmod +x "$work/mac/bin/limactl"

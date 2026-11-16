@@ -75,7 +75,9 @@ gocryptfs on FUSE, systemd user units), so a Mac runs it in a VM and the install
 **Pins.** Lima v2.3.0 (published 2026-11-06, 10 days before; v2.2.1 is 2026-10-03), the GitHub release tarball checked
 against its `SHA256SUMS` (Darwin-arm64 `b7af444b…`, Darwin-x86_64 `d58bc7d6…`); an existing `limactl` >= 2.0 (Homebrew's)
 is used as is, and `brew install lima` is never run (unpinned). Ubuntu 24.04 cloud image `release-20261017`
-(arm64 `50e24e1f…`, amd64 `04e8f246…`); Canonical keeps dated releases back to 2024-04, so the pin stays fetchable.
+(arm64 `50e24e1f…`, amd64 `04e8f246…`). Canonical serves only the last ~4 months of dated images from
+`cloud-images.ubuntu.com` (checked: 7 serve, older ones 302 to `http://cloud-images-archive.ubuntu.com/…`, 3 are 404), so
+bump this pin with each release cut; the digest still guards an archived download.
 
 **Verified on a real VM** (Apple M-series, macOS 26.7.1, Lima 2.3.0, 2026-11-16), after running the product's own
 `ops/vm/setup.sh` inside it:
@@ -85,9 +87,9 @@ is used as is, and `brew install lima` is never run (unpinned). Ubuntu 24.04 clo
 - The runner's private bwrap (`/opt/aidenhq/bwrap/bwrap`, profile `aidenhq-bwrap`) gets a user and network namespace;
   setup's own `CAP_NET_ADMIN` self-test passes; the distro `/usr/bin/bwrap` stays blocked, as intended.
 - The runner's real jail (`engines.mjs` `jailProblem` and `hiding`): pasta gives the job its own network, egress works
-  (HTTP 200), the Lima host gateway is unreachable from the job.
+  (HTTP 200); an HTTP request to the Lima host gateway from the job got no answer (no control listener, so weak evidence).
 - gVisor `runsc` 20261102.0 runs `hello-world` and `alpine` (kernel `4.19.0-gvisor`) with no `/dev/kvm`: no nested
-  virtualization needed (it needs M3+ and macOS 15 anyway).
+  virtualization needed, so the template leaves it off.
 - gocryptfs 2.4.0 init and mount over `/dev/fuse` as the user.
 - After stop/start everything above still works and `limactl shell` survives setup's sshd hardening and public firewall.
 - `limactl edit --cpus --memory --disk` resizes a stopped VM; the root filesystem grows with the disk; the 100–110 GB disk
@@ -100,12 +102,21 @@ true for 0.0.0.0, as its docs say). The template forwards 3121 and then ignores 
 tested, 3121 reachable from the Mac, 3120, 3100, `0.0.0.0:5000` and `[::1]:5001` not. Host port 3121 stays 3121 because
 setup pins `BOARD_LAN_HOSTS` to `127.0.0.1:3121,localhost:3121`.
 
+**Interactive runs.** `limactl shell` gives the guest a pty only when its own stdout is a terminal (tested), so the VM's
+installer writes straight to the terminal and the Mac reads the link back from a 0600 file in the VM
+(`~/.aidenhq/setup-url`); tested under `script`: the guest saw a tty and `/dev/tty`.
+
 **Start at login and sleep.** The LaunchAgent mirrors the plist `limactl autostart` writes (`limactl start <vm>
 --foreground`, `KeepAlive` on failure only), so launchd owns the host agent; tested: the VM stays up, `limactl stop` exits
 0 and isn't restarted, a changed plist is booted out and reloaded. Keeping awake wraps that command in `caffeinate -s`: a
 process assertion held only while the VM runs and only on AC power, gone with the agent; no `pmset` change (system-wide,
-needs sudo). Closing a laptop's lid sleeps it regardless, and sleep pauses every agent.
+needs sudo). Closing a laptop's lid sleeps it regardless, and sleep pauses every agent. `caffeinate` passes SIGTERM on to its child
+(tested), so a bootout or logout still stops the VM cleanly. A LaunchAgent runs at login, not at boot.
 
 **Found on the way (product, not fixed here):** `ops/vm/setup.sh` installs the amd64 `gh` .deb on every host, so it
 fails on arm64 (Apple silicon VMs, and arm64 servers): `package architecture (amd64) does not match system (arm64)`. The
-test VM used the arm64 .deb (`cac3ff84…`).
+test VM used the arm64 .deb (`cac3ff84…`). The product assumes amd64 hosts elsewhere too: `ops/vm/setup.sh` installs
+agent-browser's `linux-x64` binary and Chrome for Testing `linux64` (no error, but no browser on arm64),
+`ops/backup-offsite.sh` downloads restic `linux_amd64`, and `scripts/supply-chain/image-scan.mjs` says "CI and the hosts
+are amd64". Until those carry arm64 pins, a full install on Apple silicon stops in host setup; Intel Macs (amd64 guests)
+don't hit this.

@@ -537,7 +537,12 @@ finish() {
     [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 $SVC@<this-host>"
   fi
   # Inside a Mac's VM (the macOS path below): the Mac prints the way in, so only the machine-readable line is needed.
-  if [ -n "${AIDENHQ_MAC_VM:-}" ]; then [ -z "$SETUP_URL" ] || printf '\nAIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"; return 0; fi
+  # The link also goes to a file the Mac reads back (0600: it is a one-time sign-in).
+  if [ -n "${AIDENHQ_MAC_VM:-}" ]; then
+    [ -z "$SETUP_URL" ] || printf '\nAIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
+    [ "$DRY" = 1 ] || [ -z "$SETUP_URL" ] || (umask 077; printf '%s\n' "$SETUP_URL" >"$STATE_DIR/setup-url") || :
+    return 0
+  fi
   printf '\n%sAidenHQ is running.%s\n\n' "$G$B" "$N"
   if [ -n "$SSH_TUNNEL" ]; then
     printf '  The board listens on this server only. On your laptop, open this tunnel first and leave it running:\n\n    %s%s%s\n\n' "$B" "$SSH_TUNNEL" "$N"
@@ -775,33 +780,34 @@ mac_inner() {
   if [ "$DRY" = 1 ] && [ "$(vm_state)" != Running ]; then say "would run in the VM: sh install.sh $*"; return 0; fi
   src=$(mac_installer)
   # Secrets go over the VM's stdin into a 0600 file that the VM sources, then shreds: never argv, never Lima's YAML.
+  # Checked before anything reaches the VM, and sent last, so a failed copy leaves no secret behind.
   (umask 077; : >"$TMPD/secrets")
   if [ "$DRY" = 0 ]; then
     for k in $SECRET_KEYS AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN; do
       eval "v=\${$k:-}"; [ -z "$v" ] || { safe_val "$k" "$v"; printf '%s="%s"\n' "$k" "$v" >>"$TMPD/secrets"; }
     done
   fi
-  vm_sh sh -c 'umask 077; cat >"$HOME/.aidenhq-install.env"' <"$TMPD/secrets" || die "can't reach the VM"
-  rm -f "$TMPD/secrets"
   vm_sh sh -c 'cat >"$HOME/.aidenhq-install.sh"' <"$src" || die "can't copy the installer into the VM"
   w='f=$HOME/.aidenhq-install.env; set -a; . "$f"; set +a; shred -u "$f" 2>/dev/null || rm -f "$f"
-    exec sh "$HOME/.aidenhq-install.sh" "$@"'
+    rm -f "$HOME/.aidenhq/setup-url"; exec sh "$HOME/.aidenhq-install.sh" "$@"'
   if [ -n "${AIDENHQ_RELEASE_FILE:-}" ]; then   # a Mac path: the VM gets a copy
     vm_sh sh -c 'cat >"$HOME/.aidenhq-release.json"' <"$AIDENHQ_RELEASE_FILE" || die "can't read AIDENHQ_RELEASE_FILE=$AIDENHQ_RELEASE_FILE"
     w="AIDENHQ_RELEASE_FILE=\$HOME/.aidenhq-release.json; export AIDENHQ_RELEASE_FILE; $w"
   fi
+  vm_sh sh -c 'umask 077; cat >"$HOME/.aidenhq-install.env"' <"$TMPD/secrets" || die "can't copy the secrets into the VM"
+  rm -f "$TMPD/secrets"
   set -- sh -c "$w" aidenhq-install "$@"
   for k in AIDENHQ_RELEASE_URL AIDENHQ_GIT_BASE MODULES; do eval "v=\${$k:-}"; [ -z "$v" ] || set -- "$k=$v" "$@"; done
   set -- env AIDENHQ_MAC_VM=1 AIDENHQ_OWNER_EMAIL="${AIDENHQ_OWNER_EMAIL:-}" \
     AIDENHQ_OWNER_NAME="${AIDENHQ_OWNER_NAME:-$(id -F 2>/dev/null || id -un)}" "$@"
-  # A terminal goes through (Tailscale's sign-in link, prompts); without one the VM's run is non-interactive too.
+  # A terminal goes through (Tailscale's sign-in link, prompts): limactl gives the VM a terminal only when its own stdout
+  # is one, so the VM's output goes straight to it (its own log keeps it) and the link comes back in a file.
   in=/dev/null; [ "$NONINT" = 0 ] && (: </dev/tty) 2>/dev/null && in=/dev/tty
-  log "+ limactl shell $VM (the Linux installer)"
-  { vm_sh "$@" <"$in" 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } | tee -a "$LOG" "$TMPD/inner.out"
-  rc=$(cat "$TMPD/rc")
+  log "+ limactl shell $VM (the Linux installer; its log is ~/.aidenhq/install.log in the VM)"
+  if vm_sh "$@" <"$in"; then rc=0; else rc=$?; fi
   # The VM's installer has already said where and why (STEP cleared: no second log tail).
   [ "$rc" = 0 ] || { STEP=''; die "the install in the VM stopped (exit $rc). The VM stays; fix the cause and run the same command again."; }
-  SETUP_URL=$(tr -d '\r' <"$TMPD/inner.out" | sed -n 's/^AIDENHQ_SETUP_URL=//p' | tail -1)
+  SETUP_URL=$(vm_sh sh -c 'cat "$HOME/.aidenhq/setup-url" 2>/dev/null || :' </dev/null | tr -d '\r')
   # Without Tailscale the board is the VM's loopback 3121, which Lima forwards to this Mac's.
   case "$SETUP_URL" in http://*:3121/*) SETUP_URL="http://127.0.0.1:3121/${SETUP_URL#http://*:3121/}" ;; esac
 }
