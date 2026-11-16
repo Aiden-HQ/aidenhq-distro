@@ -8,10 +8,10 @@ ship and follow up around the clock, on your own server.
 Not a chatbot. Not a workflow builder. A team that works.
 
 ```sh
-curl -fsSL https://get.aidenhq.dev | sh
+curl -fsSL https://get.aidenhq.ai | sh
 ```
 
-One line on your Linux server with Docker and Node. Site: [aidenhq.dev](https://aidenhq.dev) (source in
+One line on your Linux server with Docker and Node. Site: [aidenhq.ai](https://aidenhq.ai) (source in
 [`site/`](site/)).
 
 ## Hand over real work, in a sentence
@@ -64,7 +64,7 @@ One line on your Linux server with Docker and Node. Site: [aidenhq.dev](https://
 ## One line to install
 
 ```sh
-curl -fsSL https://get.aidenhq.dev | sh
+curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 The installer checks your server, fetches a tested release of the kernel and the essential modules pinned by commit,
