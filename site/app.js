@@ -30,29 +30,15 @@
     });
   });
 
-  /* Copy prompt for your agent: fetch the agent guide and put it on the clipboard. */
-  var FALLBACK = 'Read https://aidenhq.ai/prompt.md and follow it to install and set up AidenHQ on my server.';
-  function getPrompt() {
-    return fetch('/prompt.md', { cache: 'no-cache' }).then(function (r) {
-      var type = r.headers.get('content-type') || '';
-      if (!r.ok || type.indexOf('html') !== -1) throw new Error('no prompt');
-      return r.text();
-    }).then(function (t) { return t.trim() ? t : FALLBACK; }, function () { return FALLBACK; });
-  }
+  /* Copy prompt for your agent: a one-line instruction that points the agent at /prompt.md. */
   document.querySelectorAll('[data-prompt]').forEach(function (b) {
     var label = b.querySelector('.agent-label');
     b.addEventListener('click', function () {
-      var text = getPrompt();
       var done = function () {
         b.classList.add('done'); label.textContent = 'Copied, paste it into your agent';
         setTimeout(function () { b.classList.remove('done'); label.textContent = 'Copy prompt for your agent'; }, 2600);
       };
-      var plain = function () { return text.then(function (t) { return navigator.clipboard.writeText(t); }); };
-      if (!navigator.clipboard) return done();
-      if (window.ClipboardItem && navigator.clipboard.write) {
-        navigator.clipboard.write([new ClipboardItem({ 'text/plain': text.then(function (t) { return new Blob([t], { type: 'text/plain' }); }) })])
-          .then(done, function () { plain().then(done, done); });
-      } else plain().then(done, done);
+      if (navigator.clipboard) navigator.clipboard.writeText(b.getAttribute('data-prompt')).then(done, done); else done();
     });
   });
 

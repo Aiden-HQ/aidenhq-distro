@@ -192,6 +192,9 @@ h1 .grad { display: inline-block; padding-bottom: .06em; text-wrap: balance; }
 .agent-note { margin-top: 6px; font-size: 14.5px; color: var(--text-3); }
 .agent-note a { color: var(--text-2); font-weight: 600; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--violet) 50%, transparent); text-underline-offset: 3px; }
 .agent-note a:hover { color: var(--text); }
+.agent-line { margin-top: 8px; }
+.agent-line code { display: block; width: fit-content; max-width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 7px; background: color-mix(in srgb, var(--surface) 85%, transparent); font-size: 13.5px; line-height: 1.5; color: var(--text-2); overflow-wrap: anywhere; }
+.agent-line a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--violet) 50%, transparent); text-underline-offset: 3px; }
 .cmd .prompt { font-family: var(--mono); color: #33E0C8; user-select: none; }
 .copy {
   display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border-radius: 6px; flex-shrink: 0;
@@ -654,6 +657,9 @@ h3 { font-size: clamp(18px, .4vw + 16px, 21px); letter-spacing: -.018em; font-we
 .agent-note-light { margin-top: 12px; color: rgba(255,255,255,.85); }
 .agent-note-light a { color: #fff; text-decoration-color: rgba(255,255,255,.6); }
 .agent-note-light a:hover { color: #fff; }
+.agent-line-light code { margin-inline: auto; }
+.agent-line-light code { color: #fff; background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); }
+.agent-line-light a { text-decoration-color: rgba(255,255,255,.6); }
 .cta-links { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
 .btn-light { background: #fff; color: #14205A; }
 .btn-light:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -10px rgba(0,0,0,.5); }
@@ -764,3 +770,4 @@ h3 { font-size: clamp(18px, .4vw + 16px, 21px); letter-spacing: -.018em; font-we
   .js .reveal { opacity: 1; transform: none; }
   .mesh i, .flow::after, .vig *, .vig *::before, .vig *::after, .meter i, .chart i { animation: none !important; }
 }
+.nw { white-space: nowrap; }
