@@ -1,0 +1,7 @@
+{
+  "name": "aidenhq-site",
+  "main": "web/worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "web/public", "binding": "ASSETS", "run_worker_first": true },
+  "workers_dev": true
+}
