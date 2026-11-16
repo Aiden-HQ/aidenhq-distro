@@ -34,8 +34,7 @@ release() { # kernel marketplace module-a module-b
   "modules": {
     "board": "$3",
     "tasks": "$4"
-  },
-  "host": { "docker": "29.9.3", "node": "24.22.3" } }
+  } }
 EOF
 }
 
@@ -49,7 +48,7 @@ case_() {
     # shellcheck disable=SC1091
     . "$work/lib.sh"
     setup_ui; DRY=0 VERBOSE=0 NONINT=1 NO_TS=0 REL=2026.11 SUDO='' STEP='' REFUSALS='' AUTH_HDR=''
-    SVC=$(id -un) SVC_HOME="$home" SVC_UID=$(id -u) DIR="$home/aidenhq" STATE_DIR="$home/.aidenhq" STATE="$home/.aidenhq/install.state"
+    SVC=$(id -un) SVC_HOME="$home" SVC_UID=$(id -u) DIR="$home/aidenhq" STATE_DIR="$home/.aidenhq"
     TMPD=$(mktemp -d "$work/t.XXXX") LOG="$TMPD/log"
     AIDENHQ_RELEASE_FILE="$work/rel.json" AIDENHQ_GIT_BASE="file://$work/git"
     fetch_release >/dev/null
@@ -93,12 +92,46 @@ expect "20 threads / 64 GB / 460 GB -> 16 jobs, 120 min, 4 CI runners" pass \
   'CORES=20 RAM_MB=64076 DISK_TOTAL_GB=458; derive_defaults; [ "$MAX_CONCURRENT/$JOB_TIMEOUT/$CI_RUNNERS" = 16/120/4 ]'
 
 # Config injection: setup's config is line-parsed; a newline or quote in any value would forge a key.
-expect "a plain owner name is accepted" pass 'safe_val N "Alex Doe (CTO), acme.example"'
-expect "a newline in the owner name is refused" stop 'safe_val N "$(printf "x\nOPENROUTER_KEY=evil")"'
+expect "a plain value is accepted" pass 'safe_val N "Alex Doe (CTO), acme.example"'
+expect "a newline in a value is refused" stop 'safe_val N "$(printf "x\nOPENROUTER_KEY=evil")"'
 expect "a double quote in a key is refused" stop 'safe_val K "sk-or\"x"'
 expect "a dollar sign is refused" stop 'safe_val K "sk-\$(id)"'
-expect "write_setup_config refuses an injected name before writing anything" stop \
-  'AIDENHQ_OWNER_NAME="$(printf "A\nTS_AUTHKEY=x")" AIDENHQ_OWNER_EMAIL=a@example.com; write_setup_config'
+expect "write_setup_config refuses an injected key before writing anything" stop \
+  'OPENROUTER_KEY="$(printf "k\nTS_AUTHKEY=x")"; mktemp() { echo "$TMPD/never"; }; write_setup_config'
+# The setup config holds the secrets only, in a root-only (0600) file, and no secret means no file.
+expect "secrets land in a 0600 config file, nothing else does" pass \
+  "mktemp() { command mktemp '$work/pe.XXXX'; }; PENV=''; OPENROUTER_KEY=sk-or-x TS_AUTHKEY=tskey-x AIDENHQ_OWNER_EMAIL=a@example.com; write_setup_config
+   [ \"\$(ls -l \"\$PENV\" | cut -c1-10)\" = -rw------- ] && [ \"\$(cat \"\$PENV\")\" = 'OPENROUTER_KEY=\"sk-or-x\"
+TS_AUTHKEY=\"tskey-x\"' ]"
+expect "no secret, no config file" pass 'PENV=""; write_setup_config; [ -z "$PENV" ]'
+
+# The owner's email is needed and checked; the pinned kernel's pins.json decides which hosts are supported.
+expect "a plain email is accepted" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL=a.b+c@example.com; ensure_owner_email; [ -z "$REFUSALS" ]'
+expect "a missing email is refused" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL=""; ensure_owner_email; [ -n "$REFUSALS" ]'
+expect "an email with a space is refused" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL="a b@example.com"; ensure_owner_email; [ -n "$REFUSALS" ]'
+mkdir -p "$work/k/ops/vm"; echo '--unattended' >"$work/k/ops/setup.sh"; echo '{"releases":{"noble":{}}}' >"$work/k/ops/vm/pins.json"
+expect "a host the pins list is accepted" pass "DIR='$work/k' CODENAME=noble REFUSALS=''; check_product; [ -z \"\$REFUSALS\" ]"
+expect "a host the pins don't list is refused" pass "DIR='$work/k' CODENAME=bionic OS_NAME=Ubuntu REFUSALS=''; check_product; [ -n \"\$REFUSALS\" ]"
+
+# The handover, end to end against a stub setup: owner and sizing arrive in the environment, the secrets only in a 0600
+# --config file that is gone afterwards, and the last link lines of this run are the ones read.
+mkdir -p "$work/h/ops"
+cat >"$work/h/ops/setup.sh" <<'EOS'
+#!/bin/bash
+echo "• a step"
+echo "args=$*"; echo "env=$OWNER_EMAIL,$MAX_CONCURRENT,$TIMEOUT_MINUTES,$CI_RUNNERS,$AIDENHQ_USER"
+while [ $# -gt 0 ]; do [ "$1" = --config ] && cfg=$2; shift; done
+echo "cfgmode=$(ls -l "$cfg" | cut -c1-10)"; echo "cfg=$(tr '\n' ' ' <"$cfg")"; echo "cfgpath=$cfg"
+echo AIDENHQ_SSH_TUNNEL=ssh-x; echo AIDENHQ_SETUP_URL=http://old; echo AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t
+EOS
+expect "setup is driven unattended: env, a 0600 config, parsed links, config deleted" pass \
+  "sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { :; }; mktemp() { command mktemp '$work/pe.XXXX'; }
+   DIR='$work/h' NO_TS=1 NONINT=1 SETUP_URL='' SSH_TUNNEL='' PENV='' KERNEL_SHA=x MAX_CONCURRENT=2 JOB_TIMEOUT=60 CI_RUNNERS=1
+   AIDENHQ_OWNER_EMAIL=a@example.com OPENROUTER_KEY=sk-or-x; run_setup
+   grep -qx 'args=--unattended --no-tailscale --config .*' \"\$LOG\" && grep -qx 'env=a@example.com,2,60,1,'\"\$SVC\" \"\$LOG\" \
+     && grep -qx 'cfgmode=-rw-------' \"\$LOG\" && grep -qx 'cfg=OPENROUTER_KEY=\"sk-or-x\" ' \"\$LOG\" \
+     && [ \"\$SETUP_URL\" = http://127.0.0.1:3121/setup/t ] && [ \"\$SSH_TUNNEL\" = ssh-x ] \
+     && [ ! -e \"\$(sed -n 's/^cfgpath=//p' \"\$LOG\")\" ]"
 
 # Root verification ignores the service user's .git (replace refs) and catches any tracked change.
 g init -q "$work/rv"; echo good >"$work/rv/f"; g -C "$work/rv" add -A; g -C "$work/rv" commit -qm one
@@ -113,10 +146,6 @@ expect "but not root verification" stop "DIR='$work/rv' KERNEL_SHA=$RK; root_ver
 echo 'Authorization: Bearer x' >"$work/hdr"
 expect "an authenticated download without curl is refused" stop \
   "have() { [ \"\$1\" != curl ] && command -v \"\$1\" >/dev/null; }; fetch https://example.com/x '$work/x' '$work/hdr'"
-expect "the pinned key alone is trusted" pass \
-  "fetch() { cat '$here/installer/fixtures/nodesource.asc' >\"\$2\"; }; add_key https://example.com/k 6F71F525282841EEDAF851B42F59B5F99B1BE0B4 '$work/k.gpg' armor"
-expect "an exclusive key pin: a second primary key is refused" stop \
-  "fetch() { cat '$here/installer/fixtures/two-keys.asc' >\"\$2\"; }; add_key https://example.com/k 6F71F525282841EEDAF851B42F59B5F99B1BE0B4 '$work/k.gpg' armor"
 
 printf '%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" = 0 ]
