@@ -11,7 +11,7 @@ Not a chatbot. Not a workflow builder. A team that works.
 curl -fsSL https://get.aidenhq.ai | sh
 ```
 
-One line on your Linux server with Docker and Node. Site: [aidenhq.ai](https://aidenhq.ai) (source in
+One line on a fresh Ubuntu or Debian server; it installs Docker and Node itself. Site: [aidenhq.ai](https://aidenhq.ai) (source in
 [`site/`](site/)).
 
 ## Hand over real work, in a sentence

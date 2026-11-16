@@ -7,7 +7,7 @@
 curl -fsSL https://get.aidenhq.ai | sh
 ```
 
-One command on a Linux server (Ubuntu or Debian). It installs what it needs, including Docker and Node. No sign-up,
+One command on a fresh Ubuntu or Debian server. It installs what it needs, including Docker and Node. No sign-up,
 no demo call.
 
 **Using Claude Code, Codex or another agent?** Point it at [aidenhq.ai/prompt.md](https://aidenhq.ai/prompt.md). It

@@ -550,6 +550,10 @@ finish() {
   if $SUDO test -e /root/aidenhq-vault-recovery.txt 2>/dev/null; then
     printf '  Vault recovery key: sudo cat /root/aidenhq-vault-recovery.txt, store it, then sudo shred -u it.\n'
   fi
+  # Machine-readable, plain and at the start of a line (no --verbose needed): scripts and agents grep these.
+  printf '\n'
+  [ -z "$SETUP_URL" ] || printf 'AIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
+  [ -z "$SSH_TUNNEL" ] || printf 'AIDENHQ_SSH_TUNNEL=%s\n' "$SSH_TUNNEL"
 }
 
 # ------------------------------------------------------------------------------------------------ uninstall
