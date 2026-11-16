@@ -152,5 +152,64 @@ echo 'Authorization: Bearer x' >"$work/hdr"
 expect "an authenticated download without curl is refused" stop \
   "have() { [ \"\$1\" != curl ] && command -v \"\$1\" >/dev/null; }; fetch https://example.com/x '$work/x' '$work/hdr'"
 
+# macOS: the Lima VM path, with uname, sw_vers, sysctl, limactl and launchctl stubbed (runs on any POSIX host).
+mkdir -p "$work/mac/bin" "$work/mac/home"
+cat >"$work/mac/bin/limactl" <<'EOS'
+#!/bin/sh
+# Stub limactl: each call's args (one per line) to args.N and, for shell, its stdin to stdin.N.
+d=$STUB_DIR; n=$(ls "$d" | grep -c '^args\.' || :)
+printf '%s\n' "$@" >"$d/args.$n"
+case "$1" in
+  --version) echo "limactl version ${STUB_LIMA_VERSION:-2.3.0}" ;;
+  list) [ -n "${STUB_STATE:-}" ] || exit 1; echo "$STUB_STATE" ;;
+  shell) cat >"$d/stdin.$n"; case "$*" in *setup-url*) printf 'http://lima-aidenhq:3121/setup/t\r\n' ;; esac ;;
+esac
+EOS
+chmod +x "$work/mac/bin/limactl"
+echo '#!/bin/sh' >"$work/mac/inst.sh"
+# mac CMDS: a fresh stub-call directory, a Mac-like environment, then CMDS.
+mac() {
+  rm -rf "$work/mac/calls" "$work/mac/home/Library"; mkdir -p "$work/mac/calls"
+  printf '%s\n' "export STUB_DIR='$work/mac/calls' HOME='$work/mac/home' LIMA_HOME='$work/mac/home/.lima'
+    uname() { case \"\$1\" in -m) echo arm64 ;; *) echo Darwin ;; esac; }; sw_vers() { echo 15.4; }
+    sysctl() { case \"\$2\" in hw.ncpu) echo 8 ;; hw.memsize) echo 17179869184 ;; esac; }
+    nc() { return 1; }; launchctl() { echo \"launchctl \$*\" >>'$work/mac/calls/launchctl'; [ \"\$1\" != print ]; }
+    DRY=0 NONINT=1 NO_TS=1 REL=2026.11 DIR='' REFUSALS='' AWAKE=0 SETUP_URL=''
+    LIMACTL='$work/mac/bin/limactl'; PATH='$work/mac/bin':\$PATH
+    $1"
+}
+calls() { cat "$work/mac/calls"/args.* 2>/dev/null; }
+
+expect "a Mac on macOS 12 is refused" stop "$(mac 'sw_vers() { echo 12.7.4; }; mac_detect')"
+expect "an 8-core, 16 GB Mac makes a 4 CPU / 8 GB / 100 GB VM, Homebrew's Lima 2.2.1 is used" pass "$(mac 'export STUB_LIMA_VERSION=2.2.1
+  mac_detect; mac_size; [ "$VM_CPUS/$VM_MEM/$VM_DISK" = 4/8/100 ] && [ "$LIMACTL" = "$work/mac/bin/limactl" ] && [ -z "$REFUSALS" ]')"
+expect "an 18-core, 64 GB Mac makes an 8 CPU / 16 GB VM" pass "$(mac 'MCORES=18 MRAM_GB=64 MFREE_GB=500; mac_size; [ "$VM_CPUS/$VM_MEM" = 8/16 ]')"
+expect "an 8 GB Mac is refused" pass "$(mac 'MCORES=8 MRAM_GB=8 MFREE_GB=500; mac_size; [ -n "$REFUSALS" ]')"
+expect "a Lima older than 2.0 isn't used (the pinned one is installed instead)" pass "$(mac 'export STUB_LIMA_VERSION=1.2.0; mac_detect; [ -z "$LIMACTL" ]')"
+expect "a Lima download with the wrong digest stops before unpacking" stop "$(mac 'mac_detect; LIMACTL=""; fetch() { echo junk >"$2"; }
+  mac_lima; true')"
+expect "the VM: vz, the pinned image digest, no Mac folders shared, only 3121 forwarded" pass "$(mac 'mac_detect; mac_size; mac_template >"$TMPD/t.yaml"
+  grep -qx "vmType: vz" "$TMPD/t.yaml" && grep -qx "  digest: sha256:$UBUNTU_SHA256_arm64" "$TMPD/t.yaml" && grep -qx "mounts: \[\]" "$TMPD/t.yaml" \
+    && grep -qx "  arch: aarch64" "$TMPD/t.yaml" && [ "$(grep -c -- "^- guestPort:" "$TMPD/t.yaml")" = 1 ] && grep -qx -- "- guestPort: 3121" "$TMPD/t.yaml" \
+    && [ "$(grep -c "ignore: true" "$TMPD/t.yaml")" = 2 ]')"
+expect "the login agent runs limactl start --foreground, under caffeinate -s only when kept awake" pass "$(mac 'mac_detect
+  AWAKE=0; mac_agent_plist >"$TMPD/p0"; AWAKE=1; mac_agent_plist >"$TMPD/p1"
+  ! grep -q caffeinate "$TMPD/p0" && grep -q "<string>/usr/bin/caffeinate</string><string>-s</string><string>$LIMACTL</string><string>start</string><string>aidenhq</string><string>--foreground</string>" "$TMPD/p1" \
+    && { ! command -v plutil >/dev/null || { plutil -lint "$TMPD/p0" && plutil -lint "$TMPD/p1"; }; }')"
+expect "a Mac dry run with no VM creates, writes and loads nothing" pass "$(mac 'DRY=1; mac_detect; mac_size; mac_keep_awake; mac_vm; mac_inner
+  ! calls | grep -qx "shell" && ! calls | grep -q "^--tty=false" && [ ! -e "$HOME/Library" ] && [ ! -e "$STUB_DIR/launchctl" ]')"
+expect "the VM's run gets the flags and owner in argv, the secrets only over stdin, and the link comes back on localhost" pass "$(mac 'export STUB_STATE=Running
+  mac_detect; AIDENHQ_INSTALLER_FILE="$work/mac/inst.sh" AIDENHQ_OWNER_EMAIL=a@example.com OPENROUTER_KEY=sk-or-canary AIDENHQ_GITHUB_TOKEN=ghp-canary; mac_inner
+  ! calls | grep -q canary && grep -qx "OPENROUTER_KEY=\"sk-or-canary\"" "$STUB_DIR"/stdin.* && grep -qx "AIDENHQ_GITHUB_TOKEN=\"ghp-canary\"" "$STUB_DIR"/stdin.* \
+    && calls | grep -qx -- --no-tailscale && calls | grep -qx AIDENHQ_OWNER_EMAIL=a@example.com && calls | grep -qx AIDENHQ_MAC_VM=1 \
+    && [ "$SETUP_URL" = http://127.0.0.1:3121/setup/t ]')"
+expect "a secret with a newline is refused before anything reaches the VM" pass "$(mac 'export STUB_STATE=Running
+  mac_detect; AIDENHQ_INSTALLER_FILE="$work/mac/inst.sh" OPENROUTER_KEY="$(printf "k\nTS_AUTHKEY=x")"; (mac_inner) && exit 1; ! ls "$STUB_DIR"/stdin.* 2>/dev/null')"
+expect "uninstall with no terminal and no confirmation deletes nothing" pass "$(mac 'export STUB_STATE=Running; mac_detect; (mac_uninstall) && exit 1
+  ! calls | grep -qx delete && [ ! -e "$STUB_DIR/launchctl" ]')"
+expect "uninstall confirmed with AIDENHQ_CONFIRM_DELETE_VM=1 removes the agent and deletes the VM" pass "$(mac 'export STUB_STATE=Running; mac_detect
+  mkdir -p "$HOME/Library/LaunchAgents"; : >"$HOME/Library/LaunchAgents/ai.aidenhq.vm.plist"; AIDENHQ_CONFIRM_DELETE_VM=1; mac_uninstall
+  calls | grep -qx delete && calls | grep -qx -- --force && grep -q "bootout gui/" "$STUB_DIR/launchctl" && [ ! -e "$HOME/Library/LaunchAgents/ai.aidenhq.vm.plist" ]')"
+
 printf '%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" = 0 ]

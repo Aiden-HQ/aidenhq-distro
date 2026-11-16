@@ -26,7 +26,38 @@ curl -fsSLo install.sh https://get.aidenhq.ai && less install.sh && sh install.s
 | Free disk | 60 GB | a 100 GB disk |
 | Init | systemd as PID 1 (not WSL, not a container) | |
 
-macOS and Windows can't host AidenHQ; use a Linux VM.
+Windows can't host AidenHQ; use a Linux VM. On a Mac, run the same command: it makes the Linux VM for you (see
+[On a Mac](#on-a-mac)).
+
+## On a Mac
+
+AidenHQ's security gates need Linux (bwrap user namespaces, pasta, gVisor, the gocryptfs vault, systemd, AppArmor), so on
+macOS the installer makes an Ubuntu 24.04 VM named `aidenhq` with [Lima](https://lima-vm.io) on Apple's Virtualization
+framework and runs its own Linux path inside it, unchanged. It never uses sudo on the Mac.
+
+- **Needs** macOS 13 or later, Apple silicon or Intel, 12 GB of memory or more (16 GB recommended) and 60 GB free.
+- **Lima**: an existing `limactl` 2.0 or newer (Homebrew's, say) is used; otherwise Lima 2.3.0 is downloaded from its GitHub
+  release, checked against a pinned sha256 and unpacked into `~/.aidenhq/lima`. The Ubuntu cloud image is pinned by sha256 too.
+- **Size**: half the Mac's cores (4 to 8) and half its memory (8 to 16 GB, leaving macOS at least 4), and a 100 GB disk
+  that is a sparse file in `~/.lima/aidenhq` (it takes only what is used). Override when the VM is made with
+  `AIDENHQ_VM_CPUS`, `AIDENHQ_VM_MEMORY` and `AIDENHQ_VM_DISK` (GB). Later: `limactl stop aidenhq`,
+  `limactl edit aidenhq --cpus 6 --memory 12 --disk 150` (the disk only grows), then run the installer again (it starts
+  the VM under its login agent).
+- **Isolation**: no Mac folder is shared with the VM, and only the board's port 3121 is forwarded, to the Mac's localhost;
+  every other port stays inside the VM.
+- **The link**: with `--no-tailscale` the setup link is `http://127.0.0.1:3121/setup/...`: open it on the Mac, no tunnel.
+  With Tailscale the VM joins your tailnet as its own machine and the link is its tailnet address.
+- **Secrets** (`OPENROUTER_KEY`, `TS_AUTHKEY`, `AIDENHQ_GITHUB_TOKEN`, ...) go into the VM over stdin as a 0600 file that
+  is sourced and shredded there: never on a command line, never in Lima's config.
+- **Start at login**: a LaunchAgent, `~/Library/LaunchAgents/ai.aidenhq.vm.plist`, runs `limactl start aidenhq
+  --foreground`. `limactl stop aidenhq` stops the VM until the next login or installer run.
+- **Sleep**: a Mac that sleeps pauses every agent. The installer asks once whether to keep the Mac awake while the VM
+  runs (`AIDENHQ_KEEP_AWAKE=1` or `0` without a terminal; the default there is no). Yes runs the VM under
+  `caffeinate -s`, which holds off system sleep on power only, while the VM runs; it changes no power settings, and
+  closing a laptop's lid or running on battery still sleeps it. Run the installer again with `AIDENHQ_KEEP_AWAKE=0` to undo it.
+- **Uninstall**: `--uninstall` deletes the VM and, with it, everything AidenHQ kept there (data, vault, instance checkout),
+  unlike on Linux where data stays. It asks you to type `delete`; without a terminal it needs `AIDENHQ_CONFIRM_DELETE_VM=1`.
+  It keeps Lima's image cache (`~/Library/Caches/lima`) and a Lima you installed yourself.
 
 ## Options
 
@@ -104,5 +135,5 @@ It sends no telemetry.
 ## Test
 
 ```sh
-sh installer/test.sh     # offline: release verification passes, and each kind of tampering stops it
+sh installer/test.sh     # offline: release verification passes, each kind of tampering stops it; the macOS path with stubs
 ```
