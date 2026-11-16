@@ -30,6 +30,32 @@
     });
   });
 
+  /* Copy prompt for your agent: fetch the agent guide and put it on the clipboard. */
+  var FALLBACK = 'Read https://aidenhq.ai/prompt.md and follow it to install and set up AidenHQ on my server.';
+  function getPrompt() {
+    return fetch('/prompt.md', { cache: 'no-cache' }).then(function (r) {
+      var type = r.headers.get('content-type') || '';
+      if (!r.ok || type.indexOf('html') !== -1) throw new Error('no prompt');
+      return r.text();
+    }).then(function (t) { return t.trim() ? t : FALLBACK; }, function () { return FALLBACK; });
+  }
+  document.querySelectorAll('[data-prompt]').forEach(function (b) {
+    var label = b.querySelector('.agent-label');
+    b.addEventListener('click', function () {
+      var text = getPrompt();
+      var done = function () {
+        b.classList.add('done'); label.textContent = 'Copied, paste it into your agent';
+        setTimeout(function () { b.classList.remove('done'); label.textContent = 'Copy prompt for your agent'; }, 2600);
+      };
+      var plain = function () { return text.then(function (t) { return navigator.clipboard.writeText(t); }); };
+      if (!navigator.clipboard) return done();
+      if (window.ClipboardItem && navigator.clipboard.write) {
+        navigator.clipboard.write([new ClipboardItem({ 'text/plain': text.then(function (t) { return new Blob([t], { type: 'text/plain' }); }) })])
+          .then(done, function () { plain().then(done, done); });
+      } else plain().then(done, done);
+    });
+  });
+
   /* Scroll reveals */
   var reveals = document.querySelectorAll('.reveal');
   if (reduce || !('IntersectionObserver' in window)) {
@@ -49,11 +75,11 @@
   }
 
   /* Module catalog filter */
-  var catTabs = document.querySelectorAll('.cat-tabs [role="tab"]');
+  var catTabs = document.querySelectorAll('.cat-tabs button');
   var catItems = document.querySelectorAll('.cat-list li');
   catTabs.forEach(function (t) {
     t.addEventListener('click', function () {
-      catTabs.forEach(function (o) { o.setAttribute('aria-selected', String(o === t)); });
+      catTabs.forEach(function (o) { o.setAttribute('aria-pressed', String(o === t)); });
       catItems.forEach(function (li) { li.hidden = t.dataset.f !== 'all' && li.dataset.t !== t.dataset.f; });
     });
   });
@@ -64,14 +90,25 @@
   var msgs = document.getElementById('msgs');
   var typing = document.getElementById('typing');
   var cards = document.getElementById('cards');
-  var toast = document.getElementById('toast');
   var apprCount = document.getElementById('appr-count');
   var fleetCount = document.getElementById('fleet-count');
-  var ASK = 'Build a tracker for every open PR at acme and share it with the team.';
-  var REPLY = 'On it. The Agent Architect plans it, an Engineer builds it, DevOps ships it.';
+  var ASK = 'Build a tracker for every open PR at acme and chase stale ones.';
+  var REPLY = 'On it. The Agent Architect is planning it and an Engineer will build it.';
+  var PROGRESS = 'PR #42 passed CI and AI review. DevOps is deploying it now.';
+  var SHIPPED = 'Shipped. Live at <span class="lnk">prs.acme.example.com</span> · 14 PRs tracked, 3 owners nudged.';
 
   function el(tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
-  function say(cls, text) { var m = el('div', 'msg ' + cls); m.textContent = text; msgs.appendChild(m); while (msgs.children.length > 4) msgs.removeChild(msgs.firstChild); return m; }
+  function say(cls, text, html) { var m = el('div', 'msg ' + cls); if (html) m.innerHTML = html; else m.textContent = text; msgs.appendChild(m); while (msgs.children.length > 11) msgs.removeChild(msgs.firstChild); return m; }
+  function history() {
+    say('sys', 'Monday');
+    say('me', "Prep me for Thursday's board meeting.");
+    say('them', "Done. Deck notes, open risks and last quarter's numbers are in your brief.");
+    say('sys', 'Yesterday');
+    say('me', 'Chase the vendor contract and tell me by Friday.');
+    say('them', 'Done. The signed redlines are filed in Drive.');
+    say('sys', 'Today 08:00');
+    say('them', 'Morning brief: 3 replies chased, 1 PR merged overnight, nothing needs you.');
+  }
   function lane(k, status, pct, on) {
     var li = board.querySelector('.lanes [data-k="' + k + '"]');
     li.querySelector('small').textContent = status;
@@ -94,24 +131,24 @@
 
   function initial() {
     msgs.innerHTML = ''; cards.innerHTML = ''; typing.textContent = '';
-    say('them', 'Morning brief: 3 replies chased, 1 PR merged overnight, nothing needs you.');
+    history();
     lane('arch', 'Idle', 0); lane('eng', 'Idle', 0); lane('ops', 'Watching 6 apps', 0); lane('fu', 'Chasing 3 replies', 62, true);
     card('t0', 'Merge PR #117 in acme-agents/brief', 'Safe write, ran at once', chip('', 'Ran'));
     card('t1', 'Send reminder to an allowlisted teammate', 'AI reviewer', chip('', 'Reviewer approved'));
     apprCount.textContent = 'All clear';
-    toast.classList.remove('show');
   }
 
   function finalFrame() {
     msgs.innerHTML = ''; cards.innerHTML = '';
+    history();
     say('me', ASK);
     say('them', REPLY);
-    say('them', 'pr-tracker is live and shared with the team.');
+    say('them', PROGRESS);
+    say('them ship', null, SHIPPED);
     lane('arch', 'Plan handed to Engineer', 100); lane('eng', 'Done: PR #42 merged', 100); lane('ops', 'Watching 7 apps', 100, true);
     card('t0', 'Push feat/pr-tracker', 'Safe write, ran at once', chip('', 'Ran'));
     card('t1', 'Merge PR #42, CI green', 'AI reviewer', chip('', 'Reviewer approved'));
     card('t1', 'Deploy pr-tracker v1', 'AI reviewer', chip('', 'Reviewer approved'));
-    toast.classList.add('show');
   }
 
   if (reduce) { finalFrame(); return; }
@@ -159,14 +196,13 @@
     await review(card('t1', 'Merge PR #42, CI green', 'AI reviewer', chip('shimmer', 'Reviewing')));
     lane('eng', 'Done: PR #42 merged', 100, false);
     lane('ops', 'Deploying pr-tracker', 100, true);
+    say('them', PROGRESS);
     await wait(900);
     await review(card('t1', 'Deploy pr-tracker v1', 'AI reviewer', chip('shimmer', 'Reviewing')));
     await wait(500);
     lane('ops', 'Watching 7 apps', 100, true);
-    toast.classList.add('show');
-    say('them', 'pr-tracker is live and shared with the team.');
-    await wait(4200);
-    toast.classList.remove('show');
+    say('them ship', null, SHIPPED);
+    await wait(4800);
     board.classList.add('resetting');
     await wait(500);
     board.classList.remove('resetting');
