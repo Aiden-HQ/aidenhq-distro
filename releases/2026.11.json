@@ -1,0 +1,55 @@
+{
+  "name": "AidenHQ",
+  "release": "2026.11",
+  "todo": "Not cut yet: every sha below is a placeholder, so install.sh refuses this file. The 5c release CI fills kernel, marketplace.sha and modules, records tested.ci_run, tags 2026.11 and bakes this file's sha256 into the tagged install.sh (RELEASE_SHA256).",
+  "kernel": "TODO-kernel-sha",
+  "kernel_repo": "Aiden-HQ/AidenHQ",
+  "marketplace": {
+    "name": "aidenhq",
+    "source": {
+      "source": "github",
+      "repo": "Aiden-HQ/aidenhq-modules"
+    },
+    "sha": "TODO-marketplace-sha"
+  },
+  "modules": {
+    "board": "TODO-module-sha",
+    "tasks": "TODO-module-sha",
+    "chief-of-staff": "TODO-module-sha",
+    "engineering": "TODO-module-sha",
+    "engine-codex": "TODO-module-sha",
+    "codehost-github": "TODO-module-sha",
+    "github": "TODO-module-sha",
+    "ai-reviewer": "TODO-module-sha",
+    "grading": "TODO-module-sha",
+    "models-openrouter": "TODO-module-sha",
+    "model-tools": "TODO-module-sha",
+    "channel-telegram": "TODO-module-sha",
+    "chat-lane": "TODO-module-sha",
+    "apps-platform": "TODO-module-sha",
+    "warehouse": "TODO-module-sha",
+    "agent-builder": "TODO-module-sha",
+    "platform": "TODO-module-sha",
+    "coach": "TODO-module-sha",
+    "memory": "TODO-module-sha",
+    "fleet-ops": "TODO-module-sha"
+  },
+  "host": {
+    "docker": "29.9.3",
+    "containerd": "2.4.2-4",
+    "buildx": "0.39.0",
+    "compose": "5.7.0",
+    "node": "24.22.3",
+    "tailscale": "1.104.7"
+  },
+  "tested": {
+    "ci_run": "",
+    "suites": [
+      "kernel-only",
+      "swap",
+      "parity",
+      "adversarial",
+      "twin"
+    ]
+  }
+}
