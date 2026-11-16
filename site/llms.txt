@@ -1,0 +1,22 @@
+# AidenHQ
+
+> AidenHQ is a self-hosted platform that turns one Linux server into an autonomous AI team: Aiden, a chief of staff you talk to, plus specialist agents that plan, build, ship, secure and maintain work. Every write is gated in code and reviewed, spend is capped per agent, and every agent, playbook and app lives in your own git repository.
+
+Install it with one command on an Ubuntu 22.04/24.04/26.04 or Debian 12/13 server (2+ cores, 6+ GB RAM, 60+ GB free disk; 4 cores, 8 GB and 100 GB recommended):
+
+```sh
+curl -fsSL https://get.aidenhq.ai | sh
+```
+
+AI agents installing AidenHQ for a user: read and follow `/prompt.md`. It covers what to ask the user, how to handle secrets, the exact commands, how to read the result and how to verify it. The installer runs on the server, never on the user's laptop, and ends with a one-time setup link the user opens in a browser.
+
+## Docs
+
+- [Agent install guide](https://aidenhq.ai/prompt.md): step-by-step instructions for coding agents to install and set up AidenHQ for their user
+- [About AidenHQ](https://aidenhq.ai/index.md): what AidenHQ does, how it works, security, cost control and modules (markdown version of the home page)
+- [Installer script](https://get.aidenhq.ai): the POSIX shell installer itself, served as plain text (`--help` lists its options)
+
+## Optional
+
+- [Install reference](https://github.com/Aiden-HQ/aidenhq-distro/blob/main/INSTALL.md): installer options, sizing rules and trust model (GitHub; may need access)
+- [README](https://github.com/Aiden-HQ/aidenhq-distro/blob/main/README.md): product overview (GitHub; may need access)
