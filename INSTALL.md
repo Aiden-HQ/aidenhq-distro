@@ -45,7 +45,7 @@ has an environment form.
 
 Other inputs:
 
-- `AIDENHQ_USER`: the service user when you run as root. The default is `aidenhq`, created with sudo and root's SSH keys,
+- `AIDENHQ_USER`: the service user when you run as root. The default is `aidenhq`, created with passwordless sudo and root's SSH keys,
   because setup turns off root SSH login.
 - `AIDENHQ_GITHUB_TOKEN`: a token for private repos.
 - `AIDENHQ_RELEASE_FILE`, `AIDENHQ_RELEASE_URL`, `AIDENHQ_GIT_BASE`: for mirrors, air-gapped installs and tests.
@@ -78,10 +78,16 @@ added only where `daemon.json` doesn't already set them. The product's weekly `p
 The installer is the one `curl | sh` the project allows. It is served only from a tagged release, and it verifies
 everything it fetches:
 
-- the release file, against the digest baked into the tagged script;
+- the default release's file, against the digest baked into the tagged script (another `--release` relies on its tag
+  and the sha checks below);
 - the kernel and each module, at the exact sha (HEAD must equal the pin, with no tracked changes);
-- vendor apt repos, by pinned key fingerprint;
+- vendor apt repos, by pinned key fingerprint (the key file must hold exactly that one primary key);
 - packages, at exact versions.
+
+Before root runs the product's setup, the installer verifies the checkout again, this time as root, against a
+root-owned clone. That check ignores the service user's `.git` and any replace refs. The setup config is written by root
+into a root-only directory, and every value is checked: no quotes, `$`, backticks or control characters. Tokens are only
+ever sent with curl, which doesn't pass them on through redirects to another host.
 
 It sends no telemetry.
 

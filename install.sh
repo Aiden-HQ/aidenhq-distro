@@ -47,8 +47,10 @@ die() { log "ERROR $*"; printf '%serror:%s %s\n' "$R" "$N" "$*" >&2; exit 1; }
 refuse() { REFUSALS="${REFUSALS}    - $*
 "; log "REFUSE $*"; }
 
+rm_penv() { [ -n "${PENV_DIR:-}" ] && $SUDO sh -c 'shred -u "$1/person.env" 2>/dev/null; rm -rf "$1"' _ "$PENV_DIR"; PENV_DIR=''; }
 on_exit() {
   rc=$?
+  rm_penv 2>/dev/null
   [ -n "${KEEPALIVE:-}" ] && kill "$KEEPALIVE" 2>/dev/null
   [ -n "${TMPD:-}" ] && rm -rf "$TMPD"
   [ "$rc" = 0 ] && return 0
@@ -87,10 +89,23 @@ ugit() { if [ "$(id -un)" = "$SVC" ]; then git "$@"; else runuser -u "$SVC" -- g
 ver_ge() { # A >= B, dotted numbers
   [ "$(printf '%s\n%s\n' "$2" "$1" | sort -t. -k1,1n -k2,2n -k3,3n | head -1)" = "$2" ]
 }
-fetch() { # url dest [header-file]
-  if have curl; then curl -fsSL --proto '=https' --tlsv1.2 --retry 3 ${3:+-H "@$3"} -o "$2" "$1"
-  elif have wget; then wget -q ${3:+--header="$(cat "$3")"} -O "$2" "$1"
+fetch() { # url dest [header-file]: https only. Credentials only ever go through curl, which (since 7.58) never forwards a
+  # custom Authorization header to another host on a redirect; wget would, so it only fetches anonymously.
+  if have curl; then curl -fsSL --proto '=https' --proto-redir '=https' --tlsv1.2 --retry 3 ${3:+-H "@$3"} -o "$2" "$1"
+  elif [ -n "${3:-}" ]; then echo "an authenticated download needs curl (wget would pass the token on through redirects)" >&2; return 1
+  elif have wget; then wget -q --https-only -O "$2" "$1"
   else return 127; fi
+}
+# gh_asset TAG NAME DEST: a private release asset through GitHub's API with the token; the signed redirect target is then
+# downloaded with no credentials at all.
+gh_asset() {
+  curl -fsS --proto '=https' --tlsv1.2 -H "@$AUTH_HDR" -H 'Accept: application/vnd.github+json' \
+    -o "$TMPD/rel-meta.json" "https://api.github.com/repos/$DISTRO_REPO/releases/tags/$1" || return 1
+  id=$(jq -r --arg n "$2" '.assets[] | select(.name == $n) | .id' "$TMPD/rel-meta.json")
+  [ -n "$id" ] || return 1
+  loc=$(curl -fsS --proto '=https' --tlsv1.2 -H "@$AUTH_HDR" -H 'Accept: application/octet-stream' -o /dev/null \
+    -w '%{redirect_url}' "https://api.github.com/repos/$DISTRO_REPO/releases/assets/$id") || return 1
+  case "$loc" in https://*) fetch "$loc" "$3" ;; *) return 1 ;; esac
 }
 sha256() { if have sha256sum; then sha256sum "$1" | cut -d' ' -f1; else shasum -a 256 "$1" | cut -d' ' -f1; fi; }
 
@@ -277,7 +292,7 @@ ensure_sudo() {
 ensure_user() {
   [ "$NEW_USER" = 1 ] || return 0
   step "Service user $SVC"
-  say "creating $SVC (AidenHQ never runs as root); it gets sudo and root's SSH keys, because setup turns off root SSH login"
+  say "creating $SVC (AidenHQ never runs as root); it gets passwordless sudo and root's SSH keys, because setup turns off root SSH login"
   run useradd -m -s /bin/bash "$SVC"
   grp=sudo; getent group sudo >/dev/null 2>&1 || grp=wheel
   run usermod -aG "$grp" "$SVC"
@@ -324,7 +339,9 @@ fetch_release() {
     say "release file: $AIDENHQ_RELEASE_FILE (local)"
   else
     url="${AIDENHQ_RELEASE_URL:-https://github.com/$DISTRO_REPO/releases/download/$REL/$REL.json}"
-    fetch "$url" "$RELFILE" "${AUTH_HDR:-}" || {
+    if [ -n "$AUTH_HDR" ] && [ -z "${AIDENHQ_RELEASE_URL:-}" ] && have jq; then got() { gh_asset "$REL" "$REL.json" "$RELFILE"; }
+    else got() { fetch "$url" "$RELFILE"; }; fi
+    got || {
       if [ "$DRY" = 1 ]; then warn "can't fetch $url yet (release not published?): planning without it"; RELFILE=''; return 0; fi
       die "can't fetch the release file $url"; }
     say "release file: $url"
@@ -372,7 +389,7 @@ checkout_at() {
     as_svc git init -q "$1"
     as_svc git -C "$1" remote add origin "$2"
   fi
-  as_svc git -C "$1" fetch -q --filter=blob:none origin main "$3" || as_svc git -C "$1" fetch -q origin main "$3" \
+  as_svc git -C "$1" fetch -q origin main "$3" \
     || die "can't fetch $3 from $2 (private repo? set AIDENHQ_GITHUB_TOKEN)"
   if [ "$(ugit -C "$1" rev-parse HEAD 2>/dev/null)" != "$3" ]; then
     ugit -C "$1" diff --quiet HEAD 2>/dev/null || [ -z "$(ugit -C "$1" rev-parse -q --verify HEAD)" ] \
@@ -421,7 +438,7 @@ check_product() {
   if [ ! -f "$DIR/ops/vm/setup.sh" ]; then
     case "$CODENAME" in noble|resolute) ;; *) refuse "today's kernel setup supports only Ubuntu 24.04/26.04, not $OS_NAME" ;; esac
   elif [ "$TIER" != first ] || ! grep -q "$CODENAME" "$DIR/ops/vm/setup.sh"; then
-    refuse "this kernel's ops/vm/setup.sh doesn't support $OS_NAME yet (it supports: $(sed -n 's/^ *\([a-z|]*\)) ;;$/\1/p' "$DIR/ops/vm/setup.sh" 2>/dev/null | head -1 | tr '|' ' ')). Nothing was installed."
+    refuse "this kernel's ops/vm/setup.sh doesn't support $OS_NAME yet (it supports: $(sed -n 's/^ *\([a-z|]*\)) ;;$/\1/p' "$DIR/ops/vm/setup.sh" 2>/dev/null | head -1 | tr '|' ' ')). Stopped before installing packages."
   fi
   [ "$DIR" = "$SVC_HOME/aidenhq" ] || refuse "this kernel's setup requires the checkout at $SVC_HOME/aidenhq, not $DIR"
   [ "$NO_TS" = 1 ] && [ "$UNATTENDED" = 0 ] && refuse "--no-tailscale needs a kernel whose setup runs without Tailscale; this one serves the board only on the tailnet"
@@ -437,14 +454,16 @@ check_product() {
 
 # ------------------------------------------------------------------------------------------------ packages
 apt_get() { as_root env DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=300 -y -q "$@"; }
-# add_key URL FINGERPRINT DEST: the key must carry FINGERPRINT as a primary key, or nothing is written.
+# add_key URL FINGERPRINT DEST FORMAT: the file's only primary key must be FINGERPRINT, or nothing is written. FORMAT is
+# how the product's ops/vm/setup.sh stores it (armor: as downloaded; dearmor; raw: already binary), so its rerun at
+# handover rewrites the same files in place instead of adding a second source with another Signed-By.
 add_key() {
   if [ "$DRY" = 1 ]; then printf '    %swould add key:%s %s (fingerprint %s) -> %s\n' "$D" "$N" "$1" "$2" "$3"; return 0; fi
   fetch "$1" "$TMPD/key" || die "can't download the signing key $1"
-  gpg --batch --show-keys --with-colons "$TMPD/key" 2>/dev/null \
-    | awk -F: '$1 == "pub" { p = 1; next } p && $1 == "fpr" { print $10; p = 0 }' | grep -qx "$2" \
-    || die "the key at $1 doesn't have the pinned fingerprint $2: refusing to trust it"
-  if grep -q 'BEGIN PGP' "$TMPD/key"; then gpg --batch --yes --dearmor -o "$TMPD/key.gpg" "$TMPD/key"; else cp "$TMPD/key" "$TMPD/key.gpg"; fi
+  prim=$(gpg --batch --show-keys --with-colons "$TMPD/key" 2>/dev/null \
+    | awk -F: '$1 == "pub" { p = 1; next } p && $1 == "fpr" { print $10; p = 0 }')
+  [ "$prim" = "$2" ] || die "the key at $1 isn't exactly the pinned key $2 (found: $(echo "$prim" | tr '\n' ' ')): refusing to trust it"
+  if [ "$4" = dearmor ]; then gpg --batch --yes --dearmor -o "$TMPD/key.gpg" "$TMPD/key"; else cp "$TMPD/key" "$TMPD/key.gpg"; fi
   $SUDO install -D -m 644 "$TMPD/key.gpg" "$3"; log "key $2 -> $3"
 }
 need_docker() {
@@ -472,23 +491,24 @@ install_apt() {
   as_root install -d -m 755 /etc/apt/keyrings
   pins='' holds='' sfx="~$BASE.$BASE_VER~$CODENAME"
   if need_docker; then
-    add_key "https://download.docker.com/linux/$BASE/gpg" "$FPR_DOCKER" /etc/apt/keyrings/aidenhq-docker.gpg
-    echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/aidenhq-docker.gpg] https://download.docker.com/linux/$BASE $CODENAME stable" \
-      | root_write /etc/apt/sources.list.d/aidenhq-docker.list 644 || :
+    add_key "https://download.docker.com/linux/$BASE/gpg" "$FPR_DOCKER" /etc/apt/keyrings/docker.asc armor
+    echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$BASE $CODENAME stable" \
+      | root_write /etc/apt/sources.list.d/docker.list 644 || :
     pins="$pins docker-ce=5:$H_DOCKER-1$sfx docker-ce-cli=5:$H_DOCKER-1$sfx docker-ce-rootless-extras=5:$H_DOCKER-1$sfx"
     pins="$pins containerd.io=$H_CONTAINERD$sfx docker-buildx-plugin=$H_BUILDX-1$sfx docker-compose-plugin=$H_COMPOSE-1$sfx"
     holds="$holds docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io docker-buildx-plugin docker-compose-plugin"
   fi
   if need_node; then
-    add_key https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key "$FPR_NODESOURCE" /etc/apt/keyrings/aidenhq-nodesource.gpg
-    echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/aidenhq-nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" \
-      | root_write /etc/apt/sources.list.d/aidenhq-nodesource.list 644 || :
+    add_key https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key "$FPR_NODESOURCE" /etc/apt/keyrings/nodesource.gpg dearmor
+    as_root rm -f /etc/apt/sources.list.d/nodesource.sources
+    echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" \
+      | root_write /etc/apt/sources.list.d/nodesource.list 644 || :
     pins="$pins nodejs=$H_NODE-1nodesource1" holds="$holds nodejs"
   fi
   if need_tailscale; then
-    add_key "https://pkgs.tailscale.com/stable/$BASE/$CODENAME.noarmor.gpg" "$FPR_TAILSCALE" /etc/apt/keyrings/aidenhq-tailscale.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/aidenhq-tailscale.gpg] https://pkgs.tailscale.com/stable/$BASE $CODENAME main" \
-      | root_write /etc/apt/sources.list.d/aidenhq-tailscale.list 644 || :
+    add_key "https://pkgs.tailscale.com/stable/$BASE/$CODENAME.noarmor.gpg" "$FPR_TAILSCALE" /usr/share/keyrings/tailscale-archive-keyring.gpg raw
+    echo "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/$BASE $CODENAME main" \
+      | root_write /etc/apt/sources.list.d/tailscale.list 644 || :
     pins="$pins tailscale=$H_TAILSCALE" holds="$holds tailscale"
   fi
   [ -n "$pins" ] || return 0
@@ -506,14 +526,14 @@ install_dnf() {
   as_root dnf -y -q install gocryptfs || warn "gocryptfs not found (on RHEL enable EPEL); the vault needs it"
   dist=centos; case " $OS_ID $OS_LIKE " in *" fedora "*) [ "$OS_ID" = fedora ] && dist=fedora ;; esac
   if need_docker; then
-    add_key "https://download.docker.com/linux/$dist/gpg" "$FPR_DOCKER_RPM" /etc/pki/rpm-gpg/aidenhq-docker.gpg
+    add_key "https://download.docker.com/linux/$dist/gpg" "$FPR_DOCKER_RPM" /etc/pki/rpm-gpg/aidenhq-docker.gpg dearmor
     printf '[aidenhq-docker]\nname=Docker CE\nbaseurl=https://download.docker.com/linux/%s/$releasever/$basearch/stable\nenabled=1\ngpgcheck=1\ngpgkey=file:///etc/pki/rpm-gpg/aidenhq-docker.gpg\n' "$dist" \
       | root_write /etc/yum.repos.d/aidenhq-docker.repo 644 || :
     as_root dnf -y -q install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   fi
   if need_node; then as_root dnf -y -q install nodejs24 || as_root dnf -y -q module install nodejs:24/common; fi
   if need_tailscale; then
-    add_key "https://pkgs.tailscale.com/stable/fedora/repo.gpg" "$FPR_TAILSCALE" /etc/pki/rpm-gpg/aidenhq-tailscale.gpg
+    add_key "https://pkgs.tailscale.com/stable/fedora/repo.gpg" "$FPR_TAILSCALE" /etc/pki/rpm-gpg/aidenhq-tailscale.gpg dearmor
     printf '[aidenhq-tailscale]\nname=Tailscale\nbaseurl=https://pkgs.tailscale.com/stable/fedora/$basearch\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=file:///etc/pki/rpm-gpg/aidenhq-tailscale.gpg\n' \
       | root_write /etc/yum.repos.d/aidenhq-tailscale.repo 644 || :
     as_root dnf -y -q install tailscale
@@ -571,6 +591,8 @@ configure_host() {
       (if has("log-driver") then . else . + {"log-driver": "json-file", "log-opts": {"max-size": $m, "max-file": $f}} end)
       | (if .builder.gc then . else .builder.gc = {"enabled": true, "defaultKeepStorage": $k} end)' >"$TMPD/daemon.json" \
       || die "/etc/docker/daemon.json isn't valid JSON"
+    if have dockerd; then $SUDO dockerd --validate --config-file "$TMPD/daemon.json" >>"$LOG" 2>&1 \
+      || die "Docker rejects the merged daemon.json (see the log); /etc/docker/daemon.json is unchanged"; fi
     if root_write /etc/docker/daemon.json 644 <"$TMPD/daemon.json"; then
       if [ -z "$($SUDO docker ps -q 2>/dev/null)" ]; then as_root systemctl restart docker
       else warn "containers are running: Docker's new log and cache limits apply at its next restart"; fi
@@ -594,21 +616,57 @@ join_tailnet() { # only for a kernel whose setup can't do it unattended
   $SUDO tailscale up --hostname="aidenhq-$SVC" </dev/tty || die "tailscale up failed"
 }
 
+# safe_val NAME VALUE: a value for setup's KEY="value" config. Its parser reads lines, never sources them; a quote, a
+# backslash or any control character (a newline would start a new KEY) is refused rather than escaped.
+safe_val() {
+  case "$2" in *[\"\'\\\`\$]*) die "$1 contains a quote, backslash, backtick or dollar sign: not accepted" ;; esac
+  [ "$(printf '%s' "$2" | tr -d '[:cntrl:]')" = "$2" ] || die "$1 contains a control character (newline?): not accepted"
+}
+# write_setup_config: the config ops/setup.sh reads as root, written by root into a root-only temp dir (0600). The
+# owner's name is AIDENHQ_OWNER_NAME or the user name (never GECOS: anyone who can chfn could set it).
+write_setup_config() {
+  tz=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo UTC)
+  case "$tz" in *[!A-Za-z0-9_/+-]*|'') tz=UTC ;; esac
+  name="${AIDENHQ_OWNER_NAME:-$SVC}"
+  safe_val AIDENHQ_OWNER_NAME "$name"; safe_val AIDENHQ_OWNER_EMAIL "$AIDENHQ_OWNER_EMAIL"
+  case "$AIDENHQ_OWNER_EMAIL" in *@*.*) ;; *) die "AIDENHQ_OWNER_EMAIL doesn't look like an email address" ;; esac
+  { printf 'AIDENHQ_USER="%s"\nOWNER_NAME="%s"\nOWNER_EMAIL="%s"\nTIMEZONE="%s"\n' "$SVC" "$name" "$AIDENHQ_OWNER_EMAIL" "$tz"
+    for k in OPENROUTER_KEY OPENROUTER_MANAGEMENT_KEY OPENROUTER_LIMIT_USD TS_AUTHKEY TS_APPS_AUTHKEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET MODULES; do
+      eval "v=\${$k:-}"
+      if [ -n "$v" ]; then safe_val "$k" "$v"; printf '%s="%s"\n' "$k" "$v"; fi
+    done; } >"$TMPD/person.env.new"
+  PENV_DIR=$($SUDO mktemp -d /run/aidenhq-setup.XXXXXX) && PENV="$PENV_DIR/person.env"
+  $SUDO sh -c 'umask 077; cat > "$1"' _ "$PENV" <"$TMPD/person.env.new"
+  rm -f "$TMPD/person.env.new"
+}
+
+# root_verify: right before root executes the checkout, verify it as root against a root-owned copy of the objects:
+# a --no-local clone (git rehashes every object it receives; replace refs are ignored), then the work tree is compared
+# file by file to the pinned commit through a root-owned index. The service user's own .git is never trusted here.
+root_verify() {
+  if [ "$DRY" = 1 ]; then printf '    %swould verify as root:%s %s against a root-owned clone at %s\n' "$D" "$N" "$DIR" "$KERNEL_SHA"; return 0; fi
+  RV=$($SUDO mktemp -d /var/tmp/aidenhq-verify.XXXXXX)
+  $SUDO env GIT_NO_REPLACE_OBJECTS=1 git -c safe.directory='*' clone -q --bare --no-local "$DIR" "$RV/k.git" >>"$LOG" 2>&1 \
+    || die "root verification: can't clone $DIR"
+  $SUDO env GIT_NO_REPLACE_OBJECTS=1 GIT_DIR="$RV/k.git" GIT_WORK_TREE="$DIR" GIT_INDEX_FILE="$RV/index" sh -c '
+    git cat-file -e "$1^{commit}" && git read-tree "$1" && git update-index -q --refresh >/dev/null; git diff-files --quiet' _ "$KERNEL_SHA" \
+    || { $SUDO rm -rf "$RV"; die "root verification failed: $DIR differs from $KERNEL_SHA"; }
+  $SUDO rm -rf "$RV"
+}
+
 run_setup() {
   step "AidenHQ setup (ops/setup.sh: vault, services, Paperclip, board)"
-  verify_at "$DIR" "$KERNEL_SHA"          # again, right before root runs it
+  # ops/setup.sh runs as root from the checkout, which the service user owns: that is safe only when the service user
+  # is already root-equivalent (sudo for everything), as it is when it invoked us with sudo or we created it.
+  if [ "$DRY" = 0 ] && [ "$(id -u)" = 0 ] && ! sudo -l -U "$SVC" 2>/dev/null | grep -q '(ALL\( : ALL\)\{0,1\}) \(NOPASSWD: \)\{0,1\}ALL'; then
+    die "$SVC can't sudo everything, but this kernel's setup runs as root from $SVC's checkout: give $SVC sudo, or let the installer create its own user"
+  fi
+  verify_at "$DIR" "$KERNEL_SHA"
+  root_verify
   if [ "$UNATTENDED" = 1 ]; then
     set -- --unattended; [ "$NO_TS" = 1 ] && set -- "$@" --no-tailscale
   else
-    PENV="$STATE_DIR/person.env"
-    if [ "$DRY" = 0 ]; then
-      gecos=$(getent passwd "$SVC" | cut -d: -f5 | cut -d, -f1)
-      tz=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo UTC)
-      { printf 'AIDENHQ_USER=%s\nOWNER_NAME="%s"\nOWNER_EMAIL=%s\nTIMEZONE=%s\n' "$SVC" "${AIDENHQ_OWNER_NAME:-${gecos:-$SVC}}" "$AIDENHQ_OWNER_EMAIL" "${tz:-UTC}"
-        for k in OPENROUTER_KEY OPENROUTER_MANAGEMENT_KEY OPENROUTER_LIMIT_USD TS_AUTHKEY TS_APPS_AUTHKEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET MODULES; do
-          eval "v=\${$k:-}"; [ -n "$v" ] && printf '%s="%s"\n' "$k" "$v"; done; } \
-        | as_svc sh -c 'umask 077; cat > "$1"' _ "$PENV"
-    fi
+    if [ "$DRY" = 0 ]; then write_setup_config; else PENV="/run/aidenhq-setup.XXXXXX/person.env (root-only)"; fi
     set -- --config "$PENV"
   fi
   [ "$DRY" = 1 ] && { printf '    %swould run:%s %senv AIDENHQ_USER=%s bash %s/ops/setup.sh %s\n' "$D" "$N" "${SUDO:+$SUDO }" "$SVC" "$DIR" "$*"; return 0; }
@@ -619,7 +677,7 @@ run_setup() {
         case "$l" in "• "*) say "${l#• }" ;; *) if [ "$VERBOSE" = 1 ]; then printf '    %s\n' "$l"; fi ;; esac
       done
   rc=$(cat "$TMPD/rc")
-  [ -n "${PENV:-}" ] && as_svc sh -c 'shred -u "$1" 2>/dev/null || rm -f "$1"' _ "$PENV"
+  rm_penv
   [ "$rc" = 0 ] || die "ops/setup.sh failed (exit $rc)"
   SETUP_URL=$(sed -n 's/^AIDENHQ_SETUP_URL=//p' "$LOG" | tail -1)
   [ -n "$SETUP_URL" ] || SETUP_URL=$(awk '/^Done\./ { d = 1; next } d && /^https:\/\// { u = $1 } END { print u }' "$LOG")
@@ -654,10 +712,9 @@ docker image prune -af --filter until=24h
 EOF
   printf '[Unit]\nDescription=AidenHQ disk guard\n\n[Service]\nType=oneshot\nExecStart=/bin/sh %s/bin/disk-guard.sh\n' "$STATE_DIR" >"$TMPD/gs"
   printf '[Unit]\nDescription=AidenHQ disk guard, every 15 minutes\n\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=15min\n\n[Install]\nWantedBy=timers.target\n' >"$TMPD/gt"
-  chmod 644 "$TMPD/guard" "$TMPD/gs" "$TMPD/gt"
-  as_svc cp "$TMPD/guard" "$STATE_DIR/bin/disk-guard.sh"
-  as_svc cp "$TMPD/gs" "$units/aidenhq-disk-guard.service"
-  as_svc cp "$TMPD/gt" "$units/aidenhq-disk-guard.timer"
+  as_svc sh -c 'cat > "$1"' _ "$STATE_DIR/bin/disk-guard.sh" <"$TMPD/guard"
+  as_svc sh -c 'cat > "$1"' _ "$units/aidenhq-disk-guard.service" <"$TMPD/gs"
+  as_svc sh -c 'cat > "$1"' _ "$units/aidenhq-disk-guard.timer" <"$TMPD/gt"
   as_svc systemctl --user daemon-reload
   as_svc systemctl --user enable --now aidenhq-disk-guard.timer
   [ -f "$DIR/ops/units/prune-docker.timer" ] && as_svc systemctl --user enable --now prune-docker.timer
@@ -713,7 +770,7 @@ main() {
   setup_ui
   parse_args "$@"
   TMPD=$(mktemp -d 2>/dev/null || mktemp -d -t aidenhq) STEP='' REFUSALS='' KEEPALIVE='' RELFILE='' UNATTENDED=0
-  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' PENV='' AUTH_HDR=''
+  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' PENV='' PENV_DIR='' AUTH_HDR=''
   H_DOCKER='' H_CONTAINERD='' H_BUILDX='' H_COMPOSE='' H_NODE='' H_TAILSCALE=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
@@ -736,12 +793,12 @@ main() {
   ensure_user
   git_auth_env
   # Fail fast: the release and its sources need only curl and git, so they come before the heavy installs.
-  if [ "$DRY" = 1 ] || ! have git || ! have curl || ! have gpg; then
+  if [ "$DRY" = 1 ] || ! have git || ! have curl || ! have gpg || ! have jq || ! have sudo; then
     step "Bootstrap tools"
     case "$PM" in
-      apt) apt_get update; apt_get install --no-install-recommends ca-certificates curl git gnupg jq ;;
-      dnf) as_root dnf -y -q install ca-certificates curl git gnupg2 jq ;;
-      pacman) as_root pacman -Sy --needed --noconfirm ca-certificates curl git gnupg jq ;;
+      apt) apt_get update; apt_get install --no-install-recommends ca-certificates curl git gnupg jq sudo ;;
+      dnf) as_root dnf -y -q install ca-certificates curl git gnupg2 jq sudo ;;
+      pacman) as_root pacman -Sy --needed --noconfirm ca-certificates curl git gnupg jq sudo ;;
     esac
   fi
   fetch_release
@@ -749,7 +806,7 @@ main() {
   fetch_sources
   check_product
   if [ -n "$REFUSALS" ]; then
-    printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would stop here' || echo 'Stopping before any system change')" "$N" "$REFUSALS"
+    printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would stop here' || echo 'Stopping before installing packages (only the bootstrap tools and the service user were set up)')" "$N" "$REFUSALS"
     [ "$DRY" = 1 ] || { STEP=''; exit 1; }
   fi
   install_packages

@@ -57,7 +57,7 @@ We read the full source of nine one-line installers (fetched 2026-11-16, not run
 ## Deliberate departures
 
 - **Line count.** The lean-core spec (§6.8, A37) asks for an installer of 150 lines or fewer. Platform detection,
-  pinned vendor repos for five releases, resource checks, resume, uninstall and the handover take about 770. Every
+  pinned vendor repos for five releases, resource checks, resume, uninstall and the handover take about 860. Every
   extra line is a check or a pin, not a feature; the length is the cost of "minimal user intervention".
 - **Host pins in the release file.** The spec's release schema has no `host` section. We add one (`docker`,
   `containerd`, `buildx`, `compose`, `node`, `tailscale`) so one tested file pins both the code and the host packages,
