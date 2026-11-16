@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AidenHQ</title>
+<meta name="description" content="Run your own fleet of AI agents on your own server. Tell Aiden what you need; agents build, deploy and run it. You approve what matters in one tap.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232B50FF'/%3E%3Cpath d='M9 23 16 8l7 15' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M12 18h8' stroke='%2333E0C8' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { var t = localStorage.getItem('ahq-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  document.documentElement.classList.add('js');
+</script>
+</head>
+<body>
+
+<header class="nav" id="top">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="AidenHQ home">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path class="m-a" d="M9 23 16 8l7 15"/><path class="m-bar" d="M12 18h8"/></svg>
+      <span>AidenHQ</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#gate">The gate</a>
+      <a href="#apps">Apps</a>
+      <a href="#models">Models</a>
+      <a href="#kernel">Modules</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="theme-btn" type="button" aria-label="Switch colour theme" title="Switch theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="sun" d="M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4"/><circle class="sun" cx="12" cy="12" r="4"/><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+      </button>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/Aiden-HQ/aidenhq-distro">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="#install">Install</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <p class="hero-kicker"><span class="dot"></span>A fleet of AI agents on your own server</p>
+      <h1>Your agents ship.<br>You approve in one&nbsp;tap.</h1>
+      <p class="lede">Tell Aiden what you need. Agents design it, build it, deploy it and keep it running. Every push, merge, deploy and message passes a gate written in code, and only real decisions reach you.</p>
+      <div class="install" id="install">
+        <div class="cmd" role="group" aria-label="Install command">
+          <span class="prompt" aria-hidden="true">$</span>
+          <code>curl -fsSL https://get.aidenhq.dev | sh</code>
+          <button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.dev | sh" aria-label="Copy install command">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
+        <p class="install-note">Needs Linux, Docker and Node on a server you control.</p>
+      </div>
+    </div>
+
+    <!-- Live board mock -->
+    <div class="board" aria-label="Animated preview of the AidenHQ board: you ask Aiden for an app, agents build it, and approvals clear by tier" role="img">
+      <div class="board-bar">
+        <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="board-title">board.acme.example.com</span>
+        <span class="board-live"><i></i>Live</span>
+      </div>
+      <div class="board-body">
+        <div class="pane chat">
+          <div class="pane-head"><span class="avatar a-aiden">A</span><div><b>Aiden</b><small>Chief of staff</small></div></div>
+          <div class="msgs" id="msgs">
+            <div class="msg them">Morning brief: 3 replies chased, 1 PR merged overnight, nothing needs you.</div>
+          </div>
+          <div class="composer"><span id="typing"></span><i class="caret"></i></div>
+        </div>
+        <div class="pane fleet">
+          <div class="pane-head small"><b>Fleet</b><small id="fleet-count">4 working</small></div>
+          <ul class="lanes" id="lanes">
+            <li data-k="arch"><span class="avatar a-arch">AA</span><div class="lane-txt"><b>Agent Architect</b><small>Idle</small></div><span class="bar"><i></i></span></li>
+            <li data-k="eng"><span class="avatar a-eng">EN</span><div class="lane-txt"><b>Engineer</b><small>Idle</small></div><span class="bar"><i></i></span></li>
+            <li data-k="ops"><span class="avatar a-ops">DO</span><div class="lane-txt"><b>DevOps Engineer</b><small>Watching 6 apps</small></div><span class="bar"><i></i></span></li>
+            <li data-k="fu" class="on"><span class="avatar a-fu">FT</span><div class="lane-txt"><b>Follow-up Tracker</b><small>Chasing 3 replies</small></div><span class="bar"><i style="width:62%"></i></span></li>
+          </ul>
+          <div class="pane-head small appr-head"><b>Approvals</b><small id="appr-count">0 waiting on you</small></div>
+          <div class="cards" id="cards"></div>
+        </div>
+      </div>
+      <div class="toast" id="toast"><span class="tick"></span><div><b>pr-tracker is live</b><small>apps.acme.example.com/pr-tracker</small></div></div>
+      <span class="tap" id="tap" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>One conversation. A whole crew behind it.</h2>
+      <p>You never write a prompt or babysit a run. You talk to Aiden like you would a chief of staff, and the work fans out to agents that know their job.</p>
+    </div>
+    <ol class="steps reveal">
+      <li>
+        <span class="step-n">1</span>
+        <h3>Say what you need</h3>
+        <p>On Telegram, Slack or the web board. Ask for an app, forward a thread, set a deadline.</p>
+        <div class="art art-msg">Chase the vendor contract and tell me by Friday.</div>
+      </li>
+      <li>
+        <span class="step-n">2</span>
+        <h3>Aiden delegates</h3>
+        <p>Your words become tasks for the right agent. Aiden chases them and keeps the thread with you.</p>
+        <div class="art art-task"><span class="tag t-fu">Follow-up Tracker</span><span>Vendor contract, due Fri</span></div>
+      </li>
+      <li>
+        <span class="step-n">3</span>
+        <h3>Agents do the work</h3>
+        <p>Research, code, deploys, follow-ups. They wake on schedules and events, day and night.</p>
+        <div class="art art-log"><code>08:00 Researcher wrote the weekly report<br>08:14 Engineer opened PR #118</code></div>
+      </li>
+      <li>
+        <span class="step-n">4</span>
+        <h3>You approve what matters</h3>
+        <p>An AI reviewer clears the routine writes. You get the calls that need your authority, one tap each.</p>
+        <div class="art art-btns"><span class="b-ok">Approve</span><span class="b-no">Reject</span></div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- THE GATE -->
+<section class="section gate" id="gate">
+  <div class="wrap gate-in">
+    <div class="gate-copy reveal">
+      <h2>AI judges the risk. You keep the authority.</h2>
+      <p class="sec-lede">Agents decide what to do. Code decides what they may do. Every write is an approval record with the exact request, decided once, with the outcome on the card.</p>
+      <ul class="tiers">
+        <li class="tier t0"><span class="tier-k">Tier 0</span><div><b>Runs at once</b><p>Safe, verified writes, like merging a green PR on a branch the runner pushed.</p></div></li>
+        <li class="tier t1"><span class="tier-k">Tier 1</span><div><b>The AI reviewer decides</b><p>A separate model, from a different family than the requester, checks each write against a written policy.</p></div></li>
+        <li class="tier t2"><span class="tier-k">Tier 2</span><div><b>You tap</b><p>Authority stays yours: spend caps, autonomy, installs that widen what agents can write, and every veto.</p></div></li>
+      </ul>
+      <p class="fine">Tiers are set in code from verified state, never from text an agent wrote. One setting decides how much runs without you, and turning it off pauses the fleet.</p>
+    </div>
+    <div class="ledger reveal" aria-label="Example approval ledger">
+      <div class="ledger-head"><b>Approval ledger</b><span>Today</span></div>
+      <ol class="rows">
+        <li><span class="who">Engineer</span><span class="what">Push <code>feat/pr-tracker</code> to acme-agents/pr-tracker</span><span class="st t0">Ran</span></li>
+        <li><span class="who">Engineer</span><span class="what">Merge PR #42, CI green</span><span class="st t0">Ran</span></li>
+        <li><span class="who">DevOps</span><span class="what">Deploy pr-tracker v1.3 to the apps platform</span><span class="st t1">Reviewer approved</span></li>
+        <li><span class="who">Follow-up</span><span class="what">Send a reminder to an allowlisted teammate</span><span class="st t1">Reviewer approved</span></li>
+        <li><span class="who">Engineer</span><span class="what">Push a branch with a token in the diff</span><span class="st bad">Blocked</span></li>
+        <li><span class="who">Platform</span><span class="what">Raise the Engineer day cap to $45</span><span class="st t2">Waiting on you</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- APPS -->
+<section class="section" id="apps">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Ask for an app. Get a running one.</h2>
+      <p>Dashboards, trackers, internal tools. Agents write them, ship them to a sandboxed apps platform, watch their health and fix them when they break.</p>
+    </div>
+    <div class="apps reveal">
+      <figure class="app app-wide">
+        <div class="app-bar"><span>pr-tracker</span><small>Built by Engineer, run by DevOps Engineer</small></div>
+        <table class="app-table">
+          <thead><tr><th>Pull request</th><th>Author</th><th>Waiting</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Retry on flaky upload</td><td>dana</td><td>3h</td><td><span class="s s-ok">Approved</span></td></tr>
+            <tr><td>Billing export to CSV</td><td>lee</td><td>1d</td><td><span class="s s-rev">In review</span></td></tr>
+            <tr><td>Cache warm-up on deploy</td><td>sam</td><td>2d</td><td><span class="s s-wait">Needs reviewer</span></td></tr>
+            <tr><td>Drop legacy auth path</td><td>kim</td><td>4d</td><td><span class="s s-bad">CI failing</span></td></tr>
+          </tbody>
+        </table>
+      </figure>
+      <figure class="app app-chart">
+        <div class="app-bar"><span>model-spend</span><small>Reads the shared warehouse</small></div>
+        <div class="chart" aria-hidden="true">
+          <i style="--h:42%"></i><i style="--h:58%"></i><i style="--h:35%"></i><i style="--h:71%"></i><i style="--h:50%"></i><i style="--h:64%"></i><i style="--h:46%"></i>
+        </div>
+        <div class="chart-x"><span>Mon</span><span>Sun</span></div>
+      </figure>
+      <ul class="app-facts">
+        <li><b>Sandboxed by default.</b> No host access unless its entry grants it. Secrets arrive as files.</li>
+        <li><b>A shared warehouse.</b> Slack, GitHub, Jira, docs and meetings land in one Postgres. Each app gets its own schema.</li>
+        <li><b>Share with your team.</b> Colleagues sign in to the apps you share, and nothing else.</li>
+        <li><b>Maintained, not abandoned.</b> The DevOps Engineer watches every app and files the fix.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- MODELS -->
+<section class="section models" id="models">
+  <div class="wrap models-in">
+    <div class="reveal">
+      <h2>Any model. Any engine. Per agent.</h2>
+      <p class="sec-lede">Pick a model for each agent from everything on OpenRouter: a fast one for the chief of staff, a deep thinker for the architect, a different family for the reviewer. Engineers run on the coding engine you choose, and you can swap it whenever you like.</p>
+      <div class="engines" role="tablist" aria-label="Coding engine">
+        <button role="tab" aria-selected="true" data-engine="codex">Codex</button>
+        <button role="tab" aria-selected="false" data-engine="claude">Claude Code</button>
+        <button role="tab" aria-selected="false" data-engine="opencode">opencode</button>
+      </div>
+      <p class="fine">Every model call goes through one metered gateway with run, task and day caps.</p>
+    </div>
+    <div class="config reveal" aria-label="Example agent model configuration">
+      <div class="config-bar"><span>agents.yaml</span></div>
+<pre><code><span class="k">aiden</span>:
+  model: <span class="v">~deepseek/deepseek-flash-latest</span>
+  effort: high
+<span class="k">agent-architect</span>:
+  model: <span class="v">~deepseek/deepseek-flash-latest</span>
+  effort: max
+<span class="k">ai-reviewer</span>:
+  model: <span class="v">~openai/gpt-luna-latest</span>
+<span class="k">engineer</span>:
+  engine: <span class="v eng" id="engine-val">engine-codex</span>
+  model: <span class="v">~deepseek/deepseek-flash-latest</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- KERNEL -->
+<section class="section" id="kernel">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>A small kernel. Everything else is a module.</h2>
+      <p>The kernel holds only what must never bend: the gates, identity, your proof of approval, the sandbox and metering. Engines, channels, connections, agents and apps are modules you can add, replace or remove.</p>
+    </div>
+    <div class="orbit reveal">
+      <div class="mods m-left">
+        <div class="grp" data-g="engines"><h4>Engines</h4><span>engine-codex</span><span>engine-claude</span><span>engine-opencode</span></div>
+        <div class="grp" data-g="channels"><h4>Channels</h4><span>channel-telegram</span><span>channel-slack</span><span>board</span></div>
+      </div>
+      <div class="core">
+        <div class="core-in">
+          <h4>Kernel</h4>
+          <ul>
+            <li>Approval gates</li><li>Identity and grants</li><li>Owner proof</li><li>Sandbox and jobs</li><li>Model metering</li><li>Module loader</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mods m-right">
+        <div class="grp" data-g="connections"><h4>Connections</h4><span>github</span><span>slack</span><span>google</span><span>jira</span><span>glean</span></div>
+        <div class="grp" data-g="agents"><h4>Agents and apps</h4><span>chief-of-staff</span><span>engineering</span><span>agent-builder</span><span>apps-platform</span><span>warehouse</span></div>
+      </div>
+    </div>
+    <div class="dist reveal">
+      <div><b>The official distro</b><p>A tested release of the kernel and the essential modules, pinned by commit. Upgrading is one reviewed change.</p></div>
+      <div><b>A marketplace</b><p>Install modules from ours or anyone's. Every one uses the same public contracts as ours.</p></div>
+      <div><b>Installs you approve</b><p>An install shows exactly what the module can read and write. Anything that widens a write comes to you.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- OWN -->
+<section class="section own" id="own">
+  <div class="wrap own-in">
+    <div class="reveal">
+      <h2>Your server. Your git. Your data.</h2>
+      <p class="sec-lede">AidenHQ runs on one machine you control. Every agent, handbook and app lives in your own repository, so any change can be read, reviewed and reverted.</p>
+      <ul class="own-list">
+        <li><b>Private by default.</b> Reachable only over your LAN or Tailscale, behind password and TOTP.</li>
+        <li><b>Secrets in a vault.</b> Encrypted on disk, handed to services as files, never put in a prompt.</li>
+        <li><b>Agents improve themselves.</b> They propose handbook changes as commits. Nothing applies until it passes the gate.</li>
+      </ul>
+    </div>
+    <div class="term reveal" aria-label="Example git history of an instance repository">
+      <div class="term-bar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><span>acme-instance</span></div>
+<pre><code><span class="p">$</span> git log --oneline
+<span class="h">a41c9e2</span> feat(apps): add pr-tracker            <span class="a">Platform Engineer</span>
+<span class="h">7f03b18</span> fix(handbook): wait 2 days to chase   <span class="a">Agent Coach</span>
+<span class="h">c92d4a0</span> chore: move to release 2026.11        <span class="a">you</span>
+<span class="h">5be1e77</span> feat(agents): add Meeting Librarian   <span class="a">Agent Architect</span>
+<span class="p">$</span> git revert 7f03b18
+<span class="ok">Reverted. Applies on the next approved change.</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="wrap cta-in reveal">
+    <h2>Put a fleet to work tonight.</h2>
+    <p>One command on a Linux server. Aiden says hello on your board when it's done.</p>
+    <div class="cmd cmd-lg" role="group" aria-label="Install command">
+      <span class="prompt" aria-hidden="true">$</span>
+      <code>curl -fsSL https://get.aidenhq.dev | sh</code>
+      <button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.dev | sh" aria-label="Copy install command">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+        <span class="copy-label">Copy</span>
+      </button>
+    </div>
+    <div class="cta-links">
+      <a class="btn btn-primary" href="https://github.com/Aiden-HQ/aidenhq-distro">Get it on GitHub</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="brand" href="#top" aria-label="AidenHQ home">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"/><path class="m-a" d="M9 23 16 8l7 15"/><path class="m-bar" d="M12 18h8"/></svg>
+      <span>AidenHQ</span>
+    </a>
+    <nav aria-label="Footer">
+      <a href="https://github.com/Aiden-HQ/aidenhq-distro">GitHub</a>
+      <a href="#gate">The gate</a>
+      <a href="#install">Install</a>
+    </nav>
+    <small>&copy; 2026 AidenHQ</small>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
