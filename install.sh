@@ -2,8 +2,8 @@
 # shellcheck disable=SC2016  # single-quoted sh -c bodies and $releasever are meant literally
 # AidenHQ installer: turns a Linux server into a running AidenHQ, then hands you one link for the rest.
 #
-#   curl -fsSL https://get.aidenhq.dev | sh
-#   curl -fsSL https://get.aidenhq.dev | sh -s -- --dry-run          # print the plan, change nothing
+#   curl -fsSL https://get.aidenhq.ai | sh
+#   curl -fsSL https://get.aidenhq.ai | sh -s -- --dry-run          # print the plan, change nothing
 #
 # Flags (each has an environment form):
 #   --release <name>    AIDENHQ_RELEASE          release to install (default: the one this script was cut with)
@@ -132,7 +132,7 @@ parse_args() {
   if ! { [ -t 0 ] || (: </dev/tty) 2>/dev/null; }; then NONINT=1; fi
 }
 usage() {
-  printf '%s\n' 'AidenHQ installer: curl -fsSL https://get.aidenhq.dev | sh -s -- [options]' \
+  printf '%s\n' 'AidenHQ installer: curl -fsSL https://get.aidenhq.ai | sh -s -- [options]' \
     '  --release <name>   release to install (AIDENHQ_RELEASE; default '"$DEFAULT_RELEASE"')' \
     '  --dir <path>       product checkout (AIDENHQ_DIR; default ~<user>/aidenhq)' \
     '  --non-interactive  never wait on a terminal (AIDENHQ_NON_INTERACTIVE=1)' \

@@ -3,18 +3,18 @@
 On a Linux server or VM with SSH access:
 
 ```sh
-curl -fsSL https://get.aidenhq.dev | sh
+curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 It checks the machine, asks for your email (the board's owner account), fetches and verifies the release, runs the
 product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link. Everything after
 that happens in your browser: your password and authenticator, your model key, your channels.
 
-`get.aidenhq.dev` redirects to the tagged release asset
+`get.aidenhq.ai` redirects to the tagged release asset
 (`https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh`). To read the script before running it:
 
 ```sh
-curl -fsSLo install.sh https://get.aidenhq.dev && less install.sh && sh install.sh
+curl -fsSLo install.sh https://get.aidenhq.ai && less install.sh && sh install.sh
 ```
 
 ## What you need
@@ -31,7 +31,7 @@ macOS and Windows can't host AidenHQ; use a Linux VM.
 
 ## Options
 
-Pass options with `sh -s --`, for example `curl -fsSL https://get.aidenhq.dev | sh -s -- --dry-run`. Each option also
+Pass options with `sh -s --`, for example `curl -fsSL https://get.aidenhq.ai | sh -s -- --dry-run`. Each option also
 has an environment form.
 
 | Flag | Environment | |
