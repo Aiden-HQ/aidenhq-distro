@@ -66,10 +66,10 @@
   var typing = document.getElementById('typing');
   var cards = document.getElementById('cards');
   var toast = document.getElementById('toast');
-  var tap = document.getElementById('tap');
   var apprCount = document.getElementById('appr-count');
   var fleetCount = document.getElementById('fleet-count');
   var ASK = 'Build a tracker for every open PR at acme and share it with the team.';
+  var REPLY = 'On it. The Agent Architect plans it, an Engineer builds it, DevOps ships it.';
 
   function el(tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
   function say(cls, text) { var m = el('div', 'msg ' + cls); m.textContent = text; msgs.appendChild(m); while (msgs.children.length > 4) msgs.removeChild(msgs.firstChild); return m; }
@@ -97,21 +97,21 @@
     msgs.innerHTML = ''; cards.innerHTML = ''; typing.textContent = '';
     say('them', 'Morning brief: 3 replies chased, 1 PR merged overnight, nothing needs you.');
     lane('arch', 'Idle', 0); lane('eng', 'Idle', 0); lane('ops', 'Watching 6 apps', 0); lane('fu', 'Chasing 3 replies', 62, true);
-    card('t0', 'Merge PR #117 in acme-agents/brief', 'Tier 0, CI green', chip('', 'Ran'));
-    card('t1', 'Send reminder to an allowlisted teammate', 'Tier 1, AI reviewer', chip('', 'Reviewer approved'));
-    apprCount.textContent = '0 waiting on you';
+    card('t0', 'Merge PR #117 in acme-agents/brief', 'Safe write, ran at once', chip('', 'Ran'));
+    card('t1', 'Send reminder to an allowlisted teammate', 'AI reviewer', chip('', 'Reviewer approved'));
+    apprCount.textContent = 'All clear';
     toast.classList.remove('show');
   }
 
   function finalFrame() {
     msgs.innerHTML = ''; cards.innerHTML = '';
     say('me', ASK);
-    say('them', 'On it. The Agent Architect designs it, an Engineer builds it, DevOps ships it.');
+    say('them', REPLY);
     say('them', 'pr-tracker is live and shared with the team.');
-    lane('arch', 'Handed to Engineer', 100); lane('eng', 'Done: PR #42 merged', 100); lane('ops', 'Watching 7 apps', 100, true);
-    card('t2', 'Raise Engineer day cap to $45', 'Tier 2, your call', chip('', 'Approved by you'));
-    card('t1', 'Merge PR #42, CI green', 'Tier 1, AI reviewer', chip('', 'Reviewer approved'));
-    card('t1', 'Deploy pr-tracker v1', 'Tier 1, AI reviewer', chip('', 'Reviewer approved'));
+    lane('arch', 'Plan handed to Engineer', 100); lane('eng', 'Done: PR #42 merged', 100); lane('ops', 'Watching 7 apps', 100, true);
+    card('t0', 'Push feat/pr-tracker', 'Safe write, ran at once', chip('', 'Ran'));
+    card('t1', 'Merge PR #42, CI green', 'AI reviewer', chip('', 'Reviewer approved'));
+    card('t1', 'Deploy pr-tracker v1', 'AI reviewer', chip('', 'Reviewer approved'));
     toast.classList.add('show');
   }
 
@@ -132,11 +132,11 @@
   async function type(text) {
     for (var i = 1; i <= text.length; i++) { typing.textContent = text.slice(0, i); await wait(text[i - 1] === ' ' ? 34 : 22); }
   }
-  function tapAt(target) {
-    var b = board.getBoundingClientRect(), r = target.getBoundingClientRect();
-    tap.style.left = (r.left - b.left + r.width / 2) + 'px';
-    tap.style.top = (r.top - b.top + r.height / 2) + 'px';
-    tap.classList.remove('go'); void tap.offsetWidth; tap.classList.add('go');
+  async function review(c) {
+    apprCount.textContent = '1 in review';
+    await wait(1400);
+    setRight(c, chip('', 'Reviewer approved'));
+    apprCount.textContent = 'All clear';
   }
 
   async function run() {
@@ -147,36 +147,21 @@
     typing.textContent = '';
     say('me', ASK);
     await wait(900);
-    say('them', 'On it. The Agent Architect designs it, an Engineer builds it, DevOps ships it.');
+    say('them', REPLY);
     await wait(600);
-    lane('arch', 'Designing pr-tracker', 100, true);
+    lane('arch', 'Planning pr-tracker', 100, true);
     await wait(1800);
-    lane('arch', 'Handed to Engineer', 100, false);
-    lane('eng', 'Writing pr-tracker', 45, true);
-    await wait(1100);
-    card('t0', 'Push feat/pr-tracker', 'Tier 0, runner branch', chip('', 'Ran'));
-    await wait(1200);
-    say('them', 'The build needs a higher day cap. One tap?');
-    var capCard = card('t2', 'Raise Engineer day cap to $45', 'Tier 2, your call', '<div class="acts"><span class="ok">Approve</span><span class="no">Reject</span></div>');
-    apprCount.textContent = '1 waiting on you';
-    await wait(1900);
-    var btn = capCard.querySelector('.ok');
-    if (btn) tapAt(btn);
-    await wait(260);
-    setRight(capCard, chip('', 'Approved by you'));
-    capCard.classList.add('decided');
-    apprCount.textContent = '0 waiting on you';
-    lane('eng', 'Writing pr-tracker', 100, true);
-    await wait(1500);
-    var merge = card('t1', 'Merge PR #42, CI green', 'Tier 1, AI reviewer', chip('shimmer', 'Reviewing'));
+    lane('arch', 'Plan handed to Engineer', 100, false);
+    lane('eng', 'Building pr-tracker', 45, true);
     await wait(1300);
-    setRight(merge, chip('', 'Reviewer approved'));
+    card('t0', 'Push feat/pr-tracker', 'Safe write, ran at once', chip('', 'Ran'));
+    lane('eng', 'Opened PR #42', 100, true);
+    await wait(1400);
+    await review(card('t1', 'Merge PR #42, CI green', 'AI reviewer', chip('shimmer', 'Reviewing')));
     lane('eng', 'Done: PR #42 merged', 100, false);
     lane('ops', 'Deploying pr-tracker', 100, true);
     await wait(900);
-    var dep = card('t1', 'Deploy pr-tracker v1', 'Tier 1, AI reviewer', chip('shimmer', 'Reviewing'));
-    await wait(1300);
-    setRight(dep, chip('', 'Reviewer approved'));
+    await review(card('t1', 'Deploy pr-tracker v1', 'AI reviewer', chip('shimmer', 'Reviewing')));
     await wait(500);
     lane('ops', 'Watching 7 apps', 100, true);
     toast.classList.add('show');

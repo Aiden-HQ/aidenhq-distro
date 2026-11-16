@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AidenHQ</title>
-<meta name="description" content="Run your own fleet of AI agents on your own server. Tell Aiden what you need; agents build, deploy and run it. You approve what matters in one tap.">
+<meta name="description" content="Your own fleet of autonomous AI agents, on your own server. Tell Aiden what you need; agents plan it, build it, review it and ship it.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232B50FF'/%3E%3Cpath d='M9 23 16 8l7 15' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M12 18h8' stroke='%2333E0C8' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,10 +26,10 @@
     </a>
     <nav class="nav-links" aria-label="Sections">
       <a href="#how">How it works</a>
-      <a href="#gate">The gate</a>
       <a href="#apps">Apps</a>
       <a href="#models">Models</a>
       <a href="#kernel">Modules</a>
+      <a href="#security">Security</a>
     </nav>
     <div class="nav-actions">
       <button class="theme-btn" type="button" aria-label="Switch colour theme" title="Switch theme">
@@ -48,9 +48,9 @@
   <div class="hero-glow" aria-hidden="true"></div>
   <div class="wrap hero-in">
     <div class="hero-copy">
-      <p class="hero-kicker"><span class="dot"></span>A fleet of AI agents on your own server</p>
-      <h1>Your agents ship.<br>You approve in one&nbsp;tap.</h1>
-      <p class="lede">Tell Aiden what you need. Agents design it, build it, deploy it and keep it running. Every push, merge, deploy and message passes a gate written in code, and only real decisions reach you.</p>
+      <p class="hero-kicker"><span class="dot"></span>Your own fleet of AI agents</p>
+      <h1>Your agents ship autonomously.</h1>
+      <p class="lede">Tell Aiden what you need. A fleet of agents plans it, builds it, reviews it and ships it, then keeps it running, day and night, on a server you own.</p>
       <div class="install" id="install">
         <div class="cmd" role="group" aria-label="Install command">
           <span class="prompt" aria-hidden="true">$</span>
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Live board mock -->
-    <div class="board" aria-label="Animated preview of the AidenHQ board: you ask Aiden for an app, agents build it, and approvals clear by tier" role="img">
+    <div class="board" aria-label="Animated preview of the AidenHQ board: you ask Aiden for an app, and the fleet plans, builds, reviews and ships it on its own" role="img">
       <div class="board-bar">
         <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="board-title">board.acme.example.com</span>
@@ -87,12 +87,11 @@
             <li data-k="ops"><span class="avatar a-ops">DO</span><div class="lane-txt"><b>DevOps Engineer</b><small>Watching 6 apps</small></div><span class="bar"><i></i></span></li>
             <li data-k="fu" class="on"><span class="avatar a-fu">FT</span><div class="lane-txt"><b>Follow-up Tracker</b><small>Chasing 3 replies</small></div><span class="bar"><i style="width:62%"></i></span></li>
           </ul>
-          <div class="pane-head small appr-head"><b>Approvals</b><small id="appr-count">0 waiting on you</small></div>
+          <div class="pane-head small appr-head"><b>Reviews</b><small id="appr-count">All clear</small></div>
           <div class="cards" id="cards"></div>
         </div>
       </div>
       <div class="toast" id="toast"><span class="tick"></span><div><b>pr-tracker is live</b><small>apps.acme.example.com/pr-tracker</small></div></div>
-      <span class="tap" id="tap" aria-hidden="true"></span>
     </div>
   </div>
 </section>
@@ -125,38 +124,11 @@
       </li>
       <li>
         <span class="step-n">4</span>
-        <h3>You approve what matters</h3>
-        <p>An AI reviewer clears the routine writes. You get the calls that need your authority, one tap each.</p>
-        <div class="art art-btns"><span class="b-ok">Approve</span><span class="b-no">Reject</span></div>
+        <h3>Agents ship it</h3>
+        <p>An AI reviewer checks every risky action, and the work lands on its own. You hear about it in your brief.</p>
+        <div class="art art-ship"><span class="tick"></span><span><b>pr-tracker v1 is live</b><small>Reviewed, merged, deployed</small></span></div>
       </li>
     </ol>
-  </div>
-</section>
-
-<!-- THE GATE -->
-<section class="section gate" id="gate">
-  <div class="wrap gate-in">
-    <div class="gate-copy reveal">
-      <h2>AI judges the risk. You keep the authority.</h2>
-      <p class="sec-lede">Agents decide what to do. Code decides what they may do. Every write is an approval record with the exact request, decided once, with the outcome on the card.</p>
-      <ul class="tiers">
-        <li class="tier t0"><span class="tier-k">Tier 0</span><div><b>Runs at once</b><p>Safe, verified writes, like merging a green PR on a branch the runner pushed.</p></div></li>
-        <li class="tier t1"><span class="tier-k">Tier 1</span><div><b>The AI reviewer decides</b><p>A separate model, from a different family than the requester, checks each write against a written policy.</p></div></li>
-        <li class="tier t2"><span class="tier-k">Tier 2</span><div><b>You tap</b><p>Authority stays yours: spend caps, autonomy, installs that widen what agents can write, and every veto.</p></div></li>
-      </ul>
-      <p class="fine">Tiers are set in code from verified state, never from text an agent wrote. One setting decides how much runs without you, and turning it off pauses the fleet.</p>
-    </div>
-    <div class="ledger reveal" aria-label="Example approval ledger">
-      <div class="ledger-head"><b>Approval ledger</b><span>Today</span></div>
-      <ol class="rows">
-        <li><span class="who">Engineer</span><span class="what">Push <code>feat/pr-tracker</code> to acme-agents/pr-tracker</span><span class="st t0">Ran</span></li>
-        <li><span class="who">Engineer</span><span class="what">Merge PR #42, CI green</span><span class="st t0">Ran</span></li>
-        <li><span class="who">DevOps</span><span class="what">Deploy pr-tracker v1.3 to the apps platform</span><span class="st t1">Reviewer approved</span></li>
-        <li><span class="who">Follow-up</span><span class="what">Send a reminder to an allowlisted teammate</span><span class="st t1">Reviewer approved</span></li>
-        <li><span class="who">Engineer</span><span class="what">Push a branch with a token in the diff</span><span class="st bad">Blocked</span></li>
-        <li><span class="who">Platform</span><span class="what">Raise the Engineer day cap to $45</span><span class="st t2">Waiting on you</span></li>
-      </ol>
-    </div>
   </div>
 </section>
 
@@ -232,7 +204,7 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <h2>A small kernel. Everything else is a module.</h2>
-      <p>The kernel holds only what must never bend: the gates, identity, your proof of approval, the sandbox and metering. Engines, channels, connections, agents and apps are modules you can add, replace or remove.</p>
+      <p>The kernel holds only what must never bend: the gates, identity, the sandbox, metering and the audit log. Engines, channels, connections, agents and apps are modules you can add, replace or remove.</p>
     </div>
     <div class="orbit reveal">
       <div class="mods m-left">
@@ -243,7 +215,7 @@
         <div class="core-in">
           <h4>Kernel</h4>
           <ul>
-            <li>Approval gates</li><li>Identity and grants</li><li>Owner proof</li><li>Sandbox and jobs</li><li>Model metering</li><li>Module loader</li>
+            <li>Review gates</li><li>Identity and grants</li><li>Audit log</li><li>Sandbox and jobs</li><li>Model metering</li><li>Module loader</li>
           </ul>
         </div>
       </div>
@@ -255,7 +227,34 @@
     <div class="dist reveal">
       <div><b>The official distro</b><p>A tested release of the kernel and the essential modules, pinned by commit. Upgrading is one reviewed change.</p></div>
       <div><b>A marketplace</b><p>Install modules from ours or anyone's. Every one uses the same public contracts as ours.</p></div>
-      <div><b>Installs you approve</b><p>An install shows exactly what the module can read and write. Anything that widens a write comes to you.</p></div>
+      <div><b>Installs, checked</b><p>Every module declares exactly what it can read and write, and the kernel holds it to that on every call.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="section gate" id="security">
+  <div class="wrap gate-in">
+    <div class="gate-copy reveal">
+      <h2>Full autonomy, with guardrails in code.</h2>
+      <p class="sec-lede">Agents act on their own, inside limits they cannot talk their way past. Code decides what each agent may touch, an AI reviewer judges every risky action before it runs, and you keep the final say on what matters.</p>
+      <ul class="tiers">
+        <li class="tier t0"><span class="tier-k">Tier 0</span><div><b>Runs at once</b><p>Safe, verified writes, like merging a green PR on a branch the runner pushed.</p></div></li>
+        <li class="tier t1"><span class="tier-k">Tier 1</span><div><b>The AI reviewer decides</b><p>A separate model, from a different family than the requester, checks each write against a written policy.</p></div></li>
+        <li class="tier t2"><span class="tier-k">Tier 2</span><div><b>Your final say</b><p>Spend caps, the autonomy level and installs that widen what agents can write stay with you.</p></div></li>
+      </ul>
+      <p class="fine">Tiers are set in code from verified state, never from text an agent wrote. Every action is a record: the exact request, who decided it and what happened.</p>
+    </div>
+    <div class="ledger reveal" aria-label="Example action ledger">
+      <div class="ledger-head"><b>Action ledger</b><span>Today</span></div>
+      <ol class="rows">
+        <li><span class="who">Engineer</span><span class="what">Push <code>feat/pr-tracker</code> to acme-agents/pr-tracker</span><span class="st t0">Ran</span></li>
+        <li><span class="who">Engineer</span><span class="what">Merge PR #42, CI green</span><span class="st t0">Ran</span></li>
+        <li><span class="who">DevOps</span><span class="what">Deploy pr-tracker v1.3 to the apps platform</span><span class="st t1">Reviewer approved</span></li>
+        <li><span class="who">Follow-up</span><span class="what">Send a reminder to an allowlisted teammate</span><span class="st t1">Reviewer approved</span></li>
+        <li><span class="who">Engineer</span><span class="what">Push a branch with a token in the diff</span><span class="st bad">Blocked</span></li>
+        <li><span class="who">Platform</span><span class="what">Raise the Engineer day cap to $45</span><span class="st t2">Waiting on you</span></li>
+      </ol>
     </div>
   </div>
 </section>
@@ -280,7 +279,7 @@
 <span class="h">c92d4a0</span> chore: move to release 2026.11        <span class="a">you</span>
 <span class="h">5be1e77</span> feat(agents): add Meeting Librarian   <span class="a">Agent Architect</span>
 <span class="p">$</span> git revert 7f03b18
-<span class="ok">Reverted. Applies on the next approved change.</span></code></pre>
+<span class="ok">Reverted. The fleet picks it up on the next apply.</span></code></pre>
     </div>
   </div>
 </section>
@@ -315,7 +314,7 @@
     </a>
     <nav aria-label="Footer">
       <a href="https://github.com/Aiden-HQ/aidenhq-distro">GitHub</a>
-      <a href="#gate">The gate</a>
+      <a href="#security">Security</a>
       <a href="#install">Install</a>
     </nav>
     <small>&copy; 2026 AidenHQ</small>
