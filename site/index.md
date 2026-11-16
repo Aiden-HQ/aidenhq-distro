@@ -1,7 +1,9 @@
-# AidenHQ: an autonomous workforce that ships while you rest
+# AidenHQ: Stop prompting. Start delegating.
 
-> Your AI team, on your own server. Tell Aiden, your AI chief of staff, what you need. A team of specialists plans
-> it, builds it, ships it and keeps it running, so you wake up to finished work.
+> Your own team of autonomous AI agents that plan, execute, and deliver real work. Give them goals, not step-by-step instructions.
+
+Your AI team, on your own server. Tell Aiden, your AI chief of staff, what you need; specialists plan it, build it,
+ship it and keep it running.
 
 ```sh
 curl -fsSL https://get.aidenhq.ai | sh
@@ -10,8 +12,13 @@ curl -fsSL https://get.aidenhq.ai | sh
 One command on a fresh Ubuntu or Debian server. It installs what it needs, including Docker and Node. No sign-up,
 no demo call.
 
-**Using Claude Code, Codex or another agent?** Point it at [aidenhq.ai/prompt.md](https://aidenhq.ai/prompt.md). It
-has step-by-step install instructions written for agents.
+**Using Claude Code, Codex or another agent?** Paste this into it:
+
+```text
+Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
+```
+
+[prompt.md](https://aidenhq.ai/prompt.md) has the step-by-step install instructions written for agents.
 
 - **1 line** installs the whole team.
 - **24/7:** agents wake on schedules and events.

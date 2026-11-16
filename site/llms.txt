@@ -1,6 +1,6 @@
 # AidenHQ
 
-> AidenHQ is a self-hosted platform that turns one Linux server into an autonomous AI team: Aiden, a chief of staff you talk to, plus specialist agents that plan, build, ship, secure and maintain work. Every write is gated in code and reviewed, spend is capped per agent, and every agent, playbook and app lives in your own git repository.
+> Stop prompting. Start delegating. Your own team of autonomous AI agents that plan, execute, and deliver real work. Give them goals, not step-by-step instructions. AidenHQ is self-hosted: one Linux server becomes your AI team, with Aiden, a chief of staff you talk to, plus specialist agents that plan, build, ship, secure and maintain work. Every write is gated in code and reviewed, spend is capped per agent, and every agent, playbook and app lives in your own git repository.
 
 Install it with one command on an Ubuntu 22.04/24.04/26.04 or Debian 12/13 server (2+ cores, 6+ GB RAM, 60+ GB free disk; 4 cores, 8 GB and 100 GB recommended):
 

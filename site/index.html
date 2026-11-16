@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AidenHQ: an autonomous workforce that ships while you rest</title>
-<meta name="description" content="An autonomous AI workforce on your own server: a chief of staff plus specialists who plan, build, ship, secure and maintain your work while you rest.">
+<title>AidenHQ: Stop prompting. Start delegating.</title>
+<meta name="description" content="Your own team of autonomous AI agents that plan, execute, and deliver real work. Give them goals, not step-by-step instructions.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#2B50FF">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232B50FF'/%3E%3Cpath d='M9 23 16 8l7 15' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M12 18h8' stroke='%2333E0C8' stroke-width='3'/%3E%3C/svg%3E">
@@ -17,7 +17,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
 {"@type":"Organization","@id":"https://aidenhq.ai/#org","name":"AidenHQ","url":"https://aidenhq.ai/","sameAs":["https://github.com/Aiden-HQ"]},
-{"@type":"SoftwareApplication","name":"AidenHQ","url":"https://aidenhq.ai/","description":"An autonomous AI workforce on your own server: a chief of staff plus specialists who plan, build, ship, secure and maintain your work.","applicationCategory":"DeveloperApplication","operatingSystem":"Linux (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13)","installUrl":"https://get.aidenhq.ai","softwareHelp":"https://aidenhq.ai/prompt.md","publisher":{"@id":"https://aidenhq.ai/#org"}}
+{"@type":"SoftwareApplication","name":"AidenHQ","url":"https://aidenhq.ai/","description":"Your own team of autonomous AI agents that plan, execute, and deliver real work. Give them goals, not step-by-step instructions.","applicationCategory":"DeveloperApplication","operatingSystem":"Linux (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13)","installUrl":"https://get.aidenhq.ai","softwareHelp":"https://aidenhq.ai/prompt.md","publisher":{"@id":"https://aidenhq.ai/#org"}}
 ]}
 </script>
 <script>
@@ -60,8 +60,8 @@
   <div class="wrap hero-in">
     <div class="hero-copy">
       <p class="kicker"><span class="dot"></span>Your AI team, on your own server</p>
-      <h1>An autonomous workforce that <span class="grad">ships while you rest.</span></h1>
-      <p class="lede">Tell Aiden, your AI chief of staff, what you need. A team of specialists plans it, builds it, ships it and keeps it running, so you wake up to finished work.</p>
+      <h1>Stop prompting. <span class="grad">Start delegating.</span></h1>
+      <p class="lede">Your own team of autonomous AI agents that plan, execute, and deliver real work. Give them goals, not <span class="nw">step-by-step</span> instructions.</p>
       <div class="install" id="install">
         <div class="install-row">
         <div class="cmd" role="group" aria-label="Install command">
@@ -72,13 +72,14 @@
             <span class="copy-label">Copy</span>
           </button>
         </div>
-        <button class="agent-btn" type="button" data-prompt aria-label="Copy a setup prompt for your AI coding agent">
+        <button class="agent-btn" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md" aria-label="Copy a one-line setup prompt for your AI coding agent">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
           <span class="agent-label">Copy prompt for your agent</span>
         </button>
         </div>
         <p class="install-note">One command on a fresh Ubuntu or Debian server. No sign-up, no demo call.</p>
-        <p class="agent-note">Using Claude Code, Codex or another agent? Point it at <a href="/prompt.md">aidenhq.ai/prompt.md</a>.</p>
+        <p class="agent-note">Or paste this into Claude Code, Codex or any coding agent:</p>
+        <p class="agent-line"><code>Set up AidenHQ on my server by following <a href="/prompt.md">https://aidenhq.ai/prompt.md</a></code></p>
       </div>
     </div>
 
@@ -601,12 +602,13 @@
           <span class="copy-label">Copy</span>
         </button>
       </div>
-      <button class="agent-btn agent-btn-light" type="button" data-prompt aria-label="Copy a setup prompt for your AI coding agent">
+      <button class="agent-btn agent-btn-light" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md" aria-label="Copy a one-line setup prompt for your AI coding agent">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
           <span class="agent-label">Copy prompt for your agent</span>
         </button>
       </div>
-      <p class="agent-note agent-note-light">Using Claude Code, Codex or another agent? Point it at <a href="/prompt.md">aidenhq.ai/prompt.md</a>.</p>
+      <p class="agent-note agent-note-light">Or paste this into Claude Code, Codex or any coding agent:</p>
+      <p class="agent-line agent-line-light"><code>Set up AidenHQ on my server by following <a href="/prompt.md">https://aidenhq.ai/prompt.md</a></code></p>
       <div class="cta-links">
         <a class="btn btn-light" href="https://github.com/Aiden-HQ/aidenhq-distro">Get it on GitHub</a>
         <a class="btn btn-clear" href="#teams">See what it does</a>
