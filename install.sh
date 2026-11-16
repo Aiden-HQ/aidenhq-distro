@@ -841,9 +841,9 @@ mac_uninstall() {
   say "unlike on Linux, nothing is kept. To keep a backup, copy it out first (limactl shell $VM, then the product's backup)."
   if [ "$DRY" = 1 ]; then say "would remove $plist and delete the VM ($([ -n "$st" ] && echo "$st" || echo 'not found'))"; return 0; fi
   if [ "${AIDENHQ_CONFIRM_DELETE_VM:-}" != 1 ]; then
-    [ "$NONINT" = 0 ] || die "nothing deleted: with no terminal to confirm on, set AIDENHQ_CONFIRM_DELETE_VM=1"
+    [ "$NONINT" = 0 ] || { STEP=''; die "nothing deleted: with no terminal to confirm on, set AIDENHQ_CONFIRM_DELETE_VM=1"; }
     printf '    Type delete to delete the VM: ' >/dev/tty; read -r a </dev/tty || a=''
-    [ "$a" = delete ] || die "nothing deleted"
+    [ "$a" = delete ] || { STEP=''; die "nothing deleted"; }
   fi
   launchctl bootout "gui/$(id -u)/$VM_AGENT" >/dev/null 2>&1 || :
   rm -f "$plist"
