@@ -7,7 +7,13 @@ export default {
       const res = await env.ASSETS.fetch(new URL("/install.sh", url));
       return new Response(res.body, {
         status: res.status,
-        headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=300", "x-content-type-options": "nosniff" },
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "public, max-age=300",
+          "x-content-type-options": "nosniff",
+          "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+          "referrer-policy": "no-referrer",
+        },
       });
     }
     return env.ASSETS.fetch(req);

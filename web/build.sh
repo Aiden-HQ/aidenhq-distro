@@ -5,3 +5,4 @@ cd "$(dirname "$0")/.."
 rm -rf web/public && mkdir -p web/public
 cp -R site/. web/public/
 cp install.sh web/public/install.sh
+cp web/_headers web/public/_headers
