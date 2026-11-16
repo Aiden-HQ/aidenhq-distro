@@ -48,14 +48,13 @@
     window.addEventListener('scroll', atEnd, { passive: true });
   }
 
-  /* Engine tabs */
-  var engineVal = document.getElementById('engine-val');
-  var tabs = document.querySelectorAll('.engines [role="tab"]');
-  tabs.forEach(function (t) {
+  /* Module catalog filter */
+  var catTabs = document.querySelectorAll('.cat-tabs [role="tab"]');
+  var catItems = document.querySelectorAll('.cat-list li');
+  catTabs.forEach(function (t) {
     t.addEventListener('click', function () {
-      tabs.forEach(function (o) { o.setAttribute('aria-selected', String(o === t)); });
-      engineVal.classList.add('swap');
-      setTimeout(function () { engineVal.textContent = 'engine-' + t.dataset.engine; engineVal.classList.remove('swap'); }, 180);
+      catTabs.forEach(function (o) { o.setAttribute('aria-selected', String(o === t)); });
+      catItems.forEach(function (li) { li.hidden = t.dataset.f !== 'all' && li.dataset.t !== t.dataset.f; });
     });
   });
 
