@@ -34,14 +34,6 @@
     "memory": "TODO-module-sha",
     "fleet-ops": "TODO-module-sha"
   },
-  "host": {
-    "docker": "29.9.3",
-    "containerd": "2.4.2-4",
-    "buildx": "0.39.0",
-    "compose": "5.7.0",
-    "node": "24.22.3",
-    "tailscale": "1.104.7"
-  },
   "tested": {
     "ci_run": "",
     "suites": [
