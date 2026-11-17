@@ -1,7 +1,7 @@
 {
   "name": "AidenHQ",
   "release": "2026.11.2",
-  "kernel": "7959314129c93d0c2d6b7c59a235356f5efc103f",
+  "kernel": "0b47d97bf2a25dde647178521580c5ac5bcb9b10",
   "kernel_repo": "Aiden-HQ/AidenHQ",
   "marketplace": {
     "name": "aidenhq",
