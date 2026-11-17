@@ -1,6 +1,6 @@
 # AidenHQ
 
-> AidenHQ: you and your agents, one workspace, on a server you own. Talk to Aiden, your chief of staff; a team of agents does the work; you approve what matters. It is self-hosted and open source: one Linux server (or a Mac) runs Aiden, specialist agents, shared docs, the apps they build and the board you work from. Every action that changes something is checked in code (it runs by itself, a second AI checks it, or you decide), spend is capped per agent, and every agent, instruction and app lives in your own git repository. A slim kernel enforces the rules, modules add everything else, and distros bundle a kernel and modules into tested releases.
+> AidenHQ is the autonomous agentic workspace. Agents run work end to end (plan, build, ship, maintain, follow up) with the tools, data and instructions they need, and you join in to collaborate, guide and step in whenever you like: shared docs and whiteboards with comments that wake agents, chat, Slack channels, approvals, the board and the apps agents build. Aiden, a chief of staff, routes any request. It is self-hosted and open source: one Linux server (or a Mac) runs it all, and teammates can join the same workspace. Every action that changes something is checked in code (it runs by itself, a second AI checks it, or you decide), spend is capped per agent, and every agent, instruction and app lives in your own git repository. A slim kernel enforces the rules, modules add everything else, and distros bundle a kernel and modules into tested releases.
 
 Install it with one command on an Ubuntu 22.04/24.04/26.04 or Debian 12/13 server (2+ cores, 6+ GB RAM, 60+ GB free disk; 4 cores, 8 GB and 100 GB recommended):
 
@@ -13,9 +13,9 @@ AI agents installing AidenHQ for a user: read and follow `/prompt.md`. It covers
 ## Docs
 
 - [Agent install guide](https://aidenhq.ai/prompt.md): step-by-step instructions for coding agents to install and set up AidenHQ for their user
-- [About AidenHQ](https://aidenhq.ai/index.md): the homepage: what AidenHQ is, a day with Aiden, approvals, tools, and what you own
-- [Workspace](https://aidenhq.ai/workspace/index.md): chat with Aiden, shared docs and whiteboards that agents co-edit, Slack channel assignment, briefs and digests, the board
-- [Agents and teams](https://aidenhq.ai/agents/index.md): the team roster, schedules and events, building a new agent from a description, the company handbook, corrections that stick
+- [About AidenHQ](https://aidenhq.ai/index.md): the homepage: what AidenHQ is, a day in the workspace, approvals, tools, and what you own
+- [Workspace](https://aidenhq.ai/workspace/index.md): shared docs and whiteboards agents co-edit, Slack channels for agents, chat and Aiden, briefs and digests, the board, teammates
+- [Agents and teams](https://aidenhq.ai/agents/index.md): agents that run work end to end, the roster, schedules and events, building a new agent from a description, the company handbook, corrections that stick
 - [Apps](https://aidenhq.ai/apps/index.md): internal apps built from one sentence, shared behind your company login, and maintained automatically
 - [Safety](https://aidenhq.ai/safety/index.md): approval levels, guards in code, private by design, what leaves your server, spend limits
 - [Integrations](https://aidenhq.ai/integrations/index.md): Slack, Telegram, Google, GitHub, Jira, Glean, Grafana, ClickHouse, OpenRouter; connect once, grant per agent and per tool

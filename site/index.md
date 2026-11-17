@@ -1,7 +1,9 @@
-# AidenHQ: you and your agents, one workspace
+# AidenHQ: the autonomous agentic workspace
 
-> You and your agents, one workspace. On a server you own: talk to Aiden, a team of agents does the work, you approve what matters.
+> The autonomous agentic workspace. Agents run work end to end; you join in to collaborate, guide and step in whenever you like, on a server you own.
 
+Agents plan, build, ship, maintain and follow up on their own, with the tools, data and instructions they need. You
+join in however you like: comment on a shared doc, chat with any agent, give one a Slack channel, approve with a tap.
 Self-hosted and open source. Install it with one command on a fresh Ubuntu or Debian server (or a Mac):
 
 ```sh
@@ -16,28 +18,33 @@ Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
 
 ## Three promises
 
-- **Talk to one assistant.** Aiden is your chief of staff. Ask on Telegram, Slack or the web, forward a thread, or
-  leave a comment on a doc. Aiden turns it into work and chases it to the finish. [Workspace](https://aidenhq.ai/workspace/index.md)
-- **Agents do the work.** A team of specialists researches, follows up, builds apps and keeps them running. Risky
-  steps come to you as a card you approve with one tap. [Agents and teams](https://aidenhq.ai/agents/index.md)
-- **Everything stays yours.** It runs on your server. Your agents, their instructions and the apps they build are
-  files you own, with full history so any change can be undone. [Safety](https://aidenhq.ai/safety/index.md)
+- **Agents run the work end to end.** They plan it, build it, ship it, keep it running and follow up, waking on
+  schedules and events. [Agents and teams](https://aidenhq.ai/agents/index.md)
+- **You join in however you like.** Comment on a shared doc, chat with any agent, give one a Slack channel, or just
+  ask Aiden, the workspace's chief of staff. Guide the work or leave it to them. [Workspace](https://aidenhq.ai/workspace/index.md)
+- **You decide what matters.** Every action that changes something is checked by the system: safe steps run, a second
+  AI checks the risky ones, and the important ones wait for your tap. [Safety](https://aidenhq.ai/safety/index.md)
 
-## A day with Aiden
+Built for one person and their agents. Invite teammates whenever you like: they join the same docs, channels and
+approvals, and work with the same agents.
 
-- **08:00, follow-ups: nothing slips through.** Aiden tracks what people promised in Slack and email, chases them
-  when things slip, and sends a short brief. Small updates wait for one daily digest.
-- **10:30, apps: an app from one sentence.** Ask for a tracker, a dashboard or a form. You pick a layout, agents
+## A day in the workspace
+
+Most of the day the agents work on their own. When you want to shape something, you drop in where the work lives.
+
+- **09:30, shared docs: comment, and an agent picks it up.** Mention an agent in a comment on a doc or whiteboard. It
+  wakes, makes the change while you watch, and answers in the thread.
+- **11:00, apps: an app from one sentence.** Ask for a tracker, a dashboard or a form. You pick a layout, agents
   build it, a second AI checks it, and it goes live for your team. [Apps](https://aidenhq.ai/apps/index.md)
 - **14:00, a new agent from a description.** The Agent Architect writes its instructions, picks its tools, tries it
-  out and adds it to your team once its work holds up.
+  out and adds it to the workspace once its work holds up.
 - **02:00, apps that fix themselves.** When something breaks, the DevOps Engineer rolls it back, an Engineer fixes
   the cause, and the fix ships after a second AI checks it.
 
 ## You decide, agents act
 
-Every action that changes something (a message, a deploy, a merge, a settings change) is checked by the system, not
-by the agent. You see the exact request and decide with one tap, from your phone.
+Agents act on their own, but every action that changes something (a message, a deploy, a merge, a settings change)
+is checked by the system, not by the agent. You see the exact request and decide with one tap, from your phone.
 
 1. **Runs by itself:** safe, reversible steps, like updating a board or drafting a reply.
 2. **A second AI checks it:** merges, deploys and messages are reviewed by a different AI model first.

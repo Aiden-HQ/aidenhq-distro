@@ -800,3 +800,28 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .btn-clear { background: transparent; }
 .section { padding: clamp(56px, 6vw, 104px) 0; }
 .cap .cmd code { background: none; border: 0; padding: 9px 0; font-size: 13.5px; color: inherit; }
+/* Home hero: the live workspace */
+.doc-ic { width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0; background: color-mix(in srgb, var(--blue) 14%, transparent); position: relative; }
+.doc-ic::before { content: ""; position: absolute; left: 8px; top: 6px; width: 12px; height: 16px; border-radius: 2px; border: 1.8px solid color-mix(in srgb, var(--blue) 80%, var(--text)); }
+.faces { margin-left: auto; display: flex; }
+.faces i { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-style: normal; font-size: 9px; font-weight: 700; color: #fff; margin-left: -5px; box-shadow: 0 0 0 2px var(--surface); }
+.faces .mate { background: #7553F2; }
+.doc-mini { padding: 12px 14px 4px; font-size: 12.5px; color: var(--text-2); border-bottom: 1px solid var(--line); }
+.doc-mini mark { background: color-mix(in srgb, var(--amber) 26%, transparent); color: inherit; border-radius: 2px; }
+.doc-mini table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+.doc-mini th, .doc-mini td { border: 1px solid var(--line); padding: 3px 7px; text-align: left; }
+.doc-mini th { background: var(--surface-2); font-weight: 650; }
+.doc-new { display: none; background: color-mix(in srgb, var(--violet) 10%, transparent); }
+.doc-new.on { display: table-row; animation: msg-in .45s var(--ease) both; }
+.msg.act { align-self: stretch; max-width: 100%; padding: 3px 0 3px 10px; border-radius: 0; background: none; border-left: 3px solid var(--c, var(--line-2)); font-size: 12.5px; color: var(--text-2); }
+.msg.act b { color: var(--text); font-weight: 650; }
+.msg.cmt { align-self: flex-end; max-width: 92%; background: color-mix(in srgb, var(--amber) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--line)); color: var(--text); border-top-right-radius: 3px; }
+.msg.cmt::before, .msg.rep::before { content: attr(data-who); display: block; font-size: 11px; font-weight: 700; color: var(--text-3); margin-bottom: 2px; }
+.msg.rep { background: color-mix(in srgb, var(--violet) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--violet) 30%, var(--line)); border-top-left-radius: 3px; align-self: flex-start; }
+.mates { display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 14px 18px; border: 1px dashed var(--line-2); border-radius: var(--r-lg); }
+.mates p { font-size: 15.5px; color: var(--text-2); }
+.mates b { color: var(--text); }
+.faces.big { margin: 0; padding-left: 6px; flex-shrink: 0; }
+.faces.big i { width: 30px; height: 30px; font-size: 11px; border-radius: 8px; margin-left: -7px; }
+@media (max-width: 720px) { .mates { flex-direction: column; align-items: flex-start; gap: 10px; } }
+@media (max-width: 1100px) and (min-width: 721px) { .day { grid-template-columns: minmax(0, 1fr); } }

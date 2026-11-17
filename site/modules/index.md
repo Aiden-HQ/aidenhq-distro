@@ -32,14 +32,14 @@ A module is a folder that can add agents, chat channels, tool connections, apps 
 
 | Module | What it adds | Included |
 |---|---|---|
-| Chief of staff | Aiden, your front door, and the morning brief | Core |
+| Chief of staff | Aiden, who routes any request, and the morning brief | Core |
 | Board | Your daily view: tasks, chats, approvals, apps, costs and panels | Core |
 | Agent builder and coach | The Agent Architect and the Agent Coach | Core |
 | Engineering | Engineers in the locked box, with code checks and reviews | Core |
 | Apps platform and warehouse | Apps your agents build and run, on one shared database | Core |
 | AI reviewer and grader | The second AI that checks risky actions, and the grader that checks finished work | Core |
-| Telegram | Talk to Aiden and approve from your phone | Core |
-| Slack | Aiden and your agents in your workspace | Add-on |
+| Telegram | Chat with your agents and approve from your phone | Core |
+| Slack | Your agents in your Slack channels | Add-on |
 | Google Workspace | Gmail, Calendar and Drive | Add-on |
 | Follow-ups and meetings | The Follow-up Tracker and the Meeting Librarian | Add-on |
 | Jira, Glean, Grafana, ClickHouse | Connections to your work and data tools | Add-on |

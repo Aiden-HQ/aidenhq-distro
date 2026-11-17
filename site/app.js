@@ -140,26 +140,20 @@
     var cards = document.getElementById('cards');
     var apprCount = document.getElementById('appr-count');
     var fleetCount = document.getElementById('fleet-count');
-    var ASK = 'Build a tracker for every open PR at acme and chase stale ones.';
-    var REPLY = 'On it. The Agent Architect is planning it and an Engineer will build it.';
-    var PROGRESS = 'PR #42 passed its checks and the AI review. One decision for you: share it with the eng team?';
-    var SHIPPED = 'Shipped and shared. Live at <span class="lnk">prs.acme.example.com</span> · 14 PRs tracked, 3 owners nudged.';
+    var docNew = document.getElementById('doc-new');
+    var COMMENT = '@Researcher add EU pricing to the table, from our price list.';
 
     function el(tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
-    function say(cls, text, html) { var m = el('div', 'msg ' + cls); if (html) m.innerHTML = html; else m.textContent = text; msgs.appendChild(m); while (msgs.children.length > 11) msgs.removeChild(msgs.firstChild); return m; }
-    function history() {
-      say('sys', 'Yesterday');
-      say('me', 'Chase the vendor contract and tell me by Friday.');
-      say('them', 'Done. The signed redlines are filed in Drive.');
-      say('sys', 'Today 08:00');
-      say('them', 'Morning brief: 3 replies chased, 1 PR merged overnight, nothing needs you.');
-    }
+    function add(m) { msgs.appendChild(m); while (msgs.children.length > 9) msgs.removeChild(msgs.firstChild); return m; }
+    function act(color, who, text) { var m = el('div', 'msg act'); m.style.setProperty('--c', color); m.appendChild(el('b', null, null)).textContent = who; m.appendChild(document.createTextNode(' ' + text)); return add(m); }
+    function note(cls, who, text) { var m = el('div', 'msg ' + cls); m.setAttribute('data-who', who); m.textContent = text; return add(m); }
+    function sys(text) { var m = el('div', 'msg sys'); m.textContent = text; return add(m); }
     function lane(k, status, pct, on) {
       var li = board.querySelector('.lanes [data-k="' + k + '"]');
       li.querySelector('small').textContent = status;
       li.querySelector('.bar i').style.width = (pct || 0) + '%';
       li.classList.toggle('on', !!on);
-      fleetCount.textContent = board.querySelectorAll('.lanes li.on').length + 1 + ' working';
+      fleetCount.textContent = board.querySelectorAll('.lanes li.on').length + ' working';
     }
     function chip(cls, text) { return '<span class="chip' + (cls ? ' ' + cls : '') + '">' + text + '</span>'; }
     function card(tier, title, sub, right) {
@@ -175,23 +169,25 @@
     function setRight(c, html) { c.querySelector('.card-r').innerHTML = html; }
 
     function initial() {
-      msgs.innerHTML = ''; cards.innerHTML = ''; typing.textContent = '';
-      history();
-      lane('arch', 'Idle', 0); lane('eng', 'Idle', 0); lane('ops', 'Watching 6 apps', 0); lane('fu', 'Chasing 3 replies', 62, true);
-      card('t0', 'Update the roadmap board', 'Safe, ran by itself', chip('', 'Ran'));
-      card('t1', 'Remind a teammate about the review', 'Checked by a second AI', chip('', 'Approved'));
+      msgs.innerHTML = ''; cards.innerHTML = ''; typing.textContent = ''; docNew.classList.remove('on');
+      sys('Overnight');
+      act('var(--teal)', 'DevOps Engineer', 'rolled back a bad release and shipped the fix');
+      act('var(--pink)', 'Follow-up Tracker', 'chased Sam: launch date confirmed');
+      lane('eng', 'Building the sign-up flow', 40, true); lane('ops', 'Watching 6 apps', 0); lane('fu', 'Chasing 2 replies', 55, true); lane('res', 'Comparing regional prices', 30, true);
+      card('t0', 'Update the launch checklist', 'Safe, ran by itself', chip('', 'Ran'));
+      card('t1', 'Merge PR #42, checks green', 'Checked by a second AI', chip('', 'Approved'));
       apprCount.textContent = 'All clear';
     }
-
     function finalFrame() {
-      msgs.innerHTML = ''; cards.innerHTML = '';
-      history();
-      say('me', ASK); say('them', REPLY); say('them', PROGRESS);
-      say('them ship', null, SHIPPED);
-      lane('arch', 'Plan handed to Engineer', 100); lane('eng', 'Done: PR #42 merged', 100); lane('ops', 'Watching 7 apps', 100, true);
-      card('t1', 'Merge PR #42, checks green', 'Checked by a second AI', chip('', 'Approved'));
-      card('t1', 'Deploy pr-tracker v1', 'Checked by a second AI', chip('', 'Approved'));
-      card('t2', 'Share pr-tracker with the eng team', 'You decide', chip('', 'You approved'));
+      initial();
+      sys('Today');
+      note('cmt', 'You', COMMENT);
+      note('rep', 'Researcher', 'Added EU at €11 from the price list. Resolved.');
+      docNew.classList.add('on');
+      act('var(--violet)', 'Engineer', 'shipped the sign-up flow');
+      lane('eng', 'Shipped the sign-up flow', 100); lane('ops', 'Watching 7 apps', 100, true); lane('fu', 'Waiting on 1 reply', 80, true); lane('res', 'Table updated', 100);
+      card('t1', 'Deploy signup v1', 'Checked by a second AI', chip('', 'Approved'));
+      card('t2', 'Email the launch note to 14 customers', 'You decide', chip('', 'You approved'));
     }
 
     if (reduce) { finalFrame(); return; }
@@ -208,37 +204,38 @@
 
     async function run() {
       initial();
-      await wait(1400);
-      await type(ASK);
-      await wait(350);
+      await wait(1600);
+      lane('eng', 'Opened PR #43: sign-up flow', 100, true);
+      await wait(1000);
+      sys('Today');
+      await type(COMMENT);
+      await wait(300);
       typing.textContent = '';
-      say('me', ASK);
-      await wait(900);
-      say('them', REPLY);
-      await wait(600);
-      lane('arch', 'Planning pr-tracker', 100, true);
-      await wait(1800);
-      lane('arch', 'Plan handed to Engineer', 100, false);
-      lane('eng', 'Building pr-tracker', 45, true);
-      await wait(1300);
-      lane('eng', 'Opened PR #42', 100, true);
-      await wait(900);
-      await review(card('t1', 'Merge PR #42, checks green', 'Checked by a second AI', chip('shimmer', 'Reviewing')));
-      lane('eng', 'Done: PR #42 merged', 100, false);
-      lane('ops', 'Deploying pr-tracker', 100, true);
-      await review(card('t1', 'Deploy pr-tracker v1', 'Checked by a second AI', chip('shimmer', 'Reviewing')));
-      say('them', PROGRESS);
-      var c = card('t2', 'Share pr-tracker with the eng team', 'You decide', '<span class="tap-btn">Approve</span>');
+      note('cmt', 'You', COMMENT);
+      await wait(700);
+      lane('res', 'Editing Launch plan', 70, true);
+      await wait(1500);
+      docNew.classList.add('on');
+      note('rep', 'Researcher', 'Added EU at €11 from the price list. Resolved.');
+      lane('res', 'Table updated', 100, false);
+      await wait(1000);
+      lane('eng', 'Shipped the sign-up flow', 100, false);
+      lane('ops', 'Deploying signup v1', 100, true);
+      await review(card('t1', 'Deploy signup v1', 'Checked by a second AI', chip('shimmer', 'Reviewing')));
+      act('var(--violet)', 'Engineer', 'shipped the sign-up flow');
+      lane('ops', 'Watching 7 apps', 100, true);
+      await wait(700);
+      var c = card('t2', 'Email the launch note to 14 customers', 'You decide', '<span class="tap-btn">Approve</span>');
       apprCount.textContent = '1 needs you';
+      lane('fu', 'Drafted the launch note', 100, true);
       await wait(1900);
       c.querySelector('.tap-btn').classList.add('tapped');
       await wait(600);
       setRight(c, chip('', 'You approved'));
       apprCount.textContent = 'All clear';
-      await wait(500);
-      lane('ops', 'Watching 7 apps', 100, true);
-      say('them ship', null, SHIPPED);
-      await wait(4800);
+      act('var(--pink)', 'Follow-up Tracker', 'sent the launch note; tracking replies');
+      lane('fu', 'Waiting on 1 reply', 80, true);
+      await wait(5000);
       board.classList.add('resetting');
       await wait(500);
       board.classList.remove('resetting');

@@ -12,7 +12,7 @@ _Animation: the install command runs on a fresh server, checks it, installs what
 
 ## Pick the one that suits you.
 
-All three end in the same place: your own workspace, with Aiden waiting on the board.
+All three end in the same place: your own workspace, with its agents ready for their first job.
 
 ### One command
 
@@ -57,11 +57,11 @@ Telegram, Slack and Google are optional. Connect them later, from the board, wit
 
 Reach the board over an SSH tunnel, or on your private network with Tailscale if you prefer.
 
-## Aiden says hello.
+## Your workspace opens.
 
-The installer ends with a one-time setup link. Open it in your browser, create your account with a password and a one-time code, add your model key, and Aiden greets you on the board, ready for its first job.
+The installer ends with a one-time setup link. Open it in your browser, create your account with a password and a one-time code, and add your model key. Your workspace opens with its agents ready, and Aiden says hello.
 
-- **Day one:** ask Aiden for something real. A brief, a follow-up, a small app.
+- **Day one:** hand the agents something real: a doc to research, a follow-up, a small app.
 - **Week one:** connect Slack or Google, and describe the first agent you want.
 - **Ongoing:** new releases arrive as tested distros. You choose when to update.
 **What it costs**

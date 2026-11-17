@@ -1,8 +1,8 @@
-# A team of agents that already knows its job.
+# Agents that run the work end to end.
 
-> A team of AI agents that knows its job: Aiden your chief of staff, specialists who wake on schedules and events, and new agents built from a one-sentence description.
+> Autonomous agents that run work end to end: specialists who plan, build, ship, maintain and follow up on schedules and events, a chief of staff to route requests, and new agents built from a one-sentence description.
 
-Aiden leads a team of specialists who research, follow up, build and keep things running. Need someone new? Describe them in a sentence and the Agent Architect builds them.
+Specialists that plan, build, ship, maintain and follow up on their own, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.
 
 _Animation: the team at work: Aiden hands a task to the Researcher, the Follow-up Tracker chases a reply, the Meeting Librarian files notes, and the DevOps Engineer confirms every app is healthy_
 
@@ -10,7 +10,7 @@ _Animation: the team at work: Aiden hands a task to the Researcher, the Follow-u
 
 Every agent has a role, a short set of instructions you can read, the tools it is allowed to use and a model picked for the job. Start with the core team and add the rest as add-ons.
 
-- **Aiden:** Chief of staff. Turns requests into tasks, delegates, chases and briefs you.
+- **Aiden:** Chief of staff. Routes any request to the right agent and chases it.
 - **Researcher:** Finds and checks facts across the web and your tools.
 - **Agent Architect:** Designs new agents from your description and tries them out.
 - **Agent Coach:** Reviews agents' work and proposes better instructions.
@@ -23,9 +23,9 @@ Every agent has a role, a short set of instructions you can read, the tools it i
 - **Security Watch:** Scans for known security holes and proposes fixes.
 - **Red Teamer:** Attacks your own setup to find weak spots first.
 
-## You talk to one assistant. It runs the team.
+## Not sure who to ask? Ask Aiden.
 
-Aiden is the only agent you need to talk to. It reads your messages and forwards, decides who should do the work, keeps track of it and comes back with results or a decision for you.
+You can talk to any agent directly. When you would rather not choose, Aiden takes the request: it reads your messages and forwards, decides who should do the work, keeps track of it and comes back with results or a decision.
 
 - **Delegates** each request to the right specialist, with a clear definition of done.
 - **Chases** people and agents until the work lands, and tells you if something stalls.
@@ -52,7 +52,7 @@ Agents set their own reminders: "check back on Thursday if Sam has not replied".
 
 ## Describe the agent you wish you had.
 
-Tell Aiden what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.
+Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.
 
 - **No prompt writing.** You describe the outcome; the Architect writes the instructions.
 - **Trial first.** New agents run on trial with limited reach until their work is graded.

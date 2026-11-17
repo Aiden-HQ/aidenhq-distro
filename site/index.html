@@ -1,15 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-<title>AidenHQ: you and your agents, one workspace</title>
-<meta name="description" content="You and your agents, one workspace. On a server you own: talk to Aiden, a team of agents does the work, you approve what matters.">
+<title>AidenHQ: the autonomous agentic workspace</title>
+<meta name="description" content="The autonomous agentic workspace. Agents run work end to end; you join in to collaborate, guide and step in whenever you like, on a server you own.">
 <link rel="canonical" href="https://aidenhq.ai/">
 <link rel="alternate" type="text/markdown" href="/index.md">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AidenHQ">
+<meta property="og:title" content="AidenHQ: the autonomous agentic workspace">
+<meta property="og:description" content="The autonomous agentic workspace. Agents run work end to end; you join in to collaborate, guide and step in whenever you like, on a server you own.">
+<meta property="og:url" content="https://aidenhq.ai/">
+<meta name="twitter:card" content="summary">
 <!--#include head-->
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
 {"@type":"Organization","@id":"https://aidenhq.ai/#org","name":"AidenHQ","url":"https://aidenhq.ai/","sameAs":["https://github.com/Aiden-HQ"]},
-{"@type":"SoftwareApplication","name":"AidenHQ","url":"https://aidenhq.ai/","description":"You and your agents, one workspace, on a server you own. Talk to Aiden, a team of agents does the work, and you approve what matters.","applicationCategory":"BusinessApplication","operatingSystem":"Linux (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13)","installUrl":"https://get.aidenhq.ai","softwareHelp":"https://aidenhq.ai/prompt.md","license":"https://www.gnu.org/licenses/agpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://aidenhq.ai/#org"}}
+{"@type":"SoftwareApplication","name":"AidenHQ","url":"https://aidenhq.ai/","description":"The autonomous agentic workspace. Agents run work end to end; you join in to collaborate, guide and step in whenever you like, on a server you own.","applicationCategory":"BusinessApplication","operatingSystem":"Linux (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13)","installUrl":"https://get.aidenhq.ai","softwareHelp":"https://aidenhq.ai/prompt.md","license":"https://www.gnu.org/licenses/agpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://aidenhq.ai/#org"}}
 ]}
 </script>
 </head>
@@ -21,9 +27,9 @@
   <div class="mesh" aria-hidden="true"><i class="m1"></i><i class="m2"></i><i class="m3"></i><i class="m4"></i></div>
   <div class="wrap hero-in">
     <div class="hero-copy">
-      <p class="kicker"><span class="dot"></span>Your agentic workspace, self-hosted and open source</p>
-      <h1>You and your agents, <span class="grad">one workspace.</span></h1>
-      <p class="lede">On a server you own. Talk to Aiden, a team of agents does the work, you approve what matters.</p>
+      <p class="kicker"><span class="dot"></span>Self-hosted and open source</p>
+      <h1>The autonomous <span class="grad">agentic workspace.</span></h1>
+      <p class="lede">Agents run the work end to end: plan, build, ship, maintain and follow up. You join in to collaborate, guide and step in whenever you like, on a server you own.</p>
       <div class="btn-row">
         <a class="btn btn-primary" href="/install/">Get started</a>
         <a class="btn btn-ghost" href="#day">See how it works</a>
@@ -48,25 +54,29 @@
       </div>
     </div>
 
-    <div class="board" aria-label="Animated preview of the AidenHQ board: you ask Aiden for a PR tracker, the Agent Architect plans it, an Engineer builds it, a second AI checks the merge and deploy, and you tap once to share it with your team" role="img">
+    <div class="board" aria-label="Animated preview of the workspace: agents ship, follow up and research on their own; you open a shared doc and leave a comment, the Researcher picks it up and edits the doc, a second AI checks a deploy, and you approve one email with a tap" role="img">
       <div class="board-bar">
         <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="board-title">board.acme.example.com</span>
+        <span class="board-title">workspace.acme.example.com</span>
         <span class="board-live"><i></i>Live</span>
       </div>
       <div class="board-body">
         <div class="pane chat">
-          <div class="pane-head"><span class="avatar a-aiden">A</span><div><b>Aiden</b><small>Chief of staff</small></div></div>
+          <div class="pane-head"><span class="doc-ic" aria-hidden="true"></span><div><b>Launch plan</b><small>Shared doc</small></div><span class="faces" aria-hidden="true"><i class="a-aiden">Y</i><i style="background:#0B8FD6">R</i><i class="a-eng">E</i><i class="mate">D</i></span></div>
+          <div class="doc-mini" aria-hidden="true">
+            <p>We launch to existing customers on the 14th, then open sign-ups. <mark>Pricing by region is still open.</mark></p>
+            <table><tr><th>Region</th><th>Price</th></tr><tr><td>US</td><td>$12</td></tr><tr class="doc-new" id="doc-new"><td>EU</td><td>&euro;11</td></tr></table>
+          </div>
           <div class="msgs" id="msgs"></div>
           <div class="composer"><span id="typing"></span><i class="caret"></i></div>
         </div>
         <div class="pane fleet">
-          <div class="pane-head small"><b>Team</b><small id="fleet-count">2 working</small></div>
+          <div class="pane-head small"><b>Agents</b><small id="fleet-count">3 working</small></div>
           <ul class="lanes" id="lanes">
-            <li data-k="arch"><span class="avatar a-arch">AA</span><div class="lane-txt"><b>Agent Architect</b><small>Idle</small></div><span class="bar"><i></i></span></li>
             <li data-k="eng"><span class="avatar a-eng">EN</span><div class="lane-txt"><b>Engineer</b><small>Idle</small></div><span class="bar"><i></i></span></li>
             <li data-k="ops"><span class="avatar a-ops">DO</span><div class="lane-txt"><b>DevOps Engineer</b><small>Watching 6 apps</small></div><span class="bar"><i></i></span></li>
-            <li data-k="fu" class="on"><span class="avatar a-fu">FT</span><div class="lane-txt"><b>Follow-up Tracker</b><small>Chasing 3 replies</small></div><span class="bar"><i style="width:62%"></i></span></li>
+            <li data-k="fu"><span class="avatar a-fu">FT</span><div class="lane-txt"><b>Follow-up Tracker</b><small>Idle</small></div><span class="bar"><i></i></span></li>
+            <li data-k="res"><span class="avatar" style="background:#0B8FD6">R</span><div class="lane-txt"><b>Researcher</b><small>Idle</small></div><span class="bar"><i></i></span></li>
           </ul>
           <div class="pane-head small appr-head"><b>Approvals</b><small id="appr-count">All clear</small></div>
           <div class="cards" id="cards"></div>
@@ -79,46 +89,50 @@
 <section class="section-sm band" id="promises">
   <div class="wrap">
     <ul class="promises">
-      <li class="reveal"><a class="promise c-blue" href="/workspace/" style="--c: var(--blue); height: 100%">
-        <span class="pi"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9.5h8M8 12.5h5"/></svg></span>
-        <h3>Talk to one assistant</h3>
-        <p>Aiden is your chief of staff. Ask on Telegram, Slack or the web, forward a thread, or leave a comment on a doc. Aiden turns it into work and chases it to the finish.</p>
-        <span class="more">Your workspace</span>
-      </a></li>
       <li class="reveal"><a class="promise" href="/agents/" style="--c: var(--violet); height: 100%">
-        <span class="pi"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5M15 14.2c2.6-.3 4.8 1.2 5.5 4.3"/></svg></span>
-        <h3>Agents do the work</h3>
-        <p>A team of specialists researches, follows up, builds apps and keeps them running. Risky steps come to you as a card you approve with one tap.</p>
+        <span class="pi"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <h3>Agents run the work end to end</h3>
+        <p>They plan it, build it, ship it, keep it running and follow up, waking on schedules and events. Each has the tools, data and instructions it needs to work on its own.</p>
         <span class="more">Agents and teams</span>
       </a></li>
-      <li class="reveal"><a class="promise" href="/safety/#private" style="--c: var(--teal); height: 100%">
-        <span class="pi"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
-        <h3>Everything stays yours</h3>
-        <p>It runs on your server. Your agents, their instructions and the apps they build are files you own, with a full history so any change can be undone.</p>
-        <span class="more">Private by design</span>
+      <li class="reveal"><a class="promise" href="/workspace/" style="--c: var(--blue); height: 100%">
+        <span class="pi"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 9.5h8M8 12.5h5"/></svg></span>
+        <h3>You join in however you like</h3>
+        <p>Comment on a shared doc, chat with any agent, give one a Slack channel, or just ask Aiden, the workspace's chief of staff. Guide the work or leave it to them.</p>
+        <span class="more">The workspace</span>
+      </a></li>
+      <li class="reveal"><a class="promise" href="/safety/" style="--c: var(--teal); height: 100%">
+        <span class="pi"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h3>You decide what matters</h3>
+        <p>Every action that changes something is checked by the system. Safe steps run, a second AI checks the risky ones, and the important ones wait for your tap.</p>
+        <span class="more">Safety and approvals</span>
       </a></li>
     </ul>
+    <div class="mates reveal">
+      <span class="faces big" aria-hidden="true"><i class="a-aiden">Y</i><i class="mate">D</i><i style="background:#C9466F">S</i><i class="a-eng">EN</i><i class="a-ops">DO</i><i style="background:#0B8FD6">R</i></span>
+      <p><b>Built for one person and their agents.</b> Invite teammates whenever you like: they join the same docs, channels and approvals, and work with the same agents.</p>
+    </div>
   </div>
 </section>
 
 <section class="section" id="day">
   <div class="wrap">
     <div class="sec-head reveal">
-      <p class="eyebrow c-violet">A day with Aiden</p>
-      <h2>Hand over real work in one sentence.</h2>
-      <p>No prompts to write and no setup per task. Say what you want the way you would to a chief of staff, and watch it get done.</p>
+      <p class="eyebrow c-violet">A day in the workspace</p>
+      <h2>Agents run the work. You step in where it matters.</h2>
+      <p>Most of the day the agents work on their own. When you want to shape something, you drop in where the work lives: a doc, a thread, a card.</p>
     </div>
     <div class="day">
       <article class="day-card reveal" style="--c: var(--blue)">
-        <!--#include scene-brief-->
-        <p class="when">08:00 &middot; Follow-ups</p>
-        <h3>Nothing slips through.</h3>
-        <p>Aiden tracks what people promised in Slack and email, chases them when things slip, and sends a short brief. Small updates wait for one daily digest.</p>
-        <a class="more" href="/workspace/#brief">How the brief works</a>
+        <!--#include scene-doc-->
+        <p class="when">09:30 &middot; Shared docs</p>
+        <h3>Comment, and an agent picks it up.</h3>
+        <p>Leave a comment on a doc or whiteboard and mention an agent. It wakes, makes the change while you watch, and answers in the thread.</p>
+        <a class="more" href="/workspace/#docs">Shared docs</a>
       </article>
       <article class="day-card reveal" style="--c: var(--teal)">
         <!--#include scene-app-->
-        <p class="when">10:30 &middot; Apps</p>
+        <p class="when">11:00 &middot; Apps</p>
         <h3>An app from one sentence.</h3>
         <p>Ask for a tracker, a dashboard or a form. You pick a layout, agents build it, a second AI checks it, and it goes live for your team.</p>
         <a class="more" href="/apps/">How apps get built</a>
@@ -126,8 +140,8 @@
       <article class="day-card reveal" style="--c: var(--violet)">
         <!--#include scene-architect-->
         <p class="when">14:00 &middot; New agent</p>
-        <h3>A new teammate from a description.</h3>
-        <p>Describe the agent you wish you had. The Agent Architect writes its instructions, picks its tools, tries it out and adds it to your team once its work holds up.</p>
+        <h3>A new agent from a description.</h3>
+        <p>Describe the agent you wish you had. The Agent Architect writes its instructions, picks its tools, tries it out and adds it to the workspace once its work holds up.</p>
         <a class="more" href="/agents/#build">Build your own agent</a>
       </article>
       <article class="day-card reveal" style="--c: var(--pink)">
@@ -146,7 +160,7 @@
     <div class="reveal">
       <p class="eyebrow c-amber">You decide, agents act</p>
       <h2>Autonomy where it is safe. You for what matters.</h2>
-      <p class="lede-sm">Every action that changes something (a message, a deploy, a merge, a settings change) is checked by the system, not by the agent. You see the exact request and decide with one tap, from your phone.</p>
+      <p class="lede-sm">Agents act on their own, but every action that changes something (a message, a deploy, a merge, a settings change) is checked by the system, not by the agent. You see the exact request and decide with one tap, from your phone.</p>
       <ul class="levels">
         <li style="--c: var(--teal)"><b>Runs by itself</b><span>Safe, reversible steps, like updating a board or drafting a reply.</span></li>
         <li style="--c: var(--violet)"><b>A second AI checks it</b><span>Merges, deploys and messages are reviewed by a different AI model first.</span></li>

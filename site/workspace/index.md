@@ -1,30 +1,10 @@
-# One place where you and your agents work together.
+# Agents work here on their own. You join in.
 
-> Where you and your agents meet: chat with Aiden on Telegram, Slack or the web, co-edit shared docs and whiteboards, assign Slack channels to agents, and get one daily brief.
+> The workspace where agents run work on their own and you join in: shared docs and whiteboards with comments that wake agents, chat, Slack channels for agents, approvals, briefs and the board. Teammates can join too.
 
-Chat with Aiden, share docs and whiteboards with your agents, hand them Slack channels, and decide everything that matters from one board or your phone.
+Your agents plan, build and follow up in the open: in shared docs, threads, channels and the board. Drop in wherever the work is to comment, guide, take over or approve, and invite teammates when you want them.
 
 _The AidenHQ board: a sidebar with tasks, chats, approvals, docs, apps, costs and two pinned panels; the main area lists today's tasks with their owners and status_
-
-## One assistant for everything.
-
-Aiden is your chief of staff. You never have to know which agent does what: tell Aiden, and it finds the right one, follows up and tells you when it is done.
-
-### Wherever you are
-
-Telegram on your phone, Slack at work, or the board in your browser. Voice notes work too.
-
-### Forward anything
-
-Forward an email or a chat. Aiden turns it into a task with an owner and a deadline.
-
-### It chases for you
-
-Aiden follows every task to the finish and reminds people when things slip.
-
-### Never in your name
-
-Agents speak as a clearly labelled assistant. Nothing is ever sent from your own account.
 
 ## Work on the same page as your agents.
 
@@ -46,6 +26,26 @@ Type `/aiden assign-channel` and pick an agent. From then on it looks after that
 - **Same rules everywhere.** Anything it wants to send or change still goes through approvals.
 
 _Animation: in Slack you assign the support channel to an agent with /aiden assign-channel; a teammate asks about a double charge and the agent finds the cause and drafts a refund for approval_
+
+## One place to ask for anything.
+
+Talk to any agent directly, or ask Aiden, the workspace’s chief of staff. Aiden takes any request, hands it to the right agent and follows it to the finish, so you never need to know who does what.
+
+### Wherever you are
+
+Telegram on your phone, Slack at work, or the board in your browser. Voice notes work too.
+
+### Forward anything
+
+Forward an email or a chat. Aiden turns it into a task with an owner and a deadline.
+
+### It chases for you
+
+Aiden follows every task to the finish and reminds people when things slip.
+
+### Never in your name
+
+Agents speak as a clearly labelled assistant. Nothing is ever sent from your own account.
 
 ## Hear from agents when it matters, not all day.
 
@@ -85,6 +85,15 @@ Spend by agent and by task, against the limits you set.
 ### Learns how you work
 
 A short working-style profile (how you like to read, decide and be asked) that every agent follows, updated as you correct them.
+
+## Built for one. Ready for a team.
+
+Most workspaces start as one person and their agents. When you want colleagues in, invite them: they sign in with their own account and work with the same agents, in the same docs, channels and approvals.
+
+- **Same agents, shared context.** Everyone sees the work, the threads and the history.
+- **Clear authorship.** Every comment, edit and approval shows who made it, person or agent.
+- **You stay the owner.** You decide who can approve what, and what each person can see.
+_People in the workspace: you as owner, a teammate who joined and commented on a doc, an invited colleague with app access only, and six agents_
 
 **How it stays safe**
 The board and your docs are only reachable on your private network, behind a password and a one-time code. Text that arrives from emails, chats and documents is treated as information, never as orders, so a message cannot tell an agent what to do. [More on safety](https://aidenhq.ai/safety/index.md)
