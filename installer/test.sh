@@ -154,6 +154,62 @@ expect "the final output carries the two machine-readable lines, no --verbose ne
    sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t' \
      && printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SSH_TUNNEL=ssh-x'"
 
+# Progress lines (AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>): the weights table keys are real step texts.
+expect "every weights row is the start of a step() text in install.sh, Linux and Mac" pass \
+  "for t in \"\$PROGRESS_LINUX\" \"\$(progress_mac_table)\"; do printf '%s\n' \"\$t\" | while IFS='|' read -r k w l; do
+     [ \"\$k\" = ready ] || grep -q \"step \\\"\$k\" '$here/install.sh' || { echo \"no step for \$k\"; exit 1; }; done || exit 1; done"
+# A stub setup in the product's role: it reads AIDENHQ_PROGRESS_BASE, prints its own lines inside that slice, mints the one
+# valid token (a new one replaces the old, as the kernel's mintSetup does) and ends with the link, as ops/setup.sh does.
+mkdir -p "$work/p/ops"
+cat >"$work/p/ops/setup.sh" <<'EOS'
+#!/bin/bash
+IFS=/ read -r n t p0 span secs <<<"$AIDENHQ_PROGRESS_BASE"
+echo "• packages"; echo "AIDENHQ_PROGRESS=$n/$t $((p0 + span * 10 / 100))% installing packages ~9"
+echo "AIDENHQ_PROGRESS=$n/$t $((p0 + span * 40 / 100))% downloading Aiden ~6"
+[ -z "${STUB_KILL_PULL:-}" ] || kill -9 $$   # the pull is killed here
+echo "AIDENHQ_PROGRESS=$n/$t $((p0 + span * 90 / 100))% starting services ~1"
+echo "tok-$$" >"$STUB_TOKEN"   # replaces any earlier token
+echo "AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup?token=$(cat "$STUB_TOKEN")"
+EOS
+# A whole Linux install's output (every step() text in main's order, the stub setup, finish) into $work/inst.N.
+install_run() { # N [kill-pull]
+  (
+    . "$work/lib.sh"
+    setup_ui; DRY=0 VERBOSE=0 NONINT=1 NO_TS=1 SUDO='' STEP='' AUTH_HDR='' SVC=$(id -un) SVC_HOME="$work/p" STATE_DIR="$work/p/.s"
+    TMPD=$(mktemp -d "$work/t.XXXX") LOG="$TMPD/log" DIR="$work/p" SETUP_URL='' SSH_TUNNEL='' PENV='' KERNEL_SHA=x MAX_CONCURRENT=2 JOB_TIMEOUT=60 CI_RUNNERS=1
+    REL=2026.11 REL_COMMIT=$K DISTRO_REPO=acme/distro AIDENHQ_OWNER_EMAIL=a@example.com
+    PG_TABLE=$PROGRESS_LINUX PG_LAST=0 PROGRESS_SLICE=''
+    sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { KCOPY="$work/p"; }
+    export STUB_TOKEN="$work/p/token"; [ -z "${2:-}" ] || export STUB_KILL_PULL=1
+    step "This machine"; step "Service user x"; step "Bootstrap tools"; step "Release 2026.11"
+    step "Fetch and verify the kernel and modules"; step "Docker log and build-cache limits"
+    run_setup; step "Disk guard and Docker cleanup"; finish
+  ) >"$work/inst.$1" 2>&1
+}
+pcts() { sed -n 's/^AIDENHQ_PROGRESS=[0-9]*\/[0-9]* \([0-9]*\)%.*/\1/p' "$1"; }
+install_run 1
+if [ "$(pcts "$work/inst.1" | sort -n | tr '\n' ' ')" = "$(pcts "$work/inst.1" | tr '\n' ' ')" ] && [ "$(pcts "$work/inst.1" | wc -l)" -ge 10 ] \
+   && [ "$(grep -n '^AIDENHQ_PROGRESS=' "$work/inst.1" | tail -1 | cut -d: -f1)" -lt "$(grep -n '^AIDENHQ_SETUP_URL=' "$work/inst.1" | cut -d: -f1)" ] \
+   && [ "$(pcts "$work/inst.1" | tail -1)" = 100 ] && grep -q '^AIDENHQ_PROGRESS=[0-9]*/[0-9]* [0-9]*% downloading Aiden ~[0-9]*$' "$work/inst.1"; then
+  ok "progress is monotonic and ends at 100% before the link, the product's lines inside the setup step"
+else bad "progress is monotonic and ends at 100% before the link"; sed 's/^/     /' "$work/inst.1"; fi
+# The kill-mid-pull case runs here: the stub kills itself (SIGKILL) while pulling, the installer stops, and the rerun
+# finishes with the one link, from the one token in the store.
+rm -f "$work/p/token"
+if ! install_run 2 kill && ! grep -q '^AIDENHQ_SETUP_URL=' "$work/inst.2" && grep -q 'downloading Aiden' "$work/inst.2" \
+   && install_run 3 && [ "$(grep -c '^AIDENHQ_SETUP_URL=' "$work/inst.3")" = 1 ] \
+   && [ "$(sed -n 's/^AIDENHQ_SETUP_URL=.*token=//p' "$work/inst.3")" = "$(cat "$work/p/token")" ] && [ "$(pcts "$work/inst.3" | tail -1)" = 100 ] \
+   && [ "$(pcts "$work/inst.3" | sort -n | tr '\n' ' ')" = "$(pcts "$work/inst.3" | tr '\n' ' ')" ]; then
+  ok "rerun after a killed pull: no link from the killed run, one link and the one token from the rerun, progress again to 100%"
+else bad "rerun after a killed pull"; sed 's/^/     /' "$work/inst.2" "$work/inst.3"; fi
+# On a Mac the VM's install runs inside the outer's slice: its percent never passes the row's end and it prints no link.
+expect "the install in the Mac's VM keeps to its slice and the Mac prints the one 100% line" pass \
+  "PG_TABLE=\$(progress_mac_table); PG_LAST=0; progress_emit 'This Mac' >/dev/null; progress_emit 'Lima' >/dev/null; progress_emit 'Linux VM' >/dev/null
+   progress_emit 'AidenHQ in the VM' >/dev/null; b=\$PROGRESS_SLICE
+   PG_TABLE=\$PROGRESS_LINUX PG_LAST=0 AIDENHQ_PROGRESS_BASE=\$b; a=\$(progress_emit 'This machine'); z=\$(progress_emit 'Disk guard')
+   case \"\$a\" in AIDENHQ_PROGRESS=4/5\ *) : ;; *) exit 1 ;; esac
+   n=\${z#*/*/ }; p=\$(echo \"\$z\" | sed 's/^[^ ]* \([0-9]*\)%.*/\1/'); [ \"\$p\" -lt 100 ] && [ \"\$p\" -gt 50 ]"
+
 # Root verification ignores the service user's .git (replace refs) and catches any tracked change.
 g init -q "$work/rv"; echo good >"$work/rv/f"; g -C "$work/rv" add -A; g -C "$work/rv" commit -qm one
 RK=$(git -C "$work/rv" rev-parse HEAD)
