@@ -1,6 +1,6 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
-# releases/<release>.json names real shas. This job installs exactly that set in a container (install.sh's own fetch and
-# verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# releases/<release>.json names real shas. On the org's self-hosted `aidenhq` runners (each one a container; no Docker
+# inside), this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # Private kernel or modules repos need the RELEASE_READ_TOKEN secret (contents: read on both); public ones need nothing.
 name: release
@@ -12,7 +12,7 @@ concurrency: release-${{ github.ref_name }}
 jobs:
   # Fetch and test with a read-only token; publishing is a separate job, the only one that can write.
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, aidenhq]
     timeout-minutes: 120
     permissions:
       contents: read
@@ -20,12 +20,15 @@ jobs:
       suites: ${{ steps.suites.outputs.suites }}
     env:
       TAG: ${{ github.ref_name }}
-      NODE_IMAGE: node:24.22.2-trixie@sha256:5c6e2e57d7dd6652ce6f087ba0328312059d7c77f93baa8751865dbf103f1acb
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
+      # Node 24 is in the runner image's tool cache: found there, nothing is downloaded.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
       - name: The tag is on main and its release file names real shas
         run: |
           [[ "$TAG" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+)?$ ]] || { echo "::error::$TAG isn't a release name (2026.11, 2026.11.1)"; exit 1; }
@@ -42,20 +45,20 @@ jobs:
         env:
           AIDENHQ_GITHUB_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
         run: |
-          mkdir -p "$RUNNER_TEMP/set"
-          docker run --rm -e AIDENHQ_GITHUB_TOKEN -v "$PWD:/distro:ro" -v "$RUNNER_TEMP/set:/set" "$NODE_IMAGE" \
-            sh /distro/.github/release/test-set.sh fetch "/distro/releases/$TAG.json" /set
-      # Fetched code runs only here, in a fresh container with no token, no network credentials and no write access.
+          rm -rf "$RUNNER_TEMP/set"
+          sh .github/release/test-set.sh fetch "releases/$TAG.json" "$RUNNER_TEMP/set"
+      # Fetched code runs only here: a separate step whose environment never has the token (unset again to be sure;
+      # test-set.sh refuses to run the suites if any credential is set), in a job that can't write.
       - name: Run the release suites on it
         id: suites
         run: |
-          docker run --rm -v "$PWD:/distro:ro" -v "$RUNNER_TEMP/set:/set" "$NODE_IMAGE" sh /distro/.github/release/test-set.sh suites /set
+          env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT sh .github/release/test-set.sh suites "$RUNNER_TEMP/set"
           jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
           echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
 
   publish:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, aidenhq]
     timeout-minutes: 10
     permissions:
       contents: write
@@ -78,7 +81,7 @@ jobs:
           grep -qx "DEFAULT_RELEASE=$TAG" dist/install.sh && grep -qx "RELEASE_SHA256=\"$digest\"" dist/install.sh \
             && grep -qx "RELEASE_COMMIT=\"$GITHUB_SHA\"" dist/install.sh || { echo "::error::install.sh wasn't baked"; exit 1; }
           [ "$(tail -1 dist/install.sh)" = 'main "$@"' ]
-          shellcheck dist/install.sh
+          if command -v shellcheck >/dev/null; then shellcheck dist/install.sh; else echo "shellcheck not on this runner: ci.yml checks the source"; fi
           cat "dist/$TAG.json"
           echo "release file sha256 $digest, distro commit $GITHUB_SHA"
       - name: Publish install.sh and the release file

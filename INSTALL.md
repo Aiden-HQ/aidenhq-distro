@@ -136,7 +136,7 @@ from); every apply reads that file again at that commit and refuses a kernel oth
 ## Releases
 
 A release is cut by pushing its tag (`2026.11`, patch releases `2026.11.1`) on a `main` commit whose `releases/<tag>.json`
-names real shas. `.github/workflows/release.yml` then installs exactly that set in a container (this script's own fetch
+names real shas. `.github/workflows/release.yml` then installs exactly that set on the self-hosted runners (this script's own fetch
 and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
 publishes both as the release's assets. `get.aidenhq.ai` should redirect to the latest tagged `install.sh` asset, never
 to a branch.

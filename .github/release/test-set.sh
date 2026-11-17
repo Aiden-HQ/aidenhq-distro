@@ -1,12 +1,12 @@
 #!/bin/sh
 # shellcheck disable=SC2034  # the variables are read by the sourced install.sh functions
-# Install a release set and test it, in the release CI's containers (.github/workflows/release.yml), in two runs:
+# Install a release set and test it, in the release CI (.github/workflows/release.yml), in two separate steps:
 #   sh .github/release/test-set.sh fetch  <release file> <work dir>   fetch and verify (the only run given a token)
 #   sh .github/release/test-set.sh suites <work dir>                  the release suites, on the verified checkouts
 # fetch uses install.sh's own functions (fetch_release, fetch_sources: every checkout must be exactly the release's sha,
 # every module sha on the marketplace history) and runs nothing it fetched. AIDENHQ_GITHUB_TOKEN reads private repos; it
-# rides in git's environment only (never a file in a checkout), and the suites run in a separate container that never
-# gets it. The suites that ran go to <work dir>/suites.json.
+# rides in git's environment only (never a file in a checkout), and the suites run in a separate step that never gets
+# it. The suites that ran go to <work dir>/suites.json.
 set -eu
 here=$(cd "$(dirname "$0")/../.." && pwd)
 mode=$1; shift
