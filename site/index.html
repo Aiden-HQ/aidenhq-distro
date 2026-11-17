@@ -29,7 +29,7 @@
     <div class="hero-copy">
       <p class="kicker"><span class="dot"></span>The autonomous agentic workspace &middot; self-hosted, open source</p>
       <h1>The workspace that <span class="grad">runs itself.</span></h1>
-      <p class="lede">AI agents plan, build, ship and follow up around the clock. Drop in whenever you like to shape the work: comment, chat, steer or approve. On a server you own.</p>
+      <p class="lede">A self-organising team of AI agents plans, builds, ships and follows up around the clock. Drop in whenever you like to shape the work: comment, chat, steer or approve. On a server you own.</p>
       <div class="btn-row">
         <a class="btn btn-primary" href="/install/">Get started</a>
         <a class="btn btn-ghost" href="#day">See how it works</a>
@@ -91,7 +91,7 @@
     <div class="sec-head reveal">
       <p class="eyebrow c-violet">Why AidenHQ</p>
       <h2>Agents that never clock off. A workspace you share with them.</h2>
-      <p>Most AI tools wait for a prompt. Here the agents keep the work moving on their own, you work alongside them as closely as you want, and the whole place bends to the way you work.</p>
+      <p>Chatbots wait for a prompt. Here background agents keep the work moving on their own, you collaborate with them as closely as you want, and the whole workspace bends to the way you work. It is how a one-person company runs like a full team.</p>
     </div>
     <div class="pillars">
       <article class="pillar reveal" style="--c: var(--violet)">
@@ -99,7 +99,7 @@
         <p class="num">Never off the clock</p>
         <h3>Work that moves while you sleep.</h3>
         <p>Agents take a job from plan to shipped and keep it running: on schedules, on events, through the night, with nobody prompting them.</p>
-        <ul class="ticks" style="--c: var(--violet)"><li>Wake on schedules, alerts, messages and comments</li><li>Build apps and keep them running</li><li>Done only when a grader has checked the work</li></ul>
+        <ul class="ticks" style="--c: var(--violet)"><li>Wake on schedules, alerts, messages and comments</li><li>Build apps and keep them running</li><li>Graded against a clear definition of done</li></ul>
         <div class="links"><a class="more" href="/agents/" style="--c: var(--violet)">Agents</a><a class="more" href="/apps/" style="--c: var(--violet)">Apps</a></div>
       </article>
       <article class="pillar reveal" style="--c: var(--blue)">
@@ -120,10 +120,10 @@
       </article>
     </div>
     <ul class="support reveal">
-      <li><b>On your server</b>Self-hosted, private network only, every change in your own history.</li>
-      <li><b>Checked in code</b>Safe steps run, a second AI checks risky ones, you decide what matters.</li>
-      <li><b>Open source</b>Free to run and change. Kernel AGPL; official modules and app starter MIT.</li>
-      <li><b>Spend limits</b>Caps per agent, per task and per day.</li>
+      <li><b>Sovereign AI</b>Self-hosted on your own server, on your private network, with every change in your history.</li>
+      <li><b>Guardrails in code</b>Safe steps run instantly, a second AI reviews the rest, and you call the big ones.</li>
+      <li><b>Open source</b>Free to run, fork and extend. Kernel AGPL; official modules and app starter MIT.</li>
+      <li><b>Budgets you set</b>Per agent, per task and per day, with every cost on the record.</li>
     </ul>
     <div class="mates reveal">
       <span class="faces big" aria-hidden="true"><i class="a-aiden">Y</i><i class="mate">D</i><i style="background:#C9466F">S</i><i class="a-eng">EN</i><i class="a-ops">DO</i><i style="background:#0B8FD6">R</i></span>
@@ -132,7 +132,33 @@
   </div>
 </section>
 
-<section class="section" id="day">
+<section class="section" id="ai-team">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-pink">Multi-agent, by design</p>
+      <h2>Not one assistant. An AI workforce that runs as a team.</h2>
+      <p>Your agents orchestrate themselves: they route work, hand it off, review each other and ship together. They remember what matters and get sharper with every correction, so the team you have in month three is better than the one you started with.</p>
+    </div>
+    <div class="duo">
+      <figure class="reveal">
+<!--#include scene-handoff-->
+        <figcaption><b>Agents that delegate, hand off and review each other</b><span>Aiden routes each request to the right specialist; specialists pass work along, call in reviewers and hand over to DevOps to ship. One request, a whole team in motion.</span></figcaption>
+      </figure>
+      <figure class="reveal">
+<!--#include scene-learn-->
+        <figcaption><b>Long-term memory and agents that improve themselves</b><span>Correct an agent once and it is remembered. The Agent Coach turns it into a better shared handbook, evals check the change against every past correction, and the whole team levels up.</span></figcaption>
+      </figure>
+    </div>
+    <ul class="caps four" style="margin-top: 18px">
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Orchestrated</h3><p>A chief of staff routes, specialists coordinate, and agent-to-agent handoffs carry full context.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Remembers</h3><p>People, decisions, preferences and how you like to work, carried across every task.</p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Self-improving</h3><p>Corrections become rules and evals; a coach refines and prunes the playbook every week.</p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Builds its own</h3><p>Agents design new agents, write new tools and ship apps for themselves and for you.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section band" id="day">
   <div class="wrap">
     <div class="sec-head reveal">
       <p class="eyebrow c-violet">A day in the workspace</p>
@@ -172,12 +198,12 @@
   </div>
 </section>
 
-<section class="section band" id="decide">
+<section class="section" id="decide">
   <div class="wrap split">
     <div class="reveal">
       <p class="eyebrow c-amber">You decide, agents act</p>
-      <h2>Autonomy where it is safe. You for what matters.</h2>
-      <p class="lede-sm">Agents act on their own, but every action that changes something (a message, a deploy, a merge, a settings change) is checked by the system, not by the agent. You see the exact request and decide with one tap, from your phone.</p>
+      <h2>Full autonomy, with you in the loop where it counts.</h2>
+      <p class="lede-sm">Agents act on their own, and deterministic guardrails check every action that changes something: a message, a deploy, a merge, a settings change. For the ones that matter, you see the exact request and approve with one tap, from your phone.</p>
       <ul class="levels">
         <li style="--c: var(--teal)"><b>Runs by itself</b><span>Safe, reversible steps, like updating a board or drafting a reply.</span></li>
         <li style="--c: var(--violet)"><b>A second AI checks it</b><span>Merges, deploys and messages are reviewed by a different AI model first.</span></li>
@@ -191,12 +217,12 @@
   </div>
 </section>
 
-<section class="section" id="tools">
+<section class="section band" id="tools">
   <div class="wrap">
     <div class="sec-head reveal">
       <p class="eyebrow c-pink">Works with your tools</p>
-      <h2>Connect each tool once. Every agent you allow can use it.</h2>
-      <p>Sign in with your own accounts. Then choose, agent by agent, who can read and who can write.</p>
+      <h2>Plugged into your whole stack, through MCP.</h2>
+      <p>Connect each tool once with your own accounts. Every agent you grant can use it, tool by tool, and every source feeds one shared warehouse for context.</p>
     </div>
     <div class="reveal">
 <!--#include logos-->
@@ -205,19 +231,19 @@
   </div>
 </section>
 
-<section class="section band" id="open">
+<section class="section" id="open">
   <div class="wrap">
     <div class="sec-head reveal">
       <p class="eyebrow c-teal">Yours, and open</p>
       <h2>A workspace you own, shaped the way you work.</h2>
-      <p>A small core does the checking and the record keeping. Everything else is an add-on, so you can start from a ready-made setup and change any part of it.</p>
+      <p>A lean kernel enforces the rules and keeps the record. Everything else is a module, so you start from a ready-made distro and make every part of it your own.</p>
     </div>
     <ul class="open-grid reveal">
-      <li style="--c: var(--blue)"><b>Your server</b><span>One machine you control, reachable only on your private network.</span></li>
+      <li style="--c: var(--blue)"><b>Your server, your AI</b><span>Sovereign by default: one machine you control, on your private network.</span></li>
       <li style="--c: var(--violet)"><b>Open source</b><span>Free to use and change. The core is AGPL; official add-ons and the app starter are MIT.</span></li>
-      <li style="--c: var(--pink)"><b>Your choice of AI</b><span>Pick the model for each agent, and switch whenever you like.</span></li>
-      <li style="--c: var(--teal)"><b>Every change can be undone</b><span>Agents, instructions and apps live in a private folder with full history.</span></li>
-      <li style="--c: var(--amber)"><b>No surprise bills</b><span>Spend limits per agent, per task and per day, and a record of every cost.</span></li>
+      <li style="--c: var(--pink)"><b>Any model, open-weight included</b><span>Pick the best model for each agent, frontier or open-weight, and switch whenever you like.</span></li>
+      <li style="--c: var(--teal)"><b>Everything as code</b><span>Agents, handbooks and apps live in your own repository with full history, so any change rolls back in a step.</span></li>
+      <li style="--c: var(--amber)"><b>Budgets you control</b><span>Spend budgets per agent, per task and per day, with every cost on the record.</span></li>
       <li style="--c: var(--sky)"><b>Distros that fit you</b><span>Start from a tested bundle, such as a founder's office or an engineering team, and swap any add-on.</span></li>
     </ul>
     <a class="more reveal" href="/modules/" style="--c: var(--teal)">Modules and distros</a>

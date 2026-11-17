@@ -22,7 +22,7 @@
     <div>
       <p class="eyebrow">Integrations</p>
       <h1>Connect a tool once. Every agent you allow can use it.</h1>
-      <p class="lede">Sign in to Slack, Gmail, GitHub and the rest with your own accounts, one time. Then decide, agent by agent and tool by tool, who may read and who may write.</p>
+      <p class="lede">Every connection speaks MCP, the open standard for agent tools. Sign in to Slack, Gmail, GitHub and the rest with your own accounts, one time. Then decide, agent by agent and tool by tool, who may read and who may write.</p>
       <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#tools">See every tool</a></div>
     </div>
     <div class="reveal">
@@ -79,14 +79,14 @@
     <div class="sec-head reveal">
       <p class="eyebrow c-violet">Permissions</p>
       <h2>Read for some, write for few.</h2>
-      <p>Every tool is marked as reading or writing. Agents get only the tools their job needs, and every call is checked against that list.</p>
+      <p>Every tool is marked as reading or writing. Each agent gets exactly the tools its job needs, and every call is checked against that grant.</p>
     </div>
     <ul class="caps">
       <li class="cap reveal" style="--c: var(--sky)"><h3>Your own sign-in</h3><p>Connections use the tool's official sign-in with your account, so access matches what you already have.</p></li>
-      <li class="cap reveal" style="--c: var(--violet)"><h3>Granted tool by tool</h3><p>The Researcher may read Slack; only the Follow-up Tracker may post. Change it any time, with one approval.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Granted tool by tool</h3><p>The Researcher reads Slack; the Follow-up Tracker posts. Change it any time, with one approval.</p></li>
       <li class="cap reveal" style="--c: var(--amber)"><h3>Writes go through approvals</h3><p>A granted write still passes the approval levels: some run, a second AI checks some, you decide the rest.</p></li>
       <li class="cap reveal" style="--c: var(--teal)"><h3>Connect it once</h3><p>Every agent you allow shares the one connection, so there are no per-agent keys to manage.</p></li>
-      <li class="cap reveal" style="--c: var(--pink)"><h3>Blocked and logged</h3><p>A call to a tool an agent was not granted is refused and recorded, no matter what it was told.</p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Enforced and logged</h3><p>Every call is checked against its grant and recorded, whatever an agent was told.</p></li>
       <li class="cap reveal" style="--c: var(--blue)"><h3>Add your own</h3><p>Any tool with an MCP server can be packaged as a module and connected the same way.</p></li>
     </ul>
   </div>

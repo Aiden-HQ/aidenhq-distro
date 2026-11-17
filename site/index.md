@@ -19,8 +19,8 @@ Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
 ## What sets it apart
 
 - **Never off the clock: work that moves while you sleep.** They plan, build, ship, maintain and follow up on
-  schedules and events, day and night, without being prompted, and work counts as done only when a grader has checked
-  it. [Agents](https://aidenhq.ai/agents/index.md) · [Apps](https://aidenhq.ai/apps/index.md)
+  schedules and events, day and night, without being prompted, and every piece of work is graded against a clear
+  definition of done. [Agents](https://aidenhq.ai/agents/index.md) · [Apps](https://aidenhq.ai/apps/index.md)
 - **Side by side: shape the work without taking it over.** Shared pages and whiteboards with comments that
   wake agents, chat with any agent (or ask Aiden, the chief of staff), agents in your Slack channels, approvals from
   your phone. [Workspace](https://aidenhq.ai/workspace/index.md) · [Approvals](https://aidenhq.ai/safety/index.md)
@@ -28,11 +28,19 @@ Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
   build your own agents, pin board panels, and keep a working-style profile every agent follows.
   [Modules and distros](https://aidenhq.ai/modules/index.md) · [Integrations](https://aidenhq.ai/integrations/index.md)
 
-Also: it runs on your own server, every action that changes something is checked in code, it is open source, and
-spend is capped per agent, task and day.
+Also: sovereign AI on your own server, deterministic guardrails on every action, open source, any model (frontier or
+open-weight), and budgets per agent, task and day.
 
 Built for one person and their agents. Invite teammates whenever you like: they join the same docs, channels and
 approvals, and work with the same agents.
+
+## An AI workforce that runs as a team
+
+Not one assistant: a multi-agent team that orchestrates itself. Aiden, the chief of staff, routes each request to the
+right specialist; specialists delegate, hand off with full context, review each other's work and pass finished work to
+DevOps to ship. Agents keep long-term memory of people, decisions and your preferences. Every correction becomes a rule
+and an eval, the Agent Coach refines and prunes the shared handbook, and evals gate every change, so the team gets
+better every week. Agents also design new agents and build the tools they need.
 
 ## A day in the workspace
 
@@ -47,29 +55,30 @@ Most of the day the agents work on their own. When you want to shape something, 
 - **02:00, apps that fix themselves.** When something breaks, the DevOps Engineer rolls it back, an Engineer fixes
   the cause, and the fix ships after a second AI checks it.
 
-## You decide, agents act
+## Full autonomy, with you in the loop where it counts
 
-Agents act on their own, but every action that changes something (a message, a deploy, a merge, a settings change)
-is checked by the system, not by the agent. You see the exact request and decide with one tap, from your phone.
+Agents act on their own, and deterministic guardrails check every action that changes something: a message, a deploy,
+a merge, a settings change. For the ones that matter, you see the exact request and approve with one tap, from your
+phone.
 
 1. **Runs by itself:** safe, reversible steps, like updating a board or drafting a reply.
 2. **A second AI checks it:** merges, deploys and messages are reviewed by a different AI model first.
 3. **You decide:** anything that gives an agent more power, spends more or speaks for you.
 
-## Works with your tools
+## Plugged into your whole stack, through MCP
 
 Slack, Telegram, Gmail, Calendar, Drive, Jira, GitHub, Glean, Grafana, ClickHouse, OpenRouter and a shared
-warehouse. Connect each once with your own accounts, then grant each agent read or write access, tool by tool.
-[Integrations](https://aidenhq.ai/integrations/index.md)
+warehouse. Connect each once with your own accounts; every agent you grant can use it, tool by tool, and every source
+feeds one shared warehouse for context. [Integrations](https://aidenhq.ai/integrations/index.md)
 
 ## Yours, and open
 
-- **Your server:** one machine you control, reachable only on your private network.
+- **Your server, your AI:** sovereign by default, on one machine you control and your private network.
 - **Open source:** the kernel is AGPL-3.0-only; the official modules, the app starter and the design system are MIT.
-- **Your choice of AI:** pick the model for each agent and switch whenever you like.
-- **Every change can be undone:** agents, instructions and apps live in a private repository with full history.
-- **No surprise bills:** spend limits per agent, per task and per day.
-- **Distros that fit you:** a small kernel, modules on top, and tested bundles such as a founder's office or an
+- **Any model, open-weight included:** pick the best model for each agent and switch whenever you like.
+- **Everything as code:** agents, handbooks and apps live in your own repository with full history.
+- **Budgets you control:** per agent, per task and per day, with every cost on the record.
+- **Distros that fit you:** a lean kernel, modules on top, and tested bundles such as a founder's office or an
   engineering team. [Modules and distros](https://aidenhq.ai/modules/index.md)
 
 ## Get started

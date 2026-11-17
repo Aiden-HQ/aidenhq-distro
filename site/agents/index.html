@@ -22,7 +22,7 @@
     <div>
       <p class="eyebrow">Agents and teams</p>
       <h1>Agents that run the work end to end.</h1>
-      <p class="lede">Specialists that plan, build, ship, maintain and follow up on their own, around the clock, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.</p>
+      <p class="lede">An AI workforce of specialists that plan, build, ship, maintain and follow up on their own, around the clock, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.</p>
       <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#build">Build your own agent</a></div>
     </div>
     <div class="reveal">
@@ -49,27 +49,27 @@
       <li><span class="avatar" style="background:#7553F2">ML</span><b>Meeting Librarian</b><span>Keeps notes, decisions and follow-ups from your meetings.</span></li>
       <li><span class="avatar a-eng">EN</span><b>Engineers</b><span>Write code in a locked-down workspace and open changes for review.</span></li>
       <li><span class="avatar" style="background:#D2457E">UI</span><b>UI Designer and Reviewer</b><span>Draft layouts, then check screenshots of every change.</span></li>
-      <li><span class="avatar" style="background:#2F7BE0">SW</span><b>Security Watch</b><span>Scans for known security holes and proposes fixes.</span></li>
-      <li><span class="avatar" style="background:#0B1426">RT</span><b>Red Teamer</b><span>Attacks your own setup to find weak spots first.</span></li>
+      <li><span class="avatar" style="background:#2F7BE0">SW</span><b>Security Watch</b><span>Hunts known vulnerabilities and ships the fixes.</span></li>
+      <li><span class="avatar" style="background:#B4373E">RT</span><b>Red Teamer</b><span>Stress-tests your setup the way an attacker would.</span></li>
     </ul>
   </div>
 </section>
 
-<section class="section" id="aiden">
+<section class="section" id="together">
   <div class="wrap split">
     <div class="reveal">
-      <p class="eyebrow c-blue">Aiden, the chief of staff</p>
-      <h2>Not sure who to ask? Ask Aiden.</h2>
-      <p class="lede-sm">You can talk to any agent directly. When you would rather not choose, Aiden takes the request: it reads your messages and forwards, decides who should do the work, keeps track of it and comes back with results or a decision.</p>
+      <p class="eyebrow c-blue">Multi-agent orchestration</p>
+      <h2>Agents that work as a team, not in silos.</h2>
+      <p class="lede-sm">Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it to the right specialist. Specialists delegate to each other, hand off with full context, call in reviewers and pass finished work to DevOps to ship. You see every handoff in the open, and can step into any of them.</p>
       <ul class="ticks" style="--c: var(--blue)">
-        <li><b>Delegates</b> each request to the right specialist, with a clear definition of done.</li>
-        <li><b>Chases</b> people and agents until the work lands, and tells you if something stalls.</li>
-        <li><b>Briefs you</b> every morning and batches the rest into a digest.</li>
-        <li><b>Relays your approvals</b> word for word, and never sends anything as you.</li>
+        <li><b>Routing:</b> Aiden reads your messages and forwards and picks who does what.</li>
+        <li><b>Agent-to-agent handoffs</b> carry the goal, the context and a definition of done.</li>
+        <li><b>Peer review:</b> agents check each other's work before anything ships.</li>
+        <li><b>Fan-out:</b> big jobs split into parallel tasks that come back together.</li>
       </ul>
     </div>
     <div class="reveal">
-<!--#include scene-brief-->
+<!--#include scene-handoff-->
     </div>
   </div>
 </section>
@@ -77,13 +77,13 @@
 <section class="section band" id="schedules">
   <div class="wrap">
     <div class="sec-head reveal">
-      <p class="eyebrow c-teal">Always on, never idle</p>
-      <h2>Agents wake up when there is work.</h2>
-      <p>Agents do not run in endless loops burning money. They wake on a schedule, when something happens in one of your tools, or when someone hands them a task, and they plan their own follow-ups.</p>
+      <p class="eyebrow c-teal">Background agents</p>
+      <h2>Always on, and wide awake when work arrives.</h2>
+      <p>Agents run in the background on a heartbeat. They wake on a schedule, the moment something happens in your tools, or when another agent hands them a task, and they book their own follow-ups.</p>
     </div>
     <ul class="caps">
       <li class="cap reveal" style="--c: var(--teal)"><h3>On a schedule</h3><p>The morning brief at 08:00, a weekly metrics review on Mondays, a health check every hour.</p></li>
-      <li class="cap reveal" style="--c: var(--blue)"><h3>When something happens</h3><p>A new email, a failed deploy, a mention in Slack or a comment on a doc wakes the right agent.</p></li>
+      <li class="cap reveal" style="--c: var(--blue)"><h3>On events</h3><p>A new email, a failed deploy, a Slack mention or a comment on a doc wakes the right agent instantly.</p></li>
       <li class="cap reveal" style="--c: var(--violet)"><h3>Self-scheduled</h3><p>Agents set their own reminders: "check back on Thursday if Sam has not replied".</p></li>
     </ul>
   </div>
@@ -94,10 +94,11 @@
     <div class="reveal">
       <p class="eyebrow c-pink">Build your own agent</p>
       <h2>Describe the agent you wish you had.</h2>
-      <p class="lede-sm">Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.</p>
+      <p class="lede-sm">Agents build agents. Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.</p>
       <ul class="ticks" style="--c: var(--pink)">
         <li><b>No prompt writing.</b> You describe the outcome; the Architect writes the instructions.</li>
-        <li><b>Trial first.</b> New agents run on trial with limited reach until their work is graded.</li>
+        <li><b>Proven on trial.</b> New agents earn their full reach once their work is graded.</li>
+        <li><b>Tools on demand.</b> When an agent needs a tool that does not exist, the team builds it as an MCP connection.</li>
         <li><b>One tap to keep it.</b> You approve the new agent like any other change, and can undo it later.</li>
         <li><b>Readable.</b> Every agent is a short file you can read, edit or hand to a colleague.</li>
       </ul>
@@ -111,12 +112,12 @@
 <section class="section band" id="handbook">
   <div class="wrap">
     <div class="sec-head reveal">
-      <p class="eyebrow c-amber">Shared know-how</p>
+      <p class="eyebrow c-amber">Context engineering</p>
       <h2>One company handbook every agent follows.</h2>
-      <p>How your company works is written down once, in short sections, and every agent reads what applies to its job. Skills (how to write a brief, how to review a design) are shared the same way.</p>
+      <p>Each agent gets exactly the context its job needs. How your company works is written once, in short sections, and every agent loads what applies to it. Skills, from writing a brief to reviewing a design, are shared the same way.</p>
     </div>
     <ul class="caps four">
-      <li class="cap reveal" style="--c: var(--amber)"><h3>Sections, not walls of text</h3><p>Each section says who it applies to. Agents load what they need and look up the rest.</p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Sectioned and targeted</h3><p>Each section says who it applies to. Agents load what they need and look up the rest on demand.</p></li>
       <li class="cap reveal" style="--c: var(--violet)"><h3>Shared vocabulary</h3><p>One glossary and one list of your goals, so every task links back to something you care about.</p></li>
       <li class="cap reveal" style="--c: var(--teal)"><h3>Skills</h3><p>Reusable how-tos any agent can pick up, from drafting a reply to preparing a meeting.</p></li>
       <li class="cap reveal" style="--c: var(--pink)"><h3>Your working style</h3><p>A short profile of how you like to read, decide and be asked, followed by every agent.</p></li>
@@ -125,17 +126,22 @@
 </section>
 
 <section class="section" id="better">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <p class="eyebrow c-sky">Better every week</p>
-      <h2>Correct an agent once. It stays fixed.</h2>
-      <p>When you correct an agent, the correction becomes a rule or an automatic check, so the same mistake does not come back.</p>
+  <div class="wrap split rev">
+    <div class="reveal">
+      <p class="eyebrow c-sky">Memory and self-improvement</p>
+      <h2>Agents that remember, and get better every week.</h2>
+      <p class="lede-sm">Agents keep long-term memory of people, decisions and your preferences, and carry it into every task. Each correction you make becomes a rule and an eval. The Agent Coach studies how the team works, proposes sharper handbooks and skills, and prunes what no longer helps. Evals gate every change, so the team only ever levels up.</p>
+      <ul class="ticks" style="--c: var(--sky)">
+        <li><b>Long-term memory</b> of people, projects, decisions and preferences.</li>
+        <li><b>Learn once:</b> corrections turn into rules and automatic checks.</li>
+        <li><b>A coach on the team</b> that refines and prunes the playbook.</li>
+        <li><b>Evals gate every change</b> to an agent's instructions.</li>
+        <li><b>Done means graded</b> against a clear definition of done.</li>
+      </ul>
     </div>
-    <ul class="caps">
-      <li class="cap reveal" style="--c: var(--sky)"><h3>Done means checked</h3><p>A grader checks the work against its definition of done before a task counts as finished.</p></li>
-      <li class="cap reveal" style="--c: var(--violet)"><h3>A coach on the team</h3><p>The Agent Coach reviews runs, spots repeat mistakes and proposes better instructions.</p></li>
-      <li class="cap reveal" style="--c: var(--teal)"><h3>Memory</h3><p>Agents keep short notes of what worked, checked against the source before they rely on them.</p></li>
-    </ul>
+    <div class="reveal">
+<!--#include scene-learn-->
+    </div>
   </div>
 </section>
 
@@ -143,7 +149,7 @@
   <div class="wrap">
     <div class="note reveal">
       <span class="pi"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-      <div><b>How it stays safe</b><p>Agents may decide, but they cannot act on their own say-so. Each agent can use only the tools you granted it, every change it wants to make passes approvals in code, and changes to an agent's own instructions are reviewed like any other change. <a href="/safety/">More on safety</a></p></div>
+      <div><b>Autonomy with guardrails</b><p>Agents make their own decisions, and deterministic guardrails in code check every action they take. Each agent works with exactly the tools you grant it, every change passes approvals, and changes to an agent's own instructions are reviewed like any other change. <a href="/safety/">More on safety</a></p></div>
     </div>
   </div>
 </section>

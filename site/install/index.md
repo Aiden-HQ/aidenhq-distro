@@ -38,16 +38,16 @@ Prefer to see every step? The setup guide walks through each one by hand, with a
 
 ## What you need.
 
-A small server is enough to start. No open ports: you reach your workspace over your private network or a secure tunnel.
+A modest server runs the whole workspace. Reach it over your private network or a secure tunnel, with zero open ports.
 
 - **Server:** Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13, with systemd
 - **Size:** 2 cores, 6 GB memory, 60 GB disk. Recommended: 4 cores, 8 GB, 100 GB
 - **Access:** SSH with a key, as root or a user with sudo
-- **Or a Mac:** macOS 13 or later, 12 GB memory and 60 GB free. It runs in a small Linux VM
+- **Or a Mac:** macOS 13 or later, 12 GB memory and 60 GB free. It runs in a lightweight Linux VM
 
 ### An AI model key
 
-An OpenRouter key. Setup asks for it in the browser and puts a monthly limit on it.
+An OpenRouter key. Setup asks for it in the browser and sets your monthly budget.
 
 ### Your tools, when you want them
 
@@ -61,11 +61,11 @@ Reach the board over an SSH tunnel, or on your private network with Tailscale if
 
 The installer ends with a one-time setup link. Open it in your browser, create your account with a password and a one-time code, and add your model key. Your workspace opens with its agents ready, and Aiden says hello.
 
-- **Day one:** hand the agents something real: a doc to research, a follow-up, a small app.
+- **Day one:** hand the agents something real: a doc to research, a follow-up, an app.
 - **Week one:** connect Slack or Google, and describe the first agent you want.
 - **Ongoing:** new releases arrive as tested distros. You choose when to update.
 **What it costs**
-AidenHQ is free and open source. You pay for your server and for AI model usage. The $50 default monthly limit suits a trial; a full team of agents working every day typically needs more, and the Costs page shows exactly where it goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
+AidenHQ is free and open source. You bring a server and a model key, set the monthly budget you want, and the Costs page shows exactly where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
 
 **Licence**
 The kernel is AGPL-3.0-only. The official modules, the app starter and the design system are MIT, so the apps your agents build are entirely yours. Commercial licences are available on request.

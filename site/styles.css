@@ -855,3 +855,18 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 @media (max-width: 1100px) { .pillars { grid-template-columns: minmax(0, 1fr); } .support { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .support { grid-template-columns: minmax(0, 1fr); } }
 .sc > * { flex-shrink: 0; }
+/* Agent-to-agent handoffs and learning */
+.hand { display: grid; grid-template-columns: 24px 18px 24px minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 7px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.hand .avatar { width: 24px; height: 24px; font-size: 9.5px; border-radius: 6px; }
+.hand > i { height: 2px; background: var(--grad); border-radius: 1px; position: relative; }
+.hand > i::after { content: ""; position: absolute; right: -1px; top: -3px; border: 4px solid transparent; border-left-color: var(--violet); border-right: 0; }
+.hand b { display: block; font-size: 12.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hand small { display: block; font-size: 11.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hand > span:nth-child(4) { min-width: 0; }
+.diff { display: block; font-size: 12px; padding: 6px 8px; border-radius: 6px; background: color-mix(in srgb, var(--teal) 12%, transparent); color: color-mix(in srgb, var(--teal) 70%, var(--text)); white-space: pre-wrap; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 24px); }
+.duo figcaption { margin: 14px 4px 0; }
+.duo figcaption b { display: block; font-size: 18px; font-weight: 680; margin-bottom: 4px; }
+.duo figcaption span { color: var(--text-2); font-size: 15.5px; }
+.duo figure { margin: 0; }
+@media (max-width: 900px) { .duo { grid-template-columns: minmax(0, 1fr); } }

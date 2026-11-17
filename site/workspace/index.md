@@ -21,7 +21,7 @@ _Animation: you leave a comment on a shared document asking the Researcher for a
 
 Type `/aiden assign-channel` and pick an agent. From then on it looks after that channel: it answers when someone mentions it, picks up the requests that are its job, and keeps the whole exchange in the thread where everyone can see and steer it.
 
-- **Mention-first.** Agents answer when asked, and pick up only the topics you assigned.
+- **Focused.** Agents answer when mentioned and own the topics you assign them.
 - **Steer in the thread.** Anyone can reply to redirect it, or tell it to stop.
 - **Same rules everywhere.** Anything it wants to send or change still goes through approvals.
 
@@ -29,7 +29,7 @@ _Animation: in Slack you assign the support channel to an agent with /aiden assi
 
 ## One place to ask for anything.
 
-Talk to any agent directly, or ask Aiden, the workspace’s chief of staff. Aiden takes any request, hands it to the right agent and follows it to the finish, so you never need to know who does what.
+Talk to any agent directly, or ask Aiden, the workspace’s chief of staff. Aiden takes any request, hands it to the right agent and follows it to the finish, so you can stay on the outcome.
 
 ### Wherever you are
 
@@ -43,17 +43,17 @@ Forward an email or a chat. Aiden turns it into a task with an owner and a deadl
 
 Aiden follows every task to the finish and reminds people when things slip.
 
-### Never in your name
+### Their own identity
 
-Agents speak as a clearly labelled assistant. Nothing is ever sent from your own account.
+Agents speak as clearly labelled assistants, so everyone knows who said what.
 
-## Hear from agents when it matters, not all day.
+## Hear from your agents at the right moment.
 
 Agents can message you directly. Decisions arrive at once; everything else is batched into a morning brief and one daily digest. You set how often each agent may interrupt you.
 
 - **A morning brief.** What moved, who was chased, what is due, and whether anything needs you.
-- **Digests, not pings.** Small updates wait for the digest at the time you choose.
-- **Limits per agent.** Cap how many messages each agent may send you in a day, and mute any of them.
+- **Smart digests.** Routine updates arrive together, at the time you choose.
+- **Your attention, your rules.** Set how often each agent may reach you, per day.
 - **Questions as choices.** When an agent needs an answer, it asks with options and a recommendation, so you reply with a tap.
 
 _Animation: Aiden's morning brief lists what moved overnight, what was chased and what is due; low-priority updates are held for the evening digest_
@@ -95,8 +95,8 @@ Most workspaces start as one person and their agents. When you want colleagues i
 - **You stay the owner.** You decide who can approve what, and what each person can see.
 _People in the workspace: you as owner, a teammate who joined and commented on a doc, an invited colleague with app access only, and six agents_
 
-**How it stays safe**
-The board and your docs are only reachable on your private network, behind a password and a one-time code. Text that arrives from emails, chats and documents is treated as information, never as orders, so a message cannot tell an agent what to do. [More on safety](https://aidenhq.ai/safety/index.md)
+**Secure by default**
+The board and your docs live on your private network, behind a password and a one-time code. Text from emails, chats and documents is fenced as information, so agents take orders from you alone. [More on safety](https://aidenhq.ai/safety/index.md)
 
 ---
 

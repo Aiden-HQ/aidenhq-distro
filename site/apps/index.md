@@ -2,7 +2,7 @@
 
 > Ask for an internal app in one sentence. Agents design it, build it, put it live for your team behind your company login, and keep it running.
 
-Trackers, dashboards, forms, review queues: describe the tool your team needs. Agents design it, build it, put it live behind your company login, and look after it for as long as it runs.
+Vibe coding, with a team that ships and maintains it. Trackers, dashboards, forms, review queues: describe the tool your team needs. Agents design it, build it, put it live behind your company login, and look after it for as long as it runs.
 
 _Animation: you ask for a roadmap tracker; Aiden offers three layouts, you pick one, an Engineer builds it, the AI reviewer approves it, DevOps deploys it, and the live app appears_
 
@@ -16,7 +16,7 @@ You make one early choice and one final tap. The agents do everything in between
 
 ### Pick a look
 
-The UI Designer drafts a few layouts. You pick one; that is the only design question you get.
+The UI Designer drafts a few layouts. You pick one, and the agents take it from there.
 
 ### Built and checked
 
@@ -31,7 +31,7 @@ The DevOps Engineer deploys it. Your team signs in with your company login.
 Most AI-built apps are demos that rot. Yours are watched around the clock. When something breaks, agents roll it back, find the cause, fix it and ship the fix after review, often before anyone notices.
 
 - **Health checks** on every app, with automatic rollback of a bad release.
-- **Fixes, not just alerts.** An Engineer opens a fix with a test for the failing case.
+- **Fixes, beyond alerts.** An Engineer opens a fix with a test for the failing case.
 - **Kept up to date.** Dependencies and known security holes are patched as reviewed changes.
 - **Visual checks.** A UI Reviewer compares screenshots of every change before it ships.
 
@@ -43,11 +43,11 @@ Apps run on your own server, next to your agents and your data, and they look an
 
 ### Share with colleagues
 
-Invite people by email. They sign in with your company login and see only the apps you share. Each app's admins manage who has access.
+Invite people by email. They sign in with your company login and get exactly the apps you share. Each app's admins manage who has access.
 
 ### Built on your data
 
-Every tool you connect feeds one shared database. An app gets its own private space in it and reads only what it is allowed to.
+Every tool you connect feeds one shared database. Each app gets its own private space in it, scoped to exactly what it needs.
 
 ### A preview for every change
 
@@ -65,8 +65,8 @@ Apps start from a shared starter and design system, so they look consistent and 
 
 The app starter and design system are MIT licensed, so the apps your agents build carry no licence strings.
 
-**How it stays safe**
-Each app runs in its own locked box with no access to the rest of your server unless you grant it. Passwords and keys reach an app as files, never inside its code. Every deploy is an approval checked by a second AI, and opening an app to more people is your decision. [More on safety](https://aidenhq.ai/safety/index.md)
+**Secure by default**
+Each app runs in its own sandbox, with access to exactly what you grant it. Passwords and keys reach an app as files, kept out of its code. Every deploy is an approval checked by a second AI, and opening an app to more people is your decision. [More on safety](https://aidenhq.ai/safety/index.md)
 
 ---
 
