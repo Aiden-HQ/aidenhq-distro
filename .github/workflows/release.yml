@@ -1,6 +1,12 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
 # releases/<release>.json names real shas. On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
+# Prebuilt images: the release file may carry `images` (name -> ghcr.io/aiden-hq/<name>@sha256:<digest>), which apply pulls
+# instead of building. The apply reads the release file from git at the pinned commit, so the digests are in the file before
+# the tag: run this workflow by hand first (Actions > release > Run workflow, release = the name), which builds every image
+# the release's kernel and modules build locally for amd64 and arm64, pushes them, and prints the `images` block (and keeps it
+# as the `images.json` artifact) to paste into releases/<release>.json. The tag run then checks that each digest is there for
+# both platforms and names an image this release builds. A release file without `images` installs by building, as before.
 # RELEASE_READ_TOKEN (contents: read) is optional: only a private kernel or modules repo needs it; public repos fetch
 # anonymously, and an unset secret gives the fetch no token.
 # Isolation: the test job's suites step is the only one that runs fetched code, and it has no token; publish is a separate
@@ -9,11 +15,17 @@ name: release
 on:
   push:
     tags: ["20[0-9][0-9].[0-9]*"]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Build and push this release's images (the name of releases/<name>.json, e.g. 2026.11.1)"
+        required: true
 permissions: {}
-concurrency: release-${{ github.ref_name }}
+concurrency: release-${{ inputs.release || github.ref_name }}
 jobs:
   # Fetch and test with a read-only token; publishing is a separate job, the only one that can write.
   test:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -58,8 +70,201 @@ jobs:
           jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
           echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
 
+  # The images a release builds, from its own kernel (scripts/release-images.mjs list): the fetched set, as a tarball for the
+  # build legs, and their chains (a computer image builds FROM its parent, so a chain builds in order in one leg). A tag
+  # run whose file has no `images` stops here (go=false): there is nothing to check.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      go: ${{ steps.has.outputs.go }}
+      chains: ${{ steps.list.outputs.chains }}
+    env:
+      REL: ${{ inputs.release || github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - id: has
+        run: |
+          [[ "$REL" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+)?$ ]] || { echo "::error::$REL isn't a release name (2026.11, 2026.11.1)"; exit 1; }
+          f="releases/$REL.json"
+          [ -f "$f" ] || { echo "::error::no $f"; exit 1; }
+          # Shape, where nothing can skip it: no images, or a non-empty map of name -> ghcr.io/aiden-hq/<name>@sha256:<digest>.
+          jq -e '(.images // {}) | type == "object" and all(to_entries[]; (.key | test("^[a-z0-9][a-z0-9._-]*$")) and (.value | type == "string" and test("^ghcr\\.io/aiden-hq/[a-z0-9][a-z0-9._-]*@sha256:[0-9a-f]{64}$")))' "$f" >/dev/null \
+            || { echo "::error::$f images must map a name to ghcr.io/aiden-hq/<name>@sha256:<digest>"; exit 1; }
+          if [ "$GITHUB_EVENT_NAME" = push ] && ! jq -e '.images | type == "object" and length > 0' "$f" >/dev/null; then
+            echo "::notice::$f has no images: this release installs by building them"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Fetch and verify the set (install.sh's own checks)
+        if: steps.has.outputs.go == 'true'
+        env:
+          AIDENHQ_GITHUB_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
+        run: |
+          rm -rf "$RUNNER_TEMP/set"
+          sh .github/release/test-set.sh fetch "releases/$REL.json" "$RUNNER_TEMP/set"
+      # No token from here on: this runs the fetched kernel's lister, with its one dependency installed without scripts.
+      - id: list
+        if: steps.has.outputs.go == 'true'
+        run: |
+          set="$RUNNER_TEMP/set"
+          [ -f "$set/kernel/scripts/release-images.mjs" ] || { echo "::error::$REL's kernel predates prebuilt images (no scripts/release-images.mjs)"; exit 1; }
+          [ -e "$set/kernel/modules" ] || cp -R "$set/state/modules/marketplace" "$set/kernel/modules"
+          npm ci --ignore-scripts --no-audit --no-fund --prefix "$set/kernel/scripts"
+          chains=$(env -u AIDENHQ_GITHUB_TOKEN node "$set/kernel/scripts/release-images.mjs" list "$set/kernel" "$set/kernel/modules" \
+            | jq -c --arg p "$set/kernel/" 'map(map(.context |= ltrimstr($p)))')
+          echo "$chains" | jq -e 'length > 0' >/dev/null
+          # Build inputs come from the fetched kernel: a name is a plain image name, a context a relative path inside the kernel.
+          echo "$chains" | jq -e 'all(.[][]; (.name | test("^[a-z0-9][a-z0-9._-]*$")) and (.context | test("^[A-Za-z0-9._/-]+$") and (startswith("/") | not) and (split("/") | index("..") | not)) and ((.base // "x") | test("^[a-z0-9][a-z0-9._-]*$")))' >/dev/null \
+            || { echo "::error::the kernel's image list has an unsafe name or context"; exit 1; }
+          for c in $(echo "$chains" | jq -r '.[][].context'); do
+            case "$(realpath -e "$set/kernel/$c")" in "$(realpath "$set/kernel")"/*) ;; *) echo "::error::context $c leaves the kernel checkout"; exit 1 ;; esac
+          done
+          echo "chains=$chains" >> "$GITHUB_OUTPUT"
+          echo "$chains" | jq -r '.[][].name' | sort > "$RUNNER_TEMP/names-out.txt"
+          cat "$RUNNER_TEMP/names-out.txt"
+          tar -C "$set" --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/kernel.tgz" kernel
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.has.outputs.go == 'true'
+        with:
+          name: kernel-set
+          path: ${{ runner.temp }}/kernel.tgz
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.has.outputs.go == 'true'
+        with:
+          name: image-names
+          path: ${{ runner.temp }}/names-out.txt
+          retention-days: 1
+
+  # By hand only: builds and pushes every chain for amd64 and arm64 (one job per chain, in parallel).
+  images:
+    if: github.event_name == 'workflow_dispatch'
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        chain: ${{ fromJSON(needs.plan.outputs.chains) }}
+    env:
+      REL: ${{ inputs.release }}
+      CHAIN: ${{ toJSON(matrix.chain) }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kernel-set
+          path: ${{ runner.temp }}
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build and push the chain
+        run: |
+          tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/kernel.tgz"
+          cd "$RUNNER_TEMP/kernel"
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          out='{}'
+          # Again, on the unpacked copy, before anything is built.
+          jq -e 'all(.[]; (.name | test("^[a-z0-9][a-z0-9._-]*$")) and (.context | test("^[A-Za-z0-9._/-]+$") and (startswith("/") | not) and (split("/") | index("..") | not)) and ((.base // "x") | test("^[a-z0-9][a-z0-9._-]*$")))' <<<"$CHAIN" >/dev/null \
+            || { echo "::error::unsafe image name or context"; exit 1; }
+          for c in $(jq -r '.[].context' <<<"$CHAIN"); do
+            case "$(realpath -e "$c")" in "$PWD"/*) ;; *) echo "::error::context $c leaves the kernel checkout"; exit 1 ;; esac
+          done
+          for i in $(seq 0 $(( $(jq length <<<"$CHAIN") - 1 ))); do
+            name=$(jq -r ".[$i].name" <<<"$CHAIN"); ctx=$(jq -r ".[$i].context" <<<"$CHAIN"); parent=$(jq -r ".[$i].base // empty" <<<"$CHAIN")
+            base=()
+            [ -z "$parent" ] || base=(--build-arg "BASE=$(jq -er --arg p "$parent" '.[$p]' <<<"$out")")
+            img="ghcr.io/$owner/$name"
+            docker buildx build --platform linux/amd64,linux/arm64 --provenance=false --push -t "$img:$REL" \
+              --metadata-file "$RUNNER_TEMP/meta.json" "${base[@]}" "$ctx"
+            digest=$(jq -er '."containerimage.digest"' "$RUNNER_TEMP/meta.json")
+            out=$(jq -c --arg n "$name" --arg r "$img@$digest" '. + {($n): $r}' <<<"$out")
+            echo "$name -> $img@$digest"
+          done
+          echo "$out" > "$RUNNER_TEMP/images-part.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: images-${{ matrix.chain[0].name }}
+          path: ${{ runner.temp }}/images-part.json
+          retention-days: 7
+
+  # The `images` block for releases/<release>.json: every image the plan named, each by digest.
+  collect:
+    needs: [plan, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: images-*
+          merge-multiple: false
+          path: parts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: image-names
+          path: names
+      - run: |
+          jq -S -s '{ images: (map(.) | add) }' parts/*/images-part.json > images.json
+          jq -r '.images | keys[]' images.json | cmp - names/names-out.txt || { echo "::error::the built images aren't the planned ones"; exit 1; }
+          cat images.json
+          { echo "Paste into releases/$REL.json, then tag:"; echo '```json'; cat images.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          REL: ${{ inputs.release }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: images.json
+          path: images.json
+
+  # A tag run: the file's images are what this release builds, and each digest is there for both platforms (public pulls).
+  verify:
+    if: github.event_name == 'push' && needs.plan.outputs.go == 'true'
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: image-names
+          path: names
+      - env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          f="releases/$TAG.json"
+          jq -r '.images | keys[]' "$f" | sort | comm -23 - names/names-out.txt | { ! grep . ; } \
+            || { echo "::error::$f names images this release doesn't build (above)"; exit 1; }
+          for ref in $(jq -r '.images[]' "$f"); do
+            archs=$(docker buildx imagetools inspect --raw "$ref" | jq -r '[.manifests[].platform.architecture] | sort | join(",")')
+            [ "$archs" = "amd64,arm64" ] || { echo "::error::$ref has platforms '$archs', not amd64 and arm64 (is the package public?)"; exit 1; }
+            echo "ok $ref"
+          done
+
   publish:
-    needs: test
+    # Fail closed: the shape check ran in plan, and either there are no images to verify or verify passed (never merely not failed).
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.plan.result == 'success' && (needs.plan.outputs.go == 'false' || needs.verify.result == 'success') }}
+    needs: [test, plan, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
