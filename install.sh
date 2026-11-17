@@ -485,47 +485,58 @@ write_token_file() {
   printf '%s' "$tok" | $SUDO tee "$KTOK_FILE" >/dev/null
 }
 
-# root_verify: right before root executes the checkout, verify it as root against a root-owned copy of the objects:
-# a --no-local clone (git rehashes every object it receives; replace refs are ignored), then the work tree is compared
-# file by file to the pinned commit through a root-owned index. The service user's own .git is never trusted here.
+# root_verify: right before root runs the kernel, verify the checkout as root against a root-owned copy of the objects: a
+# --no-local clone (the service user serves the objects; root's git rehashes every one it receives; replace refs are
+# ignored), then the work tree is compared file by file to the pinned commit through a root-owned index. The service
+# user's own .git is never trusted here. The pinned commit is then exported from that clone into root-owned
+# $KROOT/<sha> (0755, nothing writable by anyone else): setup runs from there, never from the checkout.
+KROOT=/opt/aidenhq/kernel
 root_verify() {
-  if [ "$DRY" = 1 ]; then printf '    %swould verify as root:%s %s against a root-owned clone at %s\n' "$D" "$N" "$DIR" "$KERNEL_SHA"; return 0; fi
+  KCOPY="$KROOT/$KERNEL_SHA"
+  if [ "$DRY" = 1 ]; then printf '    %swould verify as root:%s %s against a root-owned clone at %s, and export it to %s\n' "$D" "$N" "$DIR" "$KERNEL_SHA" "$KCOPY"; return 0; fi
+  up="git upload-pack"; { [ -n "$SUDO" ] || [ "$(id -u)" = 0 ]; } && up="runuser -u $SVC -- git upload-pack"
   RV=$($SUDO mktemp -d /var/tmp/aidenhq-verify.XXXXXX)
-  $SUDO env GIT_NO_REPLACE_OBJECTS=1 git -c safe.directory='*' clone -q --bare --no-local "$DIR" "$RV/k.git" >>"$LOG" 2>&1 \
+  $SUDO env GIT_NO_REPLACE_OBJECTS=1 git clone -q --bare --no-local --upload-pack="$up" "$DIR" "$RV/k.git" >>"$LOG" 2>&1 \
     || die "root verification: can't clone $DIR"
   $SUDO env GIT_NO_REPLACE_OBJECTS=1 GIT_DIR="$RV/k.git" GIT_WORK_TREE="$DIR" GIT_INDEX_FILE="$RV/index" sh -c '
     git cat-file -e "$1^{commit}" && git read-tree "$1" && git update-index -q --refresh >/dev/null; git diff-files --quiet' _ "$KERNEL_SHA" \
     || { $SUDO rm -rf "$RV"; die "root verification failed: $DIR differs from $KERNEL_SHA"; }
+  if ! $SUDO test -d "$KCOPY"; then
+    $SUDO sh -c 'mkdir -p -m 0755 "$3" && mkdir -m 0755 "$1/tree" \
+      && GIT_NO_REPLACE_OBJECTS=1 git --git-dir="$1/k.git" archive -o "$1/k.tar" "$2" && tar -x --no-same-owner --no-same-permissions -f "$1/k.tar" -C "$1/tree" \
+      && chmod -R u+rwX,go+rX,go-w "$1/tree" && { [ "$(id -u)" != 0 ] || chown -R root:root "$1/tree"; } && mv "$1/tree" "$3/$2"' _ "$RV" "$KERNEL_SHA" "$KROOT" >>"$LOG" 2>&1 \
+      || { $SUDO rm -rf "$RV"; die "can't export $KERNEL_SHA to $KCOPY"; }
+  fi
   $SUDO rm -rf "$RV"
 }
 
 run_setup() {
   step "AidenHQ setup (ops/setup.sh: host packages, vault, services, Paperclip, board)"
-  # ops/setup.sh runs as root from the checkout, which the service user owns: that is safe only when the service user
-  # is already root-equivalent (sudo for everything), as it is when it invoked us with sudo or we created it.
+  # ops/setup.sh runs as root from root's verified copy ($KROOT/<sha>, root_verify), but still reads the service user's
+  # checkout (its .env and generated config) as root: keep that to a service user that is already root-equivalent (sudo
+  # for everything), as it is when it invoked us with sudo or we created it.
   if [ "$DRY" = 0 ] && [ "$(id -u)" = 0 ] && ! sudo -l -U "$SVC" 2>/dev/null | grep -q '(ALL\( : ALL\)\{0,1\}) \(NOPASSWD: \)\{0,1\}ALL'; then
-    die "$SVC can't sudo everything, but this kernel's setup runs as root from $SVC's checkout: give $SVC sudo, or let the installer create its own user"
+    die "$SVC can't sudo everything, but this kernel's setup reads $SVC's checkout as root: give $SVC sudo, or let the installer create its own user"
   fi
   verify_at "$DIR" "$KERNEL_SHA"
   root_verify
-  set -- --unattended; [ "$NO_TS" = 1 ] && set -- "$@" --no-tailscale
+  set -- --checkout "$DIR" --unattended; [ "$NO_TS" = 1 ] && set -- "$@" --no-tailscale
   write_setup_config
   [ -z "$PENV" ] || set -- "$@" --config "$PENV"
   write_token_file
   [ -z "$KTOK_FILE" ] || set -- "$@" --kernel-token-file "$KTOK_FILE"
   if [ "$DRY" = 1 ]; then
     printf '    %swould run:%s %senv AIDENHQ_USER=%s OWNER_EMAIL=%s MAX_CONCURRENT=%s TIMEOUT_MINUTES=%s CI_RUNNERS=%s bash %s/ops/setup.sh %s\n' \
-      "$D" "$N" "${SUDO:+$SUDO }" "$SVC" "${AIDENHQ_OWNER_EMAIL:-<owner email>}" "$MAX_CONCURRENT" "$JOB_TIMEOUT" "$CI_RUNNERS" "$DIR" "$*"
+      "$D" "$N" "${SUDO:+$SUDO }" "$SVC" "${AIDENHQ_OWNER_EMAIL:-<owner email>}" "$MAX_CONCURRENT" "$JOB_TIMEOUT" "$CI_RUNNERS" "$KCOPY" "$*"
     return 0
   fi
   log "+ setup $*"
-  # The product's own progress lines ("• ...") reach the terminal; everything goes to the log. Setup copies the verified
-  # commit to root-owned /opt/aidenhq/kernel/<sha> first and runs its root steps from there, never from $DIR.
+  # The product's own progress lines ("• ...") reach the terminal; everything goes to the log.
   # The release goes into the new instance.yaml (all three, or none when this copy wasn't cut for it).
   { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" MODULES="${MODULES:-}" \
       AIDENHQ_RELEASE="${REL_COMMIT:+$REL}" AIDENHQ_RELEASE_REPO="${REL_COMMIT:+$DISTRO_REPO}" AIDENHQ_RELEASE_SHA="$REL_COMMIT" \
       MAX_CONCURRENT="$MAX_CONCURRENT" TIMEOUT_MINUTES="$JOB_TIMEOUT" CI_RUNNERS="$CI_RUNNERS" \
-      bash "$DIR/ops/setup.sh" "$@" </dev/null 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } \
+      bash "$KCOPY/ops/setup.sh" "$@" </dev/null 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } \
     | tee -a "$LOG" "$TMPD/setup.out" | while IFS= read -r l; do
         case "$l" in "• "*) say "${l#• }" ;; *) if [ "$VERBOSE" = 1 ]; then printf '    %s\n' "$l"; fi ;; esac
       done
@@ -920,7 +931,7 @@ main() {
   setup_ui
   parse_args "$@"
   TMPD=$(mktemp -d 2>/dev/null || mktemp -d -t aidenhq) STEP='' REFUSALS='' KEEPALIVE='' RELFILE=''
-  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' AUTH_HDR='' REL_COMMIT=''
+  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
   trap 'exit 130' INT TERM

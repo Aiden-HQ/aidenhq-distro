@@ -139,11 +139,11 @@ echo "cfgmode=$(ls -l "$cfg" | cut -c1-10)"; echo "cfg=$(tr '\n' ' ' <"$cfg")"; 
 echo AIDENHQ_SSH_TUNNEL=ssh-x; echo AIDENHQ_SETUP_URL=http://old; echo AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t
 EOS
 expect "setup is driven unattended: env, a 0600 config, parsed links, config deleted" pass \
-  "sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { :; }; mktemp() { command mktemp '$work/pe.XXXX'; }
+  "sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { KCOPY='$work/h'; }; mktemp() { command mktemp '$work/pe.XXXX'; }
    DIR='$work/h' NO_TS=1 NONINT=1 SETUP_URL='' SSH_TUNNEL='' PENV='' KERNEL_SHA=x MAX_CONCURRENT=2 JOB_TIMEOUT=60 CI_RUNNERS=1
    REL=2026.11 REL_COMMIT=$K DISTRO_REPO=acme/distro
    AIDENHQ_OWNER_EMAIL=a@example.com OPENROUTER_KEY=sk-or-x; run_setup
-   grep -qx 'args=--unattended --no-tailscale --config .*' \"\$LOG\" && grep -qx 'env=a@example.com,2,60,1,'\"\$SVC\" \"\$LOG\" \
+   grep -qx 'args=--checkout $work/h --unattended --no-tailscale --config .*' \"\$LOG\" && grep -qx 'env=a@example.com,2,60,1,'\"\$SVC\" \"\$LOG\" \
      && grep -qx 'release=2026.11,acme/distro,$K' \"\$LOG\" \
      && grep -qx 'cfgmode=-rw-------' \"\$LOG\" && grep -qx 'cfg=OPENROUTER_KEY=\"sk-or-x\" ' \"\$LOG\" \
      && [ \"\$SETUP_URL\" = http://127.0.0.1:3121/setup/t ] && [ \"\$SSH_TUNNEL\" = ssh-x ] \
@@ -157,11 +157,12 @@ expect "the final output carries the two machine-readable lines, no --verbose ne
 # Root verification ignores the service user's .git (replace refs) and catches any tracked change.
 g init -q "$work/rv"; echo good >"$work/rv/f"; g -C "$work/rv" add -A; g -C "$work/rv" commit -qm one
 RK=$(git -C "$work/rv" rev-parse HEAD)
-expect "root verification passes a clean checkout" pass "DIR='$work/rv' KERNEL_SHA=$RK; root_verify"
+expect "root verification passes a clean checkout and exports it for setup, nothing in it group- or world-writable" pass \
+  "DIR='$work/rv' KERNEL_SHA=$RK KROOT='$work/kroot'; root_verify; [ \"\$KCOPY\" = '$work/kroot/$RK' ] && [ -f \"\$KCOPY/f\" ] && [ -z \"\$(find \"\$KCOPY\" -perm -020 -o -perm -002)\" ]"
 echo evil >"$work/rv/f"; g -C "$work/rv" commit -qam evil; EVIL=$(git -C "$work/rv" rev-parse HEAD)
 git -C "$work/rv" checkout -q --detach "$RK"; echo evil >"$work/rv/f"; git -C "$work/rv" replace "$RK" "$EVIL"
 expect "a replace ref fools the user-side check" pass "DIR='$work/rv' SVC_HOME=x KERNEL_SHA=$RK; verify_at '$work/rv' $RK"
-expect "but not root verification" stop "DIR='$work/rv' KERNEL_SHA=$RK; root_verify"
+expect "but not root verification" stop "DIR='$work/rv' KERNEL_SHA=$RK KROOT='$work/kroot2'; root_verify"
 
 # Credentials never go through wget (it forwards headers across redirects).
 echo 'Authorization: Bearer x' >"$work/hdr"
