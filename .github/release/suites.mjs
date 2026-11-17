@@ -7,7 +7,7 @@
 // file. Each file runs in its package (the nearest package.json; installed once with `npm ci --ignore-scripts` when it has
 // a lockfile): `.mjs` with node's test runner, `.ts` with vitest when the package uses it, else node. A `modules/<m>/…`
 // file missing from the kernel checkout is looked up in the marketplace checkout (after the modules move to their own
-// repository). The twin runs with the kernel CI's own command for it (the PACKAGES table in .github/workflows/ci.yml).
+// repository). The twin runs with the kernel CI's own command for it (the fixtures/twin row of .github/ci/areas.json).
 import { execFileSync, execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -57,9 +57,10 @@ function install(dir) {
 /** Runs one suite's files, grouped by package; true when every one passed. */
 function runSuite(name, list) {
   if (name === "twin") {
-    const ci = readFileSync(join(kernel, ".github/workflows/ci.yml"), "utf8");
-    const cmd = /^\s*fixtures\/twin\|([^|]+)\|/m.exec(ci)?.[1];
+    // The kernel CI's own command for it (.github/ci/areas.json); it reads scripts/node_modules, installed first.
+    const cmd = json(".github/ci/areas.json").suites?.find((p) => p.name === "fixtures/twin")?.run;
     if (!cmd) throw new Error("the kernel's CI has no fixtures/twin row");
+    install(join(kernel, "scripts"));
     try { sh(cmd, join(kernel, "fixtures/twin")); return true; } catch { return false; }
   }
   const byPkg = new Map();
