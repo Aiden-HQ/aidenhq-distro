@@ -27,6 +27,9 @@
 # kernel's own pins (ops/vm/pins.json), installed by its setup. The whole script is functions; nothing runs until the
 # last line, so a truncated download does nothing.
 set -eu
+# Whatever umask the caller's shell had (an ssh session may pass 077): the checkout and everything containers read must stay
+# readable to the non-root services. Secret files are made 0600 explicitly.
+umask 022
 
 DEFAULT_RELEASE=2026.11
 # Baked in by the release CI (.github/workflows/release.yml) when it publishes this file beside <release>.json: that file's
@@ -194,7 +197,21 @@ detect_resources() {
     [ "$1" -lt "$DISK_GB" ] && DISK_GB=$1
     [ "$2" -lt "$DISK_TOTAL_GB" ] && DISK_TOTAL_GB=$2
   done
+  # A rerun: what an earlier run already put in Docker (images, build cache, volumes) is part of the install the minimum is
+  # for, so it counts as available rather than as used.
+  [ -d "$DIR/.git" ] && DISK_GB=$((DISK_GB + $(installed_gb)))
   :
+}
+
+# Docker's used space in whole GB (docker system df: images, containers, volumes, build cache); 0 without Docker. Before
+# ensure_sudo: sudo only when it needs no password.
+installed_gb() {
+  have docker || { echo 0; return 0; }
+  { docker system df --format '{{.Size}}' 2>/dev/null || ${SUDO:+$SUDO -n} docker system df --format '{{.Size}}' 2>/dev/null || :; } | awk '
+    { v = $1 + 0; u = $1; sub(/^[0-9.]+/, "", u)
+      if (u == "TB") v *= 1000; else if (u == "MB") v /= 1000; else if (u == "kB" || u == "KB") v /= 1000000; else if (u == "B") v = 0
+      t += v }
+    END { print int(t) }'
 }
 
 # Defaults derived from the machine. Calibrated on two real hosts: the minimum VM (4 vCPU, 8 GB) gives the runner's
