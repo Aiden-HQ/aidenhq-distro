@@ -1,5 +1,5 @@
 # The installer's checks on every PR and on main: shellcheck, and installer/test.sh (A17's installer half: the release
-# verification, the baked digest, the setup handover) under sh and dash. On the org's self-hosted `aidenhq` runners.
+# verification, the baked digest, the setup handover) under sh and dash. On GitHub-hosted runners.
 name: ci
 on:
   pull_request:
@@ -9,9 +9,7 @@ permissions:
   contents: read
 jobs:
   installer:
-    runs-on: [self-hosted, aidenhq]
-    # Self-hosted runners never run a fork's code: pushes and same-repo PRs only (fork PRs are lean-core 5f's).
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
