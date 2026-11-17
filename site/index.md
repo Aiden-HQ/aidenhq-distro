@@ -1,6 +1,6 @@
-# AidenHQ: where you and your AI agents work together
+# AidenHQ: you and your agents, one workspace
 
-> AidenHQ is the workspace where you and your AI agents work together, on a server you own. Talk to Aiden. A team of agents does the work. You approve what matters.
+> You and your agents, one workspace. On a server you own: talk to Aiden, a team of agents does the work, you approve what matters.
 
 Self-hosted and open source. Install it with one command on a fresh Ubuntu or Debian server (or a Mac):
 

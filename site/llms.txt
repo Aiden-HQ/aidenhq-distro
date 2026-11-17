@@ -1,6 +1,6 @@
 # AidenHQ
 
-> AidenHQ is the workspace where you and your AI agents work together, on a server you own. Talk to Aiden, your chief of staff; a team of agents does the work; you approve what matters. It is self-hosted and open source: one Linux server (or a Mac) runs Aiden, specialist agents, shared docs, the apps they build and the board you work from. Every action that changes something is checked in code (it runs by itself, a second AI checks it, or you decide), spend is capped per agent, and every agent, instruction and app lives in your own git repository. A slim kernel enforces the rules, modules add everything else, and distros bundle a kernel and modules into tested releases.
+> AidenHQ: you and your agents, one workspace, on a server you own. Talk to Aiden, your chief of staff; a team of agents does the work; you approve what matters. It is self-hosted and open source: one Linux server (or a Mac) runs Aiden, specialist agents, shared docs, the apps they build and the board you work from. Every action that changes something is checked in code (it runs by itself, a second AI checks it, or you decide), spend is capped per agent, and every agent, instruction and app lives in your own git repository. A slim kernel enforces the rules, modules add everything else, and distros bundle a kernel and modules into tested releases.
 
 Install it with one command on an Ubuntu 22.04/24.04/26.04 or Debian 12/13 server (2+ cores, 6+ GB RAM, 60+ GB free disk; 4 cores, 8 GB and 100 GB recommended):
 

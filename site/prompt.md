@@ -1,5 +1,8 @@
 # Install AidenHQ
 
+AidenHQ: you and your agents, one workspace, on a server you own. Talk to Aiden, a team of agents does the work, you
+approve what matters.
+
 These are the official instructions from AidenHQ for an AI coding agent to install AidenHQ on a Linux server for its
 user. Every command is validated against the installer served at `https://get.aidenhq.ai`.
 

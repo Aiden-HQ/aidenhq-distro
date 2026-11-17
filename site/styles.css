@@ -770,7 +770,8 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .s-slack { color: color-mix(in srgb, #C9466F 80%, var(--text)); background: rgba(201, 70, 111, .12); }
 .s-mail { color: color-mix(in srgb, var(--blue) 80%, var(--text)); background: var(--brand-soft); }
 .agent-note-light code { overflow-wrap: anywhere; font-size: 13px; }
-.hero h1 { font-size: clamp(36px, 3.3vw, 64px); line-height: 1.04; }
+.hero h1 { font-size: clamp(36px, 3.9vw, 68px); line-height: 1.02; }
+@media (max-width: 720px) { .hero h1 { font-size: clamp(32px, 9vw, 40px); } }
 /* Static board mock (workspace) */
 .bm { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: hidden; font-size: 13.5px; line-height: 1.4; }
 .bm-body { display: grid; grid-template-columns: 160px minmax(0, 1fr); min-height: 360px; }
