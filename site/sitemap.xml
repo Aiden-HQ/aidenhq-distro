@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://aidenhq.ai/</loc></url>
+  <url><loc>https://aidenhq.ai/workspace/</loc></url>
+  <url><loc>https://aidenhq.ai/agents/</loc></url>
+  <url><loc>https://aidenhq.ai/apps/</loc></url>
+  <url><loc>https://aidenhq.ai/safety/</loc></url>
+  <url><loc>https://aidenhq.ai/integrations/</loc></url>
+  <url><loc>https://aidenhq.ai/modules/</loc></url>
+  <url><loc>https://aidenhq.ai/install/</loc></url>
   <url><loc>https://aidenhq.ai/prompt.md</loc></url>
   <url><loc>https://aidenhq.ai/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/workspace/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/agents/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/apps/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/safety/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/integrations/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/modules/index.md</loc></url>
+  <url><loc>https://aidenhq.ai/install/index.md</loc></url>
   <url><loc>https://aidenhq.ai/llms.txt</loc></url>
 </urlset>

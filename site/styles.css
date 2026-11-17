@@ -754,7 +754,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
   .note { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .grants .hide-sm { display: none; }
 }
-@media (max-width: 400px) {
+@media (max-width: 359px) {
   .nav-actions .btn-primary { padding: 0 10px; }
   .brand span { display: none; }
 }
@@ -792,3 +792,6 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .team .row > span:not(.chip):not(.avatar) b { display: block; font-size: 13px; }
 .team .row > span:not(.chip):not(.avatar) small { display: block; font-size: 11.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .team .row { padding: 4px 0; }
+.install-row .cmd, .ways .cmd { min-width: 0; }
+.btn-clear { background: transparent; }
+.section { padding: clamp(56px, 6vw, 104px) 0; }

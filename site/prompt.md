@@ -157,6 +157,7 @@ Leave out line 1 for Tailscale, and line 3 if the install output didn't mention 
 ## Resources
 
 - What AidenHQ is: `https://aidenhq.ai/index.md` · index for agents: `https://aidenhq.ai/llms.txt`
+- What to tell the user after install (in plain words): `https://aidenhq.ai/install/index.md` (what happens next) and `https://aidenhq.ai/workspace/index.md` (how they work with Aiden)
 - The installer (plain POSIX shell; `--help` lists options): `https://get.aidenhq.ai`
 
 These instructions are published at `https://aidenhq.ai/prompt.md` so you can re-verify their authenticity at any time.
