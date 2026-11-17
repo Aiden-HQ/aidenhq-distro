@@ -10,7 +10,7 @@ It checks the machine, asks for your email (the board's owner account), fetches 
 product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, and `AIDENHQ_SSH_TUNNEL=` with `--no-tailscale`, for scripts and agents). Everything after
 that happens in your browser: your password and authenticator, your model key, your channels.
 
-`get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves `install.sh` directly as `text/plain`. To read the script before running it:
+`get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves the latest tagged release's `install.sh` (the one with its release file's digest baked in) as `text/plain`. To read the script before running it:
 
 ```sh
 curl -fsSLo install.sh https://get.aidenhq.ai && less install.sh && sh install.sh
@@ -139,7 +139,7 @@ from); every apply reads that file again at that commit and refuses a kernel oth
 A release is cut by pushing its tag (`2026.11`, patch releases `2026.11.1`) on a `main` commit whose `releases/<tag>.json`
 names real shas. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch
 and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
-publishes both as the release's assets. `get.aidenhq.ai` should redirect to the latest tagged `install.sh` asset, never
+publishes both as the release's assets. `get.aidenhq.ai` serves the latest tagged `install.sh` asset, never
 to a branch.
 
 `releases/2026.11.json` holds placeholder shas until the first release is cut, so a real run refuses it.

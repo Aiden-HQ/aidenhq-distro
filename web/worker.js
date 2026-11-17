@@ -1,5 +1,6 @@
 // aidenhq.ai serves the site; get.aidenhq.ai serves the installer as plain text, so `curl -fsSL get.aidenhq.ai | sh` works.
 // On `/`, an agent that asks for markdown (Accept: text/markdown, or text/plain without text/html) gets /index.md.
+const LATEST = "https://github.com/Aiden-HQ/aidenhq-distro/releases/latest/download/install.sh";
 const LINK = '</index.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"; type="text/plain"';
 
 // q-value of a media type in an Accept header (0 when absent; wildcards ignored).
@@ -23,9 +24,12 @@ export default {
     const url = new URL(req.url);
     if (url.hostname.startsWith("get.")) {
       if (url.pathname !== "/" && url.pathname !== "/install.sh") return new Response("Not found\n", { status: 404 });
-      const res = await env.ASSETS.fetch(new URL("/install.sh", url));
+      // The latest tagged release's install.sh, which carries its release file's digest; the repo's copy is uncut and refuses a
+      // real run. Fetched (redirects followed) and served as text, so `curl | sh` and reading it in a browser both work.
+      const res = await fetch(LATEST, { cf: { cacheTtl: 300 } });
+      if (!res.ok) return new Response("The installer is unavailable; try again shortly.\n", { status: 502 });
       return new Response(res.body, {
-        status: res.status,
+        status: 200,
         headers: {
           "content-type": "text/plain; charset=utf-8",
           "cache-control": "public, max-age=300",

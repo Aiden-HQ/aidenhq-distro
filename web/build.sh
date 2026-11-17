@@ -22,5 +22,5 @@ find web/public -name '*.html' | while IFS= read -r page; do
   mv "$page.tmp" "$page"
 done
 if grep -rl '<!--#include' web/public --include='*.html'; then echo "build.sh: unresolved include" >&2; exit 1; fi
-cp install.sh web/public/install.sh
+# get.aidenhq.ai serves the latest tagged release's install.sh (web/worker.js), not this copy.
 cp web/_headers web/public/_headers
