@@ -20,9 +20,15 @@ const files = {
   "kernel-only": () => ["kernel/test/kernel-only.test.ts"].filter((f) => existsSync(join(kernel, f))),
   swap: () => ["scripts/test/swap.test.mjs"].filter((f) => existsSync(join(kernel, f))),
   twin: () => (existsSync(join(kernel, "fixtures/twin/module.yaml")) ? ["fixtures/twin"] : []),
-  adversarial: () => json("scripts/lean/adversarial.json").map((r) => r.test).filter(Boolean),
-  parity: () => json("scripts/lean/parity.json").flatMap((r) => r.today).filter((f) => /\.test\.\w+$/.test(f)),
+  adversarial: () => testsOf(json("scripts/lean/adversarial.json").map((r) => r.test).filter(Boolean)),
+  parity: () => testsOf(json("scripts/lean/parity.json").flatMap((r) => r.today)),
 };
+
+/** The test files of a checklist; its other entries (a planted reviewer case, a script) must exist, and run elsewhere. */
+function testsOf(list) {
+  for (const f of list) locate(f);
+  return [...new Set(list.filter((f) => /\.test\.\w+$/.test(f)))];
+}
 
 /** Where a file is: [package dir (absolute), path inside it]. */
 function locate(file) {
@@ -69,7 +75,7 @@ function runSuite(name, list) {
     console.log(`::group::${name}: ${relative(kernel, dir) || dir}: ${rels.length} files`);
     try {
       install(dir);
-      if (mjs.length) execFileSync(process.execPath, ["--disable-warning=ExperimentalWarning", "--test", ...mjs], { cwd: dir, stdio: "inherit", timeout: 45 * 60_000 });
+      if (mjs.length) execFileSync(process.execPath, ["--disable-warning=ExperimentalWarning", "--test", "--test-timeout=300000", ...mjs], { cwd: dir, stdio: "inherit", timeout: 45 * 60_000 });
       if (ts.length) execFileSync("npx", ["vitest", "run", ...ts], { cwd: dir, stdio: "inherit", timeout: 45 * 60_000 });
     } catch {
       ok = false;
