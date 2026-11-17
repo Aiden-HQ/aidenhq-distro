@@ -102,6 +102,8 @@ jobs:
           # What was published is what was tested and baked.
           mkdir -p check
           api "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id/assets" | jq -r '.[] | "\(.id) \(.name)"' | while read -r aid name; do
-            api -L -H "Accept: application/octet-stream" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/assets/$aid" -o "check/$name"
+            # Only the octet-stream Accept: with api()'s JSON one too, GitHub answers with the asset's JSON, not its bytes.
+            printf 'Authorization: Bearer %s\nAccept: application/octet-stream\n' "$GH_TOKEN" \
+              | curl -fsSL -H @- "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/assets/$aid" -o "check/$name"
           done
           cmp check/install.sh dist/install.sh && cmp "check/$TAG.json" "dist/$TAG.json"
