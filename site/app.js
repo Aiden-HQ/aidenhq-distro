@@ -37,6 +37,12 @@
     burger.setAttribute('aria-expanded', String(open));
     burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
   });
+  document.querySelectorAll('.menu-bar a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      closeGroups(); nav.classList.remove('menu-open');
+      if (burger) { burger.setAttribute('aria-expanded', 'false'); burger.setAttribute('aria-label', 'Open menu'); }
+    });
+  });
   var here = location.pathname.replace(/index\.html$/, '');
   document.querySelectorAll('.menu-bar .drop a').forEach(function (a) {
     var u = new URL(a.href, location.href);

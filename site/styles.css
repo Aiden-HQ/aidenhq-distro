@@ -462,7 +462,7 @@ a:hover > .more::after, .more:hover::after { translate: 3px 0; }
               radial-gradient(40% 50% at 10% 0%, color-mix(in srgb, var(--violet) 9%, transparent), transparent 70%);
 }
 .ph-in { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: clamp(36px, 5vw, 88px); align-items: center; }
-.ph h1 { font-size: clamp(38px, 3.6vw, 70px); margin: 18px 0 18px; }
+.ph h1 { font-size: clamp(36px, 3.3vw, 60px); margin: 18px 0 18px; }
 .ph .eyebrow { color: color-mix(in srgb, var(--c) 64%, var(--text)); }
 
 /* Capability cards */
@@ -561,9 +561,9 @@ a:hover > .more::after, .more:hover::after { translate: 3px 0; }
 .sc.framed { box-shadow: var(--shadow-lg); background-color: var(--surface-2); }
 .js .sc .at1, .js .sc .at2, .js .sc .at3, .js .sc .at4, .js .sc .at5, .js .sc .at6, .js .sc .at7, .js .sc .at8, .js .sc .at9 { opacity: 0; translate: 0 6px; transition: opacity .45s var(--ease), translate .45s var(--ease); }
 .sc.s1 .at1, .sc.s2 .at2, .sc.s3 .at3, .sc.s4 .at4, .sc.s5 .at5, .sc.s6 .at6, .sc.s7 .at7, .sc.s8 .at8, .sc.s9 .at9 { opacity: 1; translate: 0 0; }
-.js .sc .on1, .js .sc .on2, .js .sc .on3, .js .sc .on4, .js .sc .on5, .js .sc .on6, .js .sc .on7, .js .sc .on8, .js .sc .on9 { display: none; }
+.js .sc:not(.s1) .on1, .js .sc:not(.s2) .on2, .js .sc:not(.s3) .on3, .js .sc:not(.s4) .on4, .js .sc:not(.s5) .on5, .js .sc:not(.s6) .on6, .js .sc:not(.s7) .on7, .js .sc:not(.s8) .on8, .js .sc:not(.s9) .on9 { display: none; }
 html:not(.js) .sc [class*="off"] { display: none !important; }
-.sc.s1 .on1, .sc.s2 .on2, .sc.s3 .on3, .sc.s4 .on4, .sc.s5 .on5, .sc.s6 .on6, .sc.s7 .on7, .sc.s8 .on8, .sc.s9 .on9 { display: revert; animation: sc-in .45s var(--ease) both; }
+.sc.s1 .on1, .sc.s2 .on2, .sc.s3 .on3, .sc.s4 .on4, .sc.s5 .on5, .sc.s6 .on6, .sc.s7 .on7, .sc.s8 .on8, .sc.s9 .on9 { animation: sc-in .45s var(--ease) both; }
 .sc.s1 .off1, .sc.s2 .off2, .sc.s3 .off3, .sc.s4 .off4, .sc.s5 .off5, .sc.s6 .off6, .sc.s7 .off7, .sc.s8 .off8, .sc.s9 .off9 { display: none !important; }
 @keyframes sc-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 .sc.resetting > * { opacity: 0; transition: opacity .4s; }
@@ -671,7 +671,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .distro-top .chip { margin-left: auto; }
 .bricks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; align-content: end; }
 .brick { padding: 8px 9px; border-radius: 7px; font-size: 11.5px; font-weight: 650; color: #fff; background: var(--bc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: inset 0 -2px 0 rgba(0,0,0,.12); }
-.sc .brick.at1, .sc .brick.at2, .sc .brick.at3, .sc .brick.at4 { translate: 0 -22px; }
+.js .sc:not(.s1) .brick.at1, .js .sc:not(.s2) .brick.at2, .js .sc:not(.s3) .brick.at3, .js .sc:not(.s4) .brick.at4 { translate: 0 -22px; }
 .kernel { padding: 12px; border-radius: 8px; background: var(--text); color: var(--bg); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .kernel b { font-size: 13px; }
 .kernel span { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: color-mix(in srgb, var(--bg) 16%, transparent); }
@@ -774,7 +774,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .s-mail { color: color-mix(in srgb, var(--blue) 80%, var(--text)); background: var(--brand-soft); }
 .agent-note-light code { overflow-wrap: anywhere; font-size: 13px; }
 .hero h1 { font-size: clamp(36px, 3.9vw, 68px); line-height: 1.02; }
-@media (max-width: 720px) { .hero h1 { font-size: clamp(32px, 9vw, 40px); } }
+@media (max-width: 720px) { .hero h1, .ph h1 { font-size: clamp(32px, 9vw, 40px); } }
 /* Static board mock (workspace) */
 .bm { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: hidden; font-size: 13.5px; line-height: 1.4; }
 .bm-body { display: grid; grid-template-columns: 160px minmax(0, 1fr); min-height: 360px; }
@@ -799,3 +799,4 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .install-row .cmd, .ways .cmd { min-width: 0; }
 .btn-clear { background: transparent; }
 .section { padding: clamp(56px, 6vw, 104px) 0; }
+.cap .cmd code { background: none; border: 0; padding: 9px 0; font-size: 13.5px; color: inherit; }

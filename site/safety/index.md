@@ -56,7 +56,7 @@ Every component is pinned to an exact version, and new releases wait a week befo
 
 ## Your server, your keys, your history.
 
-AidenHQ runs on one machine you control. Nothing about your setup lives in someone else's cloud, and every change is recorded so it can be undone.
+AidenHQ runs on one machine you control. Your settings and history live there and in a private repository you control, and every change is recorded so it can be undone.
 
 - **No public doors.** The board is reachable only on your private network, behind a password and a one-time code.
 - **An encrypted vault.** Passwords and keys are kept encrypted, out of every prompt; each service gets only its own.
@@ -64,7 +64,7 @@ AidenHQ runs on one machine you control. Nothing about your setup lives in someo
 - **Full history.** Agents, instructions, settings and apps live in your own private repository. Go back to any earlier version.
 - **A record of everything.** Every decision, tool change and AI call is logged.
 **What does leave your server**
-Agents reach the tools you connect (Slack, Gmail, GitHub and so on), and the AI models run through OpenRouter, set to zero data retention so providers keep no copy of your prompts. You choose the model for each agent. Outbound access is open by design: agents may call the services they are granted.
+Agents reach the tools you connect (Slack, Gmail, GitHub and so on), and the AI models run through OpenRouter, with zero data retention enforced on every call, so model providers keep no copy of your prompts. You choose the model for each agent. Outbound access is open by design: agents may call the services they are granted.
 
 ## Set the limit. Never get a surprise bill.
 
