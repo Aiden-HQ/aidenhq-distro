@@ -1,8 +1,11 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
-# releases/<release>.json names real shas. On the org's self-hosted `aidenhq` runners (each one a container; no Docker
-# inside), this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# releases/<release>.json names real shas. On the org's self-hosted `aidenhq` runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # Private kernel or modules repos need the RELEASE_READ_TOKEN secret (contents: read on both); public ones need nothing.
+# Isolation (the runners are modules/ci on the kernel's host, ops/ci-runner.sh): each runner is a fresh container that
+# registers ephemerally, takes one job and is removed, unprivileged, with no host mounts or Docker socket and its own
+# network, under runc (not gVisor). Fetched code runs only in the test job's suites step, which has no token; publish is
+# a separate job (needs: test), so it always lands on a fresh runner that never ran the suites.
 name: release
 on:
   push:
@@ -84,12 +87,22 @@ jobs:
           if command -v shellcheck >/dev/null; then shellcheck dist/install.sh; else echo "shellcheck not on this runner: ci.yml checks the source"; fi
           cat "dist/$TAG.json"
           echo "release file sha256 $digest, distro commit $GITHUB_SHA"
+      # The runners have no gh: the REST API with curl. The token goes to curl on stdin (-H @-), never into a file or argv.
       - name: Publish install.sh and the release file
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$TAG" "dist/install.sh" "dist/$TAG.json" --verify-tag --title "AidenHQ $TAG" \
-            --notes "Install: \`curl -fsSL https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/install.sh | sh\`. Tested: $(jq -c .tested "dist/$TAG.json")"
+          api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
+          body=$(jq -n --arg t "$TAG" --arg n "Install: \`curl -fsSL https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/install.sh | sh\`. Tested: $(jq -c .tested "dist/$TAG.json")" \
+            '{ tag_name: $t, name: "AidenHQ \($t)", body: $n }')
+          id=$(api -X POST "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases" -d "$body" | jq -er .id)
+          for f in install.sh "$TAG.json"; do
+            api -X POST -H "Content-Type: application/octet-stream" --data-binary "@dist/$f" \
+              "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$id/assets?name=$f" >/dev/null
+          done
           # What was published is what was tested and baked.
-          mkdir -p check && gh release download "$TAG" --dir check
+          mkdir -p check
+          api "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id/assets" | jq -r '.[] | "\(.id) \(.name)"' | while read -r aid name; do
+            api -L -H "Accept: application/octet-stream" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/assets/$aid" -o "check/$name"
+          done
           cmp check/install.sh dist/install.sh && cmp "check/$TAG.json" "dist/$TAG.json"

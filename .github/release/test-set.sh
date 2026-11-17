@@ -22,12 +22,19 @@ if [ "$mode" = fetch ]; then
   DRY=0 VERBOSE=1 NONINT=1 NO_TS=0 SUDO='' STEP='' REFUSALS='' AUTH_HDR='' RELFILE=''
   REL=$(sed -n 's/.*"release"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$rel" | head -1)
   SVC=$(id -un) SVC_HOME=$HOME SVC_UID=$(id -u) DIR="$work/kernel" STATE_DIR="$work/state"
-  TMPD=$(mktemp -d) LOG="$work/install.log"
+  TMPD=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/aidenhq-fetch.XXXXXX") LOG="$work/install.log"
+  trap 'rm -rf "$TMPD" "$work/lib.sh"' EXIT
   AIDENHQ_RELEASE_FILE=$rel
-  git_auth_env
+  # The token reaches git through its environment only (install.sh's git_auth_env also writes a curl header file, which
+  # this local release file never needs): nothing with it is written to disk.
+  tok="${AIDENHQ_GITHUB_TOKEN:-}"
+  if [ -n "$tok" ]; then
+    GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+    GIT_CONFIG_VALUE_0="Authorization: Basic $(printf 'x-access-token:%s' "$tok" | base64 | tr -d '\n')"
+    export GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0
+  fi
   fetch_release
   fetch_sources
-  rm -rf "$TMPD" "$work/lib.sh"
   exit 0
 fi
 
