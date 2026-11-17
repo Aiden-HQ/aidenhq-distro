@@ -2,7 +2,7 @@
 
 > Autonomous agents that run work end to end: specialists who plan, build, ship, maintain and follow up on schedules and events, a chief of staff to route requests, and new agents built from a one-sentence description.
 
-Specialists that plan, build, ship, maintain and follow up on their own, around the clock, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.
+An AI workforce of specialists that plan, build, ship, maintain and follow up on their own, around the clock, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.
 
 _Animation: the team at work: Aiden hands a task to the Researcher, the Follow-up Tracker chases a reply, the Meeting Librarian files notes, and the DevOps Engineer confirms every app is healthy_
 
@@ -20,31 +20,31 @@ Every agent has a role, a short set of instructions you can read, the tools it i
 - **Meeting Librarian:** Keeps notes, decisions and follow-ups from your meetings.
 - **Engineers:** Write code in a locked-down workspace and open changes for review.
 - **UI Designer and Reviewer:** Draft layouts, then check screenshots of every change.
-- **Security Watch:** Scans for known security holes and proposes fixes.
-- **Red Teamer:** Attacks your own setup to find weak spots first.
+- **Security Watch:** Hunts known vulnerabilities and ships the fixes.
+- **Red Teamer:** Stress-tests your setup the way an attacker would.
 
-## Not sure who to ask? Ask Aiden.
+## Agents that work as a team, not in silos.
 
-You can talk to any agent directly. When you would rather not choose, Aiden takes the request: it reads your messages and forwards, decides who should do the work, keeps track of it and comes back with results or a decision.
+Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it to the right specialist. Specialists delegate to each other, hand off with full context, call in reviewers and pass finished work to DevOps to ship. You see every handoff in the open, and can step into any of them.
 
-- **Delegates** each request to the right specialist, with a clear definition of done.
-- **Chases** people and agents until the work lands, and tells you if something stalls.
-- **Briefs you** every morning and batches the rest into a digest.
-- **Relays your approvals** word for word, and never sends anything as you.
+- **Routing:** Aiden reads your messages and forwards and picks who does what.
+- **Agent-to-agent handoffs** carry the goal, the context and a definition of done.
+- **Peer review:** agents check each other's work before anything ships.
+- **Fan-out:** big jobs split into parallel tasks that come back together.
 
-_Animation: Aiden's morning brief lists what moved overnight, what was chased and what is due; low-priority updates are held for the evening digest_
+_Animation: one request moves through a team of agents: Aiden routes it to the Researcher, the Researcher hands findings to an Engineer, the UI Reviewer sends back two fixes, the Engineer resolves them, and DevOps ships it live_
 
-## Agents wake up when there is work.
+## Always on, and wide awake when work arrives.
 
-Agents do not run in endless loops burning money. They wake on a schedule, when something happens in one of your tools, or when someone hands them a task, and they plan their own follow-ups.
+Agents run in the background on a heartbeat. They wake on a schedule, the moment something happens in your tools, or when another agent hands them a task, and they book their own follow-ups.
 
 ### On a schedule
 
 The morning brief at 08:00, a weekly metrics review on Mondays, a health check every hour.
 
-### When something happens
+### On events
 
-A new email, a failed deploy, a mention in Slack or a comment on a doc wakes the right agent.
+A new email, a failed deploy, a Slack mention or a comment on a doc wakes the right agent instantly.
 
 ### Self-scheduled
 
@@ -52,10 +52,11 @@ Agents set their own reminders: "check back on Thursday if Sam has not replied".
 
 ## Describe the agent you wish you had.
 
-Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.
+Agents build agents. Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.
 
 - **No prompt writing.** You describe the outcome; the Architect writes the instructions.
-- **Trial first.** New agents run on trial with limited reach until their work is graded.
+- **Proven on trial.** New agents earn their full reach once their work is graded.
+- **Tools on demand.** When an agent needs a tool that does not exist, the team builds it as an MCP connection.
 - **One tap to keep it.** You approve the new agent like any other change, and can undo it later.
 - **Readable.** Every agent is a short file you can read, edit or hand to a colleague.
 
@@ -63,11 +64,11 @@ _Animation: you describe an agent in one sentence; the Agent Architect writes it
 
 ## One company handbook every agent follows.
 
-How your company works is written down once, in short sections, and every agent reads what applies to its job. Skills (how to write a brief, how to review a design) are shared the same way.
+Each agent gets exactly the context its job needs. How your company works is written once, in short sections, and every agent loads what applies to it. Skills, from writing a brief to reviewing a design, are shared the same way.
 
-### Sections, not walls of text
+### Sectioned and targeted
 
-Each section says who it applies to. Agents load what they need and look up the rest.
+Each section says who it applies to. Agents load what they need and look up the rest on demand.
 
 ### Shared vocabulary
 
@@ -81,24 +82,20 @@ Reusable how-tos any agent can pick up, from drafting a reply to preparing a mee
 
 A short profile of how you like to read, decide and be asked, followed by every agent.
 
-## Correct an agent once. It stays fixed.
+## Agents that remember, and get better every week.
 
-When you correct an agent, the correction becomes a rule or an automatic check, so the same mistake does not come back.
+Agents keep long-term memory of people, decisions and your preferences, and carry it into every task. Each correction you make becomes a rule and an eval. The Agent Coach studies how the team works, proposes sharper handbooks and skills, and prunes what no longer helps. Evals gate every change, so the team only ever levels up.
 
-### Done means checked
+- **Long-term memory** of people, projects, decisions and preferences.
+- **Learn once:** corrections turn into rules and automatic checks.
+- **A coach on the team** that refines and prunes the playbook.
+- **Evals gate every change** to an agent's instructions.
+- **Done means graded** against a clear definition of done.
 
-A grader checks the work against its definition of done before a task counts as finished.
+_Animation: you correct an agent once; it saves the preference to long-term memory, the Agent Coach proposes a handbook change, the evals pass, and every agent follows the new rule_
 
-### A coach on the team
-
-The Agent Coach reviews runs, spots repeat mistakes and proposes better instructions.
-
-### Memory
-
-Agents keep short notes of what worked, checked against the source before they rely on them.
-
-**How it stays safe**
-Agents may decide, but they cannot act on their own say-so. Each agent can use only the tools you granted it, every change it wants to make passes approvals in code, and changes to an agent's own instructions are reviewed like any other change. [More on safety](https://aidenhq.ai/safety/index.md)
+**Autonomy with guardrails**
+Agents make their own decisions, and deterministic guardrails in code check every action they take. Each agent works with exactly the tools you grant it, every change passes approvals, and changes to an agent's own instructions are reviewed like any other change. [More on safety](https://aidenhq.ai/safety/index.md)
 
 ---
 

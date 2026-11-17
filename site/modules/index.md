@@ -8,7 +8,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ## The part that keeps everyone honest.
 
-The kernel is deliberately small. It holds the things that must be true for every agent and every module, whoever wrote them, and nothing else.
+The kernel is lean by design. It holds what must be true for every agent and every module, whoever wrote them, and leaves everything else to modules.
 
 ### Model gateway
 
@@ -16,7 +16,7 @@ Every AI call goes through one door that meters it, applies spend limits and rec
 
 ### Tool checkpoint
 
-Every tool call is checked against the agent's grants, and outside text is marked as information, not orders.
+Every tool call is checked against the agent's grants, and outside text is fenced as information.
 
 ### Approvals
 
@@ -50,7 +50,7 @@ A module is a folder that can add agents, chat channels, tool connections, apps 
 
 Add a module from the board or with one command. Before anything changes you see what it will be able to read and write, which agents and schedules it brings and which settings it needs, on a single approval card.
 
-- **Held to its word.** What a module declares is checked on every call, not just at install.
+- **Held to its word.** What a module declares is checked on every call, from install onward.
 - **Pinned and checked.** Every module is pinned to an exact version and passes the same supply-chain checks as ours.
 - **Easy to remove.** Taking a module out is the same single step, and history lets you undo it.
 
@@ -84,7 +84,7 @@ Every release pins a kernel and each module to an exact version, so what you ins
 
 ### Swap or add anything
 
-Start from a distro, then add Slack, swap the coding engine or drop what you do not need. Your choices live in your own settings, with history.
+Start from a distro, then add Slack, swap the coding engine or trim it down to what you use. Your choices live in your own settings, with history.
 
 ### Publish your own
 

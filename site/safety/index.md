@@ -8,7 +8,7 @@ _Animation: Aiden sends an approval card to your phone with the exact email it w
 
 ## Three levels, decided by the system.
 
-Which level an action gets is set by rules in code, not by the agent asking. An agent cannot talk its way into a lower level, and you can raise or lower how much runs on its own with one setting.
+Which level an action gets is set by rules in code, not by the agent asking. No prompt can talk its way past them, and one setting dials how much runs on its own.
 
 - **Runs by itself:** Safe, reversible steps: updating a task, drafting a reply, reading a doc.
 - **A second AI checks it:** Merges, deploys, messages to allowed people. The reviewer is always a different AI model family from the one asking.
@@ -26,13 +26,13 @@ Which level an action gets is set by rules in code, not by the agent asking. An 
 
 Each card shows exactly what will happen: the full email text, the exact code change, the precise setting. What you approve is what runs.
 
-## Checked by the system, not by the agent.
+## Deterministic guardrails, below the AI.
 
-The rules sit below the AI. They read the real state of things (who asked, what changed, which tool), never what an agent says about it.
+The rules sit below the AI. They read the real state of things: who asked, what changed, which tool.
 
-### Text cannot give orders
+### Prompt-injection resistant
 
-Emails, chats and documents are treated as information, never instructions. A message saying "ignore your rules" is just a message.
+Emails, chats and documents are fenced as information, so agents read everything and take orders only from you.
 
 ### Tool by tool permissions
 
@@ -40,15 +40,15 @@ Every tool call passes one checkpoint that confirms the agent was granted that e
 
 ### A locked box for code
 
-Coding agents work in a sealed space with their own network and no passwords, so they cannot touch the rest of your server.
+Coding agents work in a sealed space with their own network and no passwords, fully isolated from the rest of your server.
 
-### Never as you
+### Their own identity
 
-Agents speak as a labelled assistant. Nothing is ever sent from your own account.
+Agents speak as clearly labelled assistants with their own identity, so you always know who said what.
 
 ### Security on staff
 
-Security Watch scans for known security holes and proposes fixes; a Red Teamer attacks your own setup to find weak spots first.
+Security Watch hunts known vulnerabilities and ships the fixes; a Red Teamer stress-tests your setup the way an attacker would.
 
 ### Careful with updates
 
@@ -58,29 +58,29 @@ Every component is pinned to an exact version, and new releases wait a week befo
 
 AidenHQ runs on one machine you control. Your settings and history live there and in a private repository you control, and every change is recorded so it can be undone.
 
-- **No public doors.** The board is reachable only on your private network, behind a password and a one-time code.
-- **An encrypted vault.** Passwords and keys are kept encrypted, out of every prompt; each service gets only its own.
-- **Logins stay with the connection.** Agents use your tools through a connection that holds the sign-in; they never see it.
+- **Zero open ports.** The board lives on your private network, behind a password and a one-time code.
+- **An encrypted vault.** Passwords and keys are kept encrypted, out of every prompt; each service gets exactly its own.
+- **Logins stay with the connection.** Agents use your tools through a connection that holds the sign-in for them.
 - **Full history.** Agents, instructions, settings and apps live in your own private repository. Go back to any earlier version.
 - **A record of everything.** Every decision, tool change and AI call is logged.
-**What does leave your server**
-Agents reach the tools you connect (Slack, Gmail, GitHub and so on), and the AI models run through OpenRouter, with zero data retention enforced on every call, so model providers keep no copy of your prompts. You choose the model for each agent. Outbound access is open by design: agents may call the services they are granted.
+**Your models, your rules**
+Pick any model for each agent, frontier or open-weight, through OpenRouter, with zero data retention enforced on every call so providers keep no copy of your prompts. Agents reach out to exactly the tools and services you connect and grant.
 
-## Set the limit. Never get a surprise bill.
+## Budgets you set. Every cent on the record.
 
-Agents that run all night can quietly run up a bill. Here every AI call is metered and capped.
+Every AI call is metered, attributed and capped, so a team that works all night stays exactly on budget.
 
 ### Per agent
 
-Limits per run, per task and per day. An agent stops when it reaches its limit.
+Budgets per run, per task and per day, enforced at the gateway.
 
-### One monthly cap
+### One monthly budget
 
-The model key has its own monthly limit ($50 by default), so the total can never run away.
+The model key carries your monthly budget, so the total is always under your control.
 
-### Low-cost by default
+### Right model, right job
 
-Most agents run on a fast, inexpensive model. Premium models only where they earn it.
+Fast, efficient models for everyday work; frontier models where they earn their keep.
 
 ### Every cost on record
 

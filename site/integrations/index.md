@@ -2,7 +2,7 @@
 
 > Connect Slack, Telegram, Gmail, Calendar, Drive, Jira, GitHub, Glean, Grafana and ClickHouse once, with your own accounts. Then grant each agent read or write access, tool by tool.
 
-Sign in to Slack, Gmail, GitHub and the rest with your own accounts, one time. Then decide, agent by agent and tool by tool, who may read and who may write.
+Every connection speaks MCP, the open standard for agent tools. Sign in to Slack, Gmail, GitHub and the rest with your own accounts, one time. Then decide, agent by agent and tool by tool, who may read and who may write.
 
 _Animation: tools are connected once, then each agent is granted read or write access tool by tool; an agent without a write grant is blocked from posting_
 
@@ -42,7 +42,7 @@ Agents combine connections the way a person would, and every source feeds one sh
 
 ## Read for some, write for few.
 
-Every tool is marked as reading or writing. Agents get only the tools their job needs, and every call is checked against that list.
+Every tool is marked as reading or writing. Each agent gets exactly the tools its job needs, and every call is checked against that grant.
 
 ### Your own sign-in
 
@@ -50,7 +50,7 @@ Connections use the tool's official sign-in with your account, so access matches
 
 ### Granted tool by tool
 
-The Researcher may read Slack; only the Follow-up Tracker may post. Change it any time, with one approval.
+The Researcher reads Slack; the Follow-up Tracker posts. Change it any time, with one approval.
 
 ### Writes go through approvals
 
@@ -60,9 +60,9 @@ A granted write still passes the approval levels: some run, a second AI checks s
 
 Every agent you allow shares the one connection, so there are no per-agent keys to manage.
 
-### Blocked and logged
+### Enforced and logged
 
-A call to a tool an agent was not granted is refused and recorded, no matter what it was told.
+Every call is checked against its grant and recorded, whatever an agent was told.
 
 ### Add your own
 

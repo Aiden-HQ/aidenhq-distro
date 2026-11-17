@@ -36,11 +36,11 @@
     <div class="sec-head reveal">
       <p class="eyebrow c-blue">The kernel</p>
       <h2>The part that keeps everyone honest.</h2>
-      <p>The kernel is deliberately small. It holds the things that must be true for every agent and every module, whoever wrote them, and nothing else.</p>
+      <p>The kernel is lean by design. It holds what must be true for every agent and every module, whoever wrote them, and leaves everything else to modules.</p>
     </div>
     <ul class="caps four">
       <li class="cap reveal" style="--c: var(--blue)"><h3>Model gateway</h3><p>Every AI call goes through one door that meters it, applies spend limits and records it.</p></li>
-      <li class="cap reveal" style="--c: var(--violet)"><h3>Tool checkpoint</h3><p>Every tool call is checked against the agent's grants, and outside text is marked as information, not orders.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Tool checkpoint</h3><p>Every tool call is checked against the agent's grants, and outside text is fenced as information.</p></li>
       <li class="cap reveal" style="--c: var(--amber)"><h3>Approvals</h3><p>Every write becomes a record with its exact request, given its level by rules in code, and decided by the right party.</p></li>
       <li class="cap reveal" style="--c: var(--teal)"><h3>Identity and the locked box</h3><p>Sign-in for you and your admins, a sealed workspace for coding jobs, and a log of everything.</p></li>
     </ul>
@@ -82,7 +82,7 @@
       <h2>Add a module in one step, and see exactly what it gets.</h2>
       <p class="lede-sm">Add a module from the board or with one command. Before anything changes you see what it will be able to read and write, which agents and schedules it brings and which settings it needs, on a single approval card.</p>
       <ul class="ticks" style="--c: var(--teal)">
-        <li><b>Held to its word.</b> What a module declares is checked on every call, not just at install.</li>
+        <li><b>Held to its word.</b> What a module declares is checked on every call, from install onward.</li>
         <li><b>Pinned and checked.</b> Every module is pinned to an exact version and passes the same supply-chain checks as ours.</li>
         <li><b>Easy to remove.</b> Taking a module out is the same single step, and history lets you undo it.</li>
       </ul>
@@ -107,7 +107,7 @@
     </ul>
     <ul class="caps" style="margin-top: 14px">
       <li class="cap reveal" style="--c: var(--amber)"><h3>Tested together</h3><p>Every release pins a kernel and each module to an exact version, so what you install is exactly what passed the tests. Release 2026.11 is the current one.</p></li>
-      <li class="cap reveal" style="--c: var(--sky)"><h3>Swap or add anything</h3><p>Start from a distro, then add Slack, swap the coding engine or drop what you do not need. Your choices live in your own settings, with history.</p></li>
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Swap or add anything</h3><p>Start from a distro, then add Slack, swap the coding engine or trim it down to what you use. Your choices live in your own settings, with history.</p></li>
       <li class="cap reveal" style="--c: var(--pink)"><h3>Publish your own</h3><p>Built a setup that works for your team or your industry? Publish it as a distro so others can install it in one command.</p></li>
     </ul>
   </div>
