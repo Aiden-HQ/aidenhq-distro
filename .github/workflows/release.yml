@@ -1,5 +1,5 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
-# releases/<release>.json names real shas. On the org's self-hosted `aidenhq` runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# releases/<release>.json names real shas. On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # RELEASE_READ_TOKEN (contents: read) is optional: only a private kernel or modules repo needs it; public repos fetch
 # anonymously, and an unset secret gives the fetch no token.
@@ -16,7 +16,7 @@ concurrency: release-${{ github.ref_name }}
 jobs:
   # Fetch and test with a read-only token; publishing is a separate job, the only one that can write.
   test:
-    runs-on: [self-hosted, aidenhq]
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
       contents: read
@@ -62,7 +62,7 @@ jobs:
 
   publish:
     needs: test
-    runs-on: [self-hosted, aidenhq]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
