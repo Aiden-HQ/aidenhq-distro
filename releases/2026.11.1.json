@@ -1,0 +1,79 @@
+{
+  "name": "AidenHQ",
+  "release": "2026.11.1",
+  "kernel": "15046368729e002069f71d287c12312f2739ee66",
+  "kernel_repo": "Aiden-HQ/AidenHQ",
+  "marketplace": {
+    "name": "aidenhq",
+    "source": {
+      "source": "github",
+      "repo": "Aiden-HQ/aidenhq-modules"
+    },
+    "sha": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0"
+  },
+  "modules": {
+    "agent-builder": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "ai-reviewer": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "apps-platform": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "board": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "channel-slack": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "channel-telegram": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "chat-lane": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "chief-of-staff": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "coach": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "codehost-github": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "engine-codex": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "engineering": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "fleet-ops": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "github": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "google": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "grading": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "memory": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "model-tools": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "models-openrouter": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "platform": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "tasks": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0",
+    "warehouse": "6bbbb9b6711891d9d10ead0d41ae9013977e5fa0"
+  },
+  "tested": {
+    "ci_run": "",
+    "suites": [
+      "kernel-only",
+      "swap",
+      "parity",
+      "adversarial",
+      "twin"
+    ]
+  },
+  "images": {
+    "ai-reviewer-ai-reviewer": "ghcr.io/aiden-hq/ai-reviewer-ai-reviewer@sha256:b8f23d1e53b5c2e63467904009a201d2e433661e1818f32768b3ff90cf0d7cad",
+    "apps-mcp": "ghcr.io/aiden-hq/apps-mcp@sha256:3649ade5a97251b6b6e39a5ff5f7498103e4fc2ceeaae2b50fa0f8c82f317355",
+    "board": "ghcr.io/aiden-hq/board@sha256:a841302fd4dc92ad4d380d7346fe41cd1b1211270a36516a0a918420b8ed569e",
+    "channel-slack-slack": "ghcr.io/aiden-hq/channel-slack-slack@sha256:98adee6776412e1c3dbb276f94a162222933d5c517fc614f1a3a8f1d4e56948c",
+    "channel-telegram-telegram": "ghcr.io/aiden-hq/channel-telegram-telegram@sha256:850104c15d0c342a0e2d4ca6c935a82e3f06d78de083f4356910d682003b3f99",
+    "chat-lane-lane": "ghcr.io/aiden-hq/chat-lane-lane@sha256:01848115c1e724e05e155dbcacb15d3d211607e92e29f307f90b42cafcf34311",
+    "ci-runner": "ghcr.io/aiden-hq/ci-runner@sha256:d6cd2540c9fc4421779648805203555b71c0466ee7febee7ebfb8b56ea9afe52",
+    "clickhouse-mcp": "ghcr.io/aiden-hq/clickhouse-mcp@sha256:d32e37245646abb284e4b00df5320266ebe06dde9d83f6a933b73147c3727601",
+    "computer-agent-base": "ghcr.io/aiden-hq/computer-agent-base@sha256:86d646dd2a1e1af246017940228ad4ba6b8074b641aba6528782c9ec48b1a0e3",
+    "computer-browser": "ghcr.io/aiden-hq/computer-browser@sha256:9115b4d1a4767ceaf65418f5e269f9414731d0890a24410f9635b44098dfd5ea",
+    "computer-engineer": "ghcr.io/aiden-hq/computer-engineer@sha256:d68563cb06439017535d8a95732bda6e4d349d3eab8b39df471bc0583322b33e",
+    "github-mcp": "ghcr.io/aiden-hq/github-mcp@sha256:b00df36a47511f73b39a5ddd7828bfc279e8c1ae226bbf5c97aa96369122a41a",
+    "glean-mcp": "ghcr.io/aiden-hq/glean-mcp@sha256:cdeb43f7a74c101c25c82bb0bbe174788a3bef6a78775d80157a9bef078bfc8e",
+    "google-workspace-mcp": "ghcr.io/aiden-hq/google-workspace-mcp@sha256:3b7d618a3703f4e14f553d7054faf8fc216b2fe042158637e5045c71cf5fbbe0",
+    "grading-grading": "ghcr.io/aiden-hq/grading-grading@sha256:7b058314e7367b7b6476c65b870a95a7989d90c8506ae8e6539d2843adb6e09a",
+    "grafana-mcp": "ghcr.io/aiden-hq/grafana-mcp@sha256:5c9b3fa120f0d795f73f61961a87224263565b2e3f950b539e8141f2c0ff95a5",
+    "jira-mcp": "ghcr.io/aiden-hq/jira-mcp@sha256:f14842db961bd91e7a8fbdbb774193bbde253d902508301c7830e86229b19836",
+    "meetings-ops-mcp": "ghcr.io/aiden-hq/meetings-ops-mcp@sha256:e02f1bf8f5c729acab201ac7de6a0e4bd96f518a299960f0c9e798d6fc5bc176",
+    "monitoring-alertmanager": "ghcr.io/aiden-hq/monitoring-alertmanager@sha256:8fb059e9327c0c2f97186e1663cd883c938ce6722a1a8a19d98137af7a3cede4",
+    "monitoring-cadvisor": "ghcr.io/aiden-hq/monitoring-cadvisor@sha256:5f9dc9a7fed4d61fd622d3c282fe24070001fd4a9c95d4467b217f3e3975660a",
+    "monitoring-grafana": "ghcr.io/aiden-hq/monitoring-grafana@sha256:d962d6dfac8931ebfcae179fca4d5989a3fc22d8757ce8a96f96c07d43fe70e5",
+    "monitoring-mcp-grafana": "ghcr.io/aiden-hq/monitoring-mcp-grafana@sha256:6c6c608d3c96fd3898e8f24c5503d2827202383ae8291b59f648c552d948c6c3",
+    "monitoring-node-exporter": "ghcr.io/aiden-hq/monitoring-node-exporter@sha256:13c4a87117e377b1356aeeefb71b41e49de7e0d4e2cd8a41186b9ec321fd3fe6",
+    "monitoring-prometheus": "ghcr.io/aiden-hq/monitoring-prometheus@sha256:cfed11ff9946ebbaf96646cbc92284d325ba1df81be93e5df37692d5d6543911",
+    "primer-mcp": "ghcr.io/aiden-hq/primer-mcp@sha256:158eed2b6606b19c06186e33163b904a14bcda455dcc8497a87258c4b8860f36",
+    "security-scanner": "ghcr.io/aiden-hq/security-scanner@sha256:a096a57a011242f7860b10b9c10fe3fb1dd4a3e9f399ca25407085c10d962635",
+    "slack-mcp": "ghcr.io/aiden-hq/slack-mcp@sha256:3959881cfac5dcf8dba5ad240a7fc5f0562f2e6fee98c03ac2fc54890e0caa22",
+    "tasks-mcp": "ghcr.io/aiden-hq/tasks-mcp@sha256:518f1547e09b29b32426d1ad9596097d3dfb3cb909f6bd8308b1d42480af8c84",
+    "voice-whisper": "ghcr.io/aiden-hq/voice-whisper@sha256:319419649ab36d6bf70beb4cb2cb01985b205fdfa451c80cca19e5e2d6dd90c1"
+  }
+}

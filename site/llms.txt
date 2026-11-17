@@ -20,6 +20,7 @@ AI agents installing AidenHQ for a user: read and follow `/prompt.md`. It covers
 - [Safety](https://aidenhq.ai/safety/index.md): approval levels, deterministic guardrails, sovereign by design, model choice with zero data retention, budgets
 - [Integrations](https://aidenhq.ai/integrations/index.md): Slack, Telegram, Google, GitHub, Jira, Glean, Grafana, ClickHouse, OpenRouter; connect once, grant per agent and per tool
 - [Modules and distros](https://aidenhq.ai/modules/index.md): the kernel, the module list, one-step module add, distros, the open marketplace and licences
+- [Get started](https://aidenhq.ai/start/index.md): install with your AI assistant in one line, open the link, three quick steps, then talk to Aiden
 - [Install guide](https://aidenhq.ai/install/index.md): three ways to install, requirements, what happens next, cost and licence
 - [Installer script](https://get.aidenhq.ai): the POSIX shell installer itself, served as plain text (`--help` lists its options)
 
