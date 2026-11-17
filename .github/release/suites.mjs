@@ -57,7 +57,7 @@ const run = (root, dir, cmd) => {
 };
 
 // scripts/node_modules is read by the scripts suite and the kernel's authority CLI: once, first (ci.yml does the same).
-execSync("npm ci --no-audit --no-fund", { cwd: join(kernel, "scripts"), stdio: "inherit" });
+execSync("npm ci --ignore-scripts --no-audit --no-fund", { cwd: join(kernel, "scripts"), stdio: "inherit" });
 const ran = [];
 let failed = false;
 for (const s of suites) {

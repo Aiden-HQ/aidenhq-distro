@@ -7,13 +7,17 @@ name: release
 on:
   push:
     tags: ["20[0-9][0-9].[0-9]*"]
-permissions:
-  contents: write
+permissions: {}
 concurrency: release-${{ github.ref_name }}
 jobs:
-  release:
+  # Fetch and test with a read-only token; publishing is a separate job, the only one that can write.
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: read
+    outputs:
+      suites: ${{ steps.suites.outputs.suites }}
     env:
       TAG: ${{ github.ref_name }}
       NODE_IMAGE: node:24.22.2-bookworm@sha256:8fa96264f302f58bbb13aa7339c541547b56975766ce956c875da149452a3e40
@@ -33,19 +37,40 @@ jobs:
             .release == $t and (.kernel | sha) and .marketplace.name == "aidenhq" and (.marketplace.sha | sha)
             and (.modules | length > 0) and (.modules | to_entries | all(.value | sha))' "$f" >/dev/null \
             || { echo "::error::$f has a placeholder or malformed sha, or isn't release $TAG"; exit 1; }
-      - name: Install the set in a container and run the release suites
+      # The only step that sees the read token: install.sh's fetch and verify, which runs nothing it fetched.
+      - name: Fetch and verify the set (install.sh's own checks)
         env:
           AIDENHQ_GITHUB_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
         run: |
           mkdir -p "$RUNNER_TEMP/set"
           docker run --rm -e AIDENHQ_GITHUB_TOKEN -v "$PWD:/distro:ro" -v "$RUNNER_TEMP/set:/set" "$NODE_IMAGE" \
-            sh /distro/.github/release/test-set.sh "/distro/releases/$TAG.json" /set
-          jq -e 'type == "array"' "$RUNNER_TEMP/set/suites.json"
+            sh /distro/.github/release/test-set.sh fetch "/distro/releases/$TAG.json" /set
+      # Fetched code runs only here, in a fresh container with no token, no network credentials and no write access.
+      - name: Run the release suites on it
+        id: suites
+        run: |
+          docker run --rm -v "$PWD:/distro:ro" -v "$RUNNER_TEMP/set:/set" "$NODE_IMAGE" sh /distro/.github/release/test-set.sh suites /set
+          jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
+          echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.ref_name }}
+      SUITES: ${{ needs.test.outputs.suites }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Write tested, bake install.sh
         run: |
           mkdir -p dist
           run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          jq --arg run "$run_url" --slurpfile s "$RUNNER_TEMP/set/suites.json" '.tested = { ci_run: $run, suites: $s[0] } | del(.todo)' \
+          jq --arg run "$run_url" --argjson s "$SUITES" '.tested = { ci_run: $run, suites: $s } | del(.todo)' \
             "releases/$TAG.json" > "dist/$TAG.json"
           digest=$(sha256sum "dist/$TAG.json" | cut -d' ' -f1)
           sed -e "s/^DEFAULT_RELEASE=.*/DEFAULT_RELEASE=$TAG/" -e "s/^RELEASE_SHA256=\"\"/RELEASE_SHA256=\"$digest\"/" \
