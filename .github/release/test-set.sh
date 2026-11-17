@@ -43,6 +43,9 @@ work=$1
 for v in AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN GH_TOKEN GIT_CONFIG_COUNT; do
   eval "[ -z \"\${$v:-}\" ]" || { echo "refusing: $v is set; the suites run without credentials" >&2; exit 1; }
 done
+# The kernel's tests read the official modules at kernel/modules (its own CI checks the modules repo out there): the
+# verified marketplace checkout, at the release's marketplace sha, goes in that place.
+[ -e "$work/kernel/modules" ] || cp -R "$work/state/modules/marketplace" "$work/kernel/modules"
 git config --global user.name ci && git config --global user.email ci@example.com
 rc=0
 node "$here/.github/release/suites.mjs" "$work/kernel" "$work/state/modules/marketplace" kernel-only swap parity adversarial twin >"$work/suites.out" 2>&1 || rc=$?
