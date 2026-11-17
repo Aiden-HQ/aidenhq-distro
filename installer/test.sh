@@ -101,9 +101,9 @@ expect "20 threads / 64 GB / 460 GB -> 16 jobs, 120 min, 4 CI runners" pass \
 # Disk on a rerun: the first run's images (here 40 GB in Docker) count toward the minimum; a fresh host is checked as before.
 dfstub='df() { printf "Filesystem 1K-blocks Used Available\n/dev/sda 104857600 0 55574528\n"; }; docker() { case "$1 $2" in "system df") printf "17.4GB\n7.65GB\n14.9GB\n330.2MB\n0B\n" ;; "info -f") echo /var/lib/docker ;; esac; }; have() { :; }'
 expect "a rerun at 53 GB free with 40 GB already in Docker passes the 60 GB minimum" pass \
-  "$dfstub; DIR='$work/rerun'; mkdir -p \"\$DIR/.git\"; detect_resources; [ \"\$DISK_GB\" = 93 ]; CORES=4 RAM_MB=7812 SYSTEMD=1 IN_CONTAINER=0 REFUSALS=; check_minimums; [ -z \"\$REFUSALS\" ]"
+  "$dfstub; DIR='$work/rerun'; mkdir -p \"\$DIR/.git\"; detect_resources; [ \"\$DISK_GB/\$DISK_AVAIL_GB\" = 53/93 ]; CORES=4 RAM_MB=7812 SYSTEMD=1 IN_CONTAINER=0 REFUSALS=; check_minimums; [ -z \"\$REFUSALS\" ]"
 expect "a fresh host at 53 GB free is refused" pass \
-  "$dfstub; DIR='$work/fresh'; detect_resources; [ \"\$DISK_GB\" = 53 ]; CORES=4 RAM_MB=7812 SYSTEMD=1 IN_CONTAINER=0 REFUSALS=; check_minimums; printf %s \"\$REFUSALS\" | grep -q 'GB free disk'"
+  "$dfstub; DIR='$work/fresh'; detect_resources; [ \"\$DISK_GB/\$DISK_AVAIL_GB\" = 53/53 ]; CORES=4 RAM_MB=7812 SYSTEMD=1 IN_CONTAINER=0 REFUSALS=; check_minimums; printf %s \"\$REFUSALS\" | grep -q 'GB free disk'"
 expect "the installer sets its own umask 022" pass "grep -q '^umask 022\$' '$here/install.sh'"
 
 # Config injection: setup's config is line-parsed; a newline or quote in any value would forge a key.
