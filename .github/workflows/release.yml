@@ -1,7 +1,8 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
 # releases/<release>.json names real shas. On the org's self-hosted `aidenhq` runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
-# Private kernel or modules repos need the RELEASE_READ_TOKEN secret (contents: read on both); public ones need nothing.
+# RELEASE_READ_TOKEN (contents: read) is optional: only a private kernel or modules repo needs it; public repos fetch
+# anonymously, and an unset secret gives the fetch no token.
 # Isolation (the runners are modules/ci on the kernel's host, ops/ci-runner.sh): each runner is a fresh container that
 # registers ephemerally, takes one job and is removed, unprivileged, with no host mounts or Docker socket and its own
 # network, under runc (not gVisor). Fetched code runs only in the test job's suites step, which has no token; publish is
