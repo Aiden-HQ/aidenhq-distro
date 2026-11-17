@@ -82,9 +82,10 @@ Other inputs:
 - `AIDENHQ_USER`: the service user when you run as root. The default is `aidenhq`, created with passwordless sudo and root's SSH keys,
   because setup turns off root SSH login.
 - `OPENROUTER_KEY` (or `OPENROUTER_MANAGEMENT_KEY`) and `TS_AUTHKEY`: optional secrets. They go to the product's setup in a
-  root-only config file (deleted afterwards) and are never printed. Without a model key the browser steps ask for it; without
-  `TS_AUTHKEY` a terminal shows Tailscale's sign-in link (a host already on the tailnet needs neither).
-- `AIDENHQ_GITHUB_TOKEN`: a token for private repos.
+  root-only config file (deleted afterwards) and are never printed. Without a model key the first-run page asks for it; without
+  `TS_AUTHKEY` a host off the tailnet keeps the board on loopback, reached through the SSH tunnel the installer prints.
+- `AIDENHQ_GITHUB_TOKEN`: a token for private repos. Setup gets it in its own root-only file for its one fetch; it is never
+  written into the checkout.
 - `AIDENHQ_RELEASE_FILE`, `AIDENHQ_RELEASE_URL`, `AIDENHQ_GIT_BASE`: for mirrors, air-gapped installs and tests.
 
 ## Re-runs, logs and removal

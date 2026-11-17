@@ -19,8 +19,9 @@
 # (default: the service user's name), AIDENHQ_USER (service user when run as root; default aidenhq), AIDENHQ_GITHUB_TOKEN
 # (private repos), AIDENHQ_RELEASE_FILE / AIDENHQ_RELEASE_URL / AIDENHQ_GIT_BASE (mirrors, air-gapped installs and tests).
 # Optional secrets, passed to the product's setup in a root-only config file and never printed: OPENROUTER_KEY (or
-# OPENROUTER_MANAGEMENT_KEY), TS_AUTHKEY. Without them the browser steps ask for the model key; Tailscale's sign-in
-# link is shown on the terminal.
+# OPENROUTER_MANAGEMENT_KEY), TS_AUTHKEY. Without them the first-run page asks for the model key, and a server off a
+# tailnet keeps the board on loopback, reached through the SSH tunnel it prints. A private kernel repo's token goes to
+# setup in its own root-only file (--kernel-token-file), for its one fetch.
 #
 # No telemetry. Everything it fetches is pinned: the release file by digest, git checkouts by sha. Host packages are the
 # kernel's own pins (ops/vm/pins.json), installed by its setup. The whole script is functions; nothing runs until the
@@ -50,7 +51,10 @@ die() { log "ERROR $*"; printf '%serror:%s %s\n' "$R" "$N" "$*" >&2; exit 1; }
 refuse() { REFUSALS="${REFUSALS}    - $*
 "; log "REFUSE $*"; }
 
-rm_penv() { [ -z "${PENV:-}" ] || $SUDO sh -c 'shred -u "$1" 2>/dev/null || rm -f "$1"' _ "$PENV"; PENV=''; }
+rm_penv() {
+  for f in "${PENV:-}" "${KTOK_FILE:-}"; do [ -z "$f" ] || $SUDO sh -c 'shred -u "$1" 2>/dev/null || rm -f "$1"' _ "$f"; done
+  PENV='' KTOK_FILE=''
+}
 on_exit() {
   rc=$?
   rm_penv 2>/dev/null
@@ -470,6 +474,17 @@ write_setup_config() {
   for k in $SECRET_KEYS; do eval "v=\${$k:-}"; [ -z "$v" ] || printf '%s="%s"\n' "$k" "$v"; done | $SUDO tee "$PENV" >/dev/null
 }
 
+# write_token_file: a private kernel repo's token, for setup's own fetch (ops/setup.sh --kernel-token-file): a new
+# root-only file (mktemp, 0600), written through stdin (never argv) and deleted with the setup config.
+write_token_file() {
+  KTOK_FILE='' tok="${AIDENHQ_GITHUB_TOKEN:-${GITHUB_TOKEN:-}}"
+  [ -n "$tok" ] || return 0
+  case "$tok" in *[!A-Za-z0-9_]*) die "AIDENHQ_GITHUB_TOKEN isn't a GitHub token (letters, digits and _ only)" ;; esac
+  if [ "$DRY" = 1 ]; then KTOK_FILE="/run/aidenhq-ktoken.XXXXXX (root-only)"; return 0; fi
+  KTOK_FILE=$($SUDO mktemp /run/aidenhq-ktoken.XXXXXX) || die "can't create the root-only token file"
+  printf '%s' "$tok" | $SUDO tee "$KTOK_FILE" >/dev/null
+}
+
 # root_verify: right before root executes the checkout, verify it as root against a root-owned copy of the objects:
 # a --no-local clone (git rehashes every object it receives; replace refs are ignored), then the work tree is compared
 # file by file to the pinned commit through a root-owned index. The service user's own .git is never trusted here.
@@ -496,14 +511,16 @@ run_setup() {
   set -- --unattended; [ "$NO_TS" = 1 ] && set -- "$@" --no-tailscale
   write_setup_config
   [ -z "$PENV" ] || set -- "$@" --config "$PENV"
+  write_token_file
+  [ -z "$KTOK_FILE" ] || set -- "$@" --kernel-token-file "$KTOK_FILE"
   if [ "$DRY" = 1 ]; then
     printf '    %swould run:%s %senv AIDENHQ_USER=%s OWNER_EMAIL=%s MAX_CONCURRENT=%s TIMEOUT_MINUTES=%s CI_RUNNERS=%s bash %s/ops/setup.sh %s\n' \
       "$D" "$N" "${SUDO:+$SUDO }" "$SVC" "${AIDENHQ_OWNER_EMAIL:-<owner email>}" "$MAX_CONCURRENT" "$JOB_TIMEOUT" "$CI_RUNNERS" "$DIR" "$*"
     return 0
   fi
   log "+ setup $*"
-  # The product's own progress lines ("• ...") reach the terminal; everything goes to the log. Tailscale's sign-in link
-  # (when it needs one) goes straight to the terminal from setup.
+  # The product's own progress lines ("• ...") reach the terminal; everything goes to the log. Setup copies the verified
+  # commit to root-owned /opt/aidenhq/kernel/<sha> first and runs its root steps from there, never from $DIR.
   # The release goes into the new instance.yaml (all three, or none when this copy wasn't cut for it).
   { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" MODULES="${MODULES:-}" \
       AIDENHQ_RELEASE="${REL_COMMIT:+$REL}" AIDENHQ_RELEASE_REPO="${REL_COMMIT:+$DISTRO_REPO}" AIDENHQ_RELEASE_SHA="$REL_COMMIT" \
@@ -548,7 +565,7 @@ EOF
 
 finish() {
   if [ "$DRY" = 1 ]; then
-    printf '\n%sDry run done.%s A real run ends with:\n' "$Y" "$N"; SETUP_URL="https://<board-host>/setup/<one-time-token>"
+    printf '\n%sDry run done.%s A real run ends with:\n' "$Y" "$N"; SETUP_URL="https://<board-host>:8446/setup?token=<one-time-token>"
     [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 $SVC@<this-host>"
   fi
   # Inside a Mac's VM (the macOS path below): the Mac prints the way in, so only the machine-readable line is needed.
@@ -903,7 +920,7 @@ main() {
   setup_ui
   parse_args "$@"
   TMPD=$(mktemp -d 2>/dev/null || mktemp -d -t aidenhq) STEP='' REFUSALS='' KEEPALIVE='' RELFILE=''
-  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' AUTH_HDR='' REL_COMMIT=''
+  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
   trap 'exit 130' INT TERM

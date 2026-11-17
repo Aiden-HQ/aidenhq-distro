@@ -111,6 +111,12 @@ expect "secrets land in a 0600 config file, nothing else does" pass \
    [ \"\$(ls -l \"\$PENV\" | cut -c1-10)\" = -rw------- ] && [ \"\$(cat \"\$PENV\")\" = 'OPENROUTER_KEY=\"sk-or-x\"
 TS_AUTHKEY=\"tskey-x\"' ]"
 expect "no secret, no config file" pass 'PENV=""; write_setup_config; [ -z "$PENV" ]'
+# A private kernel repo's token reaches setup only as a 0600 file (--kernel-token-file), and only a token-shaped one.
+expect "the kernel token lands alone in a 0600 file" pass \
+  "mktemp() { command mktemp '$work/kt.XXXX'; }; KTOK_FILE=''; AIDENHQ_GITHUB_TOKEN=ghp_abc123; write_token_file
+   [ \"\$(ls -l \"\$KTOK_FILE\" | cut -c1-10)\" = -rw------- ] && [ \"\$(cat \"\$KTOK_FILE\")\" = ghp_abc123 ]"
+expect "a token with other characters is refused" stop 'AIDENHQ_GITHUB_TOKEN="ghp_x;id"; write_token_file'
+expect "no token, no file" pass 'KTOK_FILE=""; AIDENHQ_GITHUB_TOKEN="" GITHUB_TOKEN=""; write_token_file; [ -z "$KTOK_FILE" ]'
 
 # The owner's email is needed and checked; the pinned kernel's pins.json decides which hosts are supported.
 expect "a plain email is accepted" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL=a.b+c@example.com; ensure_owner_email; [ -z "$REFUSALS" ]'
