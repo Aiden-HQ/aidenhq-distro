@@ -96,6 +96,9 @@ jobs:
           [[ "$REL" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+)?$ ]] || { echo "::error::$REL isn't a release name (2026.11, 2026.11.1)"; exit 1; }
           f="releases/$REL.json"
           [ -f "$f" ] || { echo "::error::no $f"; exit 1; }
+          # Shape, where nothing can skip it: no images, or a non-empty map of name -> ghcr.io/aiden-hq/<name>@sha256:<digest>.
+          jq -e '(.images // {}) | type == "object" and all(to_entries[]; (.key | test("^[a-z0-9][a-z0-9._-]*$")) and (.value | type == "string" and test("^ghcr\\.io/aiden-hq/[a-z0-9][a-z0-9._-]*@sha256:[0-9a-f]{64}$")))' "$f" >/dev/null \
+            || { echo "::error::$f images must map a name to ghcr.io/aiden-hq/<name>@sha256:<digest>"; exit 1; }
           if [ "$GITHUB_EVENT_NAME" = push ] && ! jq -e '.images | type == "object" and length > 0' "$f" >/dev/null; then
             echo "::notice::$f has no images: this release installs by building them"
             echo "go=false" >> "$GITHUB_OUTPUT"
@@ -120,6 +123,12 @@ jobs:
           chains=$(env -u AIDENHQ_GITHUB_TOKEN node "$set/kernel/scripts/release-images.mjs" list "$set/kernel" "$set/kernel/modules" \
             | jq -c --arg p "$set/kernel/" 'map(map(.context |= ltrimstr($p)))')
           echo "$chains" | jq -e 'length > 0' >/dev/null
+          # Build inputs come from the fetched kernel: a name is a plain image name, a context a relative path inside the kernel.
+          echo "$chains" | jq -e 'all(.[][]; (.name | test("^[a-z0-9][a-z0-9._-]*$")) and (.context | test("^[A-Za-z0-9._/-]+$") and (startswith("/") | not) and (split("/") | index("..") | not)) and ((.base // "x") | test("^[a-z0-9][a-z0-9._-]*$")))' >/dev/null \
+            || { echo "::error::the kernel's image list has an unsafe name or context"; exit 1; }
+          for c in $(echo "$chains" | jq -r '.[][].context'); do
+            case "$(realpath -e "$set/kernel/$c")" in "$(realpath "$set/kernel")"/*) ;; *) echo "::error::context $c leaves the kernel checkout"; exit 1 ;; esac
+          done
           echo "chains=$chains" >> "$GITHUB_OUTPUT"
           echo "$chains" | jq -r '.[][].name' | sort > "$RUNNER_TEMP/names-out.txt"
           cat "$RUNNER_TEMP/names-out.txt"
@@ -171,6 +180,12 @@ jobs:
           cd "$RUNNER_TEMP/kernel"
           owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
           out='{}'
+          # Again, on the unpacked copy, before anything is built.
+          jq -e 'all(.[]; (.name | test("^[a-z0-9][a-z0-9._-]*$")) and (.context | test("^[A-Za-z0-9._/-]+$") and (startswith("/") | not) and (split("/") | index("..") | not)) and ((.base // "x") | test("^[a-z0-9][a-z0-9._-]*$")))' <<<"$CHAIN" >/dev/null \
+            || { echo "::error::unsafe image name or context"; exit 1; }
+          for c in $(jq -r '.[].context' <<<"$CHAIN"); do
+            case "$(realpath -e "$c")" in "$PWD"/*) ;; *) echo "::error::context $c leaves the kernel checkout"; exit 1 ;; esac
+          done
           for i in $(seq 0 $(( $(jq length <<<"$CHAIN") - 1 ))); do
             name=$(jq -r ".[$i].name" <<<"$CHAIN"); ctx=$(jq -r ".[$i].context" <<<"$CHAIN"); parent=$(jq -r ".[$i].base // empty" <<<"$CHAIN")
             base=()
@@ -238,8 +253,6 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           f="releases/$TAG.json"
-          jq -e '.images | to_entries | all(.value | test("^ghcr\\.io/aiden-hq/[a-z0-9][a-z0-9._-]*@sha256:[0-9a-f]{64}$"))' "$f" >/dev/null \
-            || { echo "::error::$f images must be ghcr.io/aiden-hq/<name>@sha256:<digest>"; exit 1; }
           jq -r '.images | keys[]' "$f" | sort | comm -23 - names/names-out.txt | { ! grep . ; } \
             || { echo "::error::$f names images this release doesn't build (above)"; exit 1; }
           for ref in $(jq -r '.images[]' "$f"); do
@@ -249,8 +262,9 @@ jobs:
           done
 
   publish:
-    if: ${{ !cancelled() && needs.test.result == 'success' && needs.verify.result != 'failure' }}
-    needs: [test, verify]
+    # Fail closed: the shape check ran in plan, and either there are no images to verify or verify passed (never merely not failed).
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.plan.result == 'success' && (needs.plan.outputs.go == 'false' || needs.verify.result == 'success') }}
+    needs: [test, plan, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
