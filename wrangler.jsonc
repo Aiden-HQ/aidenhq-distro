@@ -5,7 +5,7 @@
   "assets": { "directory": "web/public", "binding": "ASSETS", "run_worker_first": ["/", "/install.sh"] },
   "workers_dev": true,
   // The installer get.aidenhq.ai serves: a release tag and its install.sh sha256 (release.yml opens the PR that moves them).
-  "vars": { "INSTALLER_TAG": "2026.11", "INSTALLER_SHA256": "3a1680a17b017de90a95383ddb3baf3dd2f8f4d8152d152696921f1950b57b6a" },
+  "vars": { "INSTALLER_TAG": "2026.11.1", "INSTALLER_SHA256": "48ba42b74bae349f2a975315b7e4889822cd50aaede90e2ec30a85dc6b9c797e" },
   "routes": [
     { "pattern": "aidenhq.ai", "custom_domain": true },
     { "pattern": "get.aidenhq.ai", "custom_domain": true }
