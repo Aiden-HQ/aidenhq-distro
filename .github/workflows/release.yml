@@ -3,10 +3,8 @@
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # RELEASE_READ_TOKEN (contents: read) is optional: only a private kernel or modules repo needs it; public repos fetch
 # anonymously, and an unset secret gives the fetch no token.
-# Isolation (the runners are modules/ci on the kernel's host, ops/ci-runner.sh): each runner is a fresh container that
-# registers ephemerally, takes one job and is removed, unprivileged, with no host mounts or Docker socket and its own
-# network, under runc (not gVisor). Fetched code runs only in the test job's suites step, which has no token; publish is
-# a separate job (needs: test), so it always lands on a fresh runner that never ran the suites.
+# Isolation: the test job's suites step is the only one that runs fetched code, and it has no token; publish is a separate
+# job (needs: test), so it lands on a fresh runner that never ran the suites.
 name: release
 on:
   push:
