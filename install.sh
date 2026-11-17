@@ -27,6 +27,9 @@
 # kernel's own pins (ops/vm/pins.json), installed by its setup. The whole script is functions; nothing runs until the
 # last line, so a truncated download does nothing.
 set -eu
+# Whatever umask the caller's shell had (an ssh session may pass 077): the checkout and everything containers read must stay
+# readable to the non-root services. Secret files are made 0600 explicitly.
+umask 022
 
 DEFAULT_RELEASE=2026.11
 # Baked in by the release CI (.github/workflows/release.yml) when it publishes this file beside <release>.json: that file's
@@ -194,7 +197,22 @@ detect_resources() {
     [ "$1" -lt "$DISK_GB" ] && DISK_GB=$1
     [ "$2" -lt "$DISK_TOTAL_GB" ] && DISK_TOTAL_GB=$2
   done
+  # A rerun: what an earlier run already put in Docker (images, build cache, volumes) is part of the install the minimum is
+  # for, so the minimum is checked against free space plus that (DISK_AVAIL_GB); DISK_GB stays the real free space.
+  DISK_AVAIL_GB=$DISK_GB
+  [ -d "$DIR/.git" ] && DISK_AVAIL_GB=$((DISK_GB + $(installed_gb)))
   :
+}
+
+# Docker's used space in whole GB (docker system df: images, containers, volumes, build cache); 0 without Docker. Before
+# ensure_sudo: sudo only when it needs no password.
+installed_gb() {
+  have docker || { echo 0; return 0; }
+  { docker system df --format '{{.Size}}' 2>/dev/null || ${SUDO:+$SUDO -n} docker system df --format '{{.Size}}' 2>/dev/null || :; } | awk '
+    { v = $1 + 0; u = $1; sub(/^[0-9.]+/, "", u)
+      if (u == "TB") v *= 1000; else if (u == "MB") v /= 1000; else if (u == "kB" || u == "KB") v /= 1000000; else if (u == "B") v = 0
+      t += v }
+    END { print int(t) }'
 }
 
 # Defaults derived from the machine. Calibrated on two real hosts: the minimum VM (4 vCPU, 8 GB) gives the runner's
@@ -223,8 +241,8 @@ check_minimums() {
   [ "$CORES" -ge "$MIN_CORES" ] && [ "$CORES" -lt "$WARN_CORES" ] && warn "$CORES cores: it runs, but slowly; 4 or more recommended"
   [ "$RAM_MB" -lt "$MIN_RAM_MB" ] && refuse "$RAM_MB MB of RAM; AidenHQ needs at least 6 GB (8 GB recommended)"
   [ "$RAM_MB" -ge "$MIN_RAM_MB" ] && [ "$RAM_MB" -lt "$WARN_RAM_MB" ] && warn "$RAM_MB MB of RAM: tight; 8 GB recommended"
-  [ "$DISK_GB" -lt "$MIN_DISK_GB" ] && refuse "$DISK_GB GB free disk; the images alone take ~25 GB and a 40 GB disk fills during the first build: need $MIN_DISK_GB GB free (100 GB disk recommended)"
-  [ "$DISK_GB" -ge "$MIN_DISK_GB" ] && [ "$DISK_GB" -lt "$WARN_DISK_GB" ] && warn "$DISK_GB GB free disk: enough to start; 100 GB recommended"
+  [ "$DISK_AVAIL_GB" -lt "$MIN_DISK_GB" ] && refuse "$DISK_GB GB free disk; the images alone take ~25 GB and a 40 GB disk fills during the first build: need $MIN_DISK_GB GB free (100 GB disk recommended)"
+  [ "$DISK_AVAIL_GB" -ge "$MIN_DISK_GB" ] && [ "$DISK_AVAIL_GB" -lt "$WARN_DISK_GB" ] && warn "$DISK_GB GB free disk: enough to start; 100 GB recommended"
   [ "$SYSTEMD" = 1 ] || refuse "systemd isn't running (PID 1); AidenHQ runs as systemd services"
   [ "$IN_CONTAINER" = 1 ] && refuse "this is a container; AidenHQ needs a real server or VM (it runs Docker and systemd itself)"
   if have snap && snap list docker >/dev/null 2>&1; then refuse "Docker is installed as a snap; remove it (sudo snap remove docker) so the installer can add Docker Engine"; fi
@@ -922,7 +940,7 @@ mac_main() {
 # ------------------------------------------------------------------------------------------------ main
 plan_summary() {
   step "This machine"
-  say "$OS_NAME ($ARCH); $CORES cores, $RAM_MB MB RAM, $DISK_GB GB free"
+  say "$OS_NAME ($ARCH); $CORES cores, $RAM_MB MB RAM, $DISK_GB GB free$([ "$DISK_AVAIL_GB" = "$DISK_GB" ] || echo " (+$((DISK_AVAIL_GB - DISK_GB)) GB already installed)")"
   say "service user: $SVC$([ "$NEW_USER" = 1 ] && echo ' (will be created)'); checkout: $DIR"
   say "derived: $MAX_CONCURRENT jobs x $JOB_TIMEOUT min, $CI_RUNNERS CI runner(s), keep ${DISK_RESERVE_GB} GB free, build cache ${BUILD_CACHE_GB} GB, logs $LOG_MAX x $LOG_FILES, journal $JOURNAL_MAX"
 }
