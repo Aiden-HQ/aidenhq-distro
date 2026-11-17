@@ -269,6 +269,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      pull-requests: write
     env:
       TAG: ${{ github.ref_name }}
       SUITES: ${{ needs.test.outputs.suites }}
@@ -298,7 +299,7 @@ jobs:
         run: |
           api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
           body=$(jq -n --arg t "$TAG" --arg n "Install: \`curl -fsSL https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/install.sh | sh\`. Tested: $(jq -c .tested "dist/$TAG.json")" \
-            '{ tag_name: $t, name: "AidenHQ \($t)", body: $n }')
+            '{ tag_name: $t, name: "AidenHQ \($t)", body: $n, draft: true }')
           id=$(api -X POST "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases" -d "$body" | jq -er .id)
           for f in install.sh "$TAG.json"; do
             api -X POST -H "Content-Type: application/octet-stream" --data-binary "@dist/$f" \
@@ -312,3 +313,21 @@ jobs:
               | curl -fsSL -H @- "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/assets/$aid" -o "check/$name"
           done
           cmp check/install.sh dist/install.sh && cmp "check/$TAG.json" "dist/$TAG.json"
+          # Drafted until here: only a release whose assets passed the checks above is ever published.
+          api -X PATCH "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id" -d '{"draft":false}' >/dev/null
+      # get.aidenhq.ai serves the release wrangler.jsonc pins (tag + install.sh sha256): a PR moves the pin, and merging it
+      # deploys the site, so going live stays the owner's call.
+      - name: Open the PR that points get.aidenhq.ai at this release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
+          sum=$(sha256sum dist/install.sh | cut -d' ' -f1) br="site/installer-$TAG" R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
+          main=$(api "$R/git/ref/heads/main" | jq -er .object.sha)
+          api -X POST "$R/git/refs" -d "$(jq -n --arg r "refs/heads/$br" --arg s "$main" '{ref: $r, sha: $s}')" >/dev/null
+          api "$R/contents/wrangler.jsonc?ref=$br" > cur.json
+          jq -er .content cur.json | base64 -d \
+            | sed -E "s/\"INSTALLER_TAG\": \"[^\"]*\"/\"INSTALLER_TAG\": \"$TAG\"/; s/\"INSTALLER_SHA256\": \"[0-9a-f]*\"/\"INSTALLER_SHA256\": \"$sum\"/" > wrangler.new
+          grep -q "\"INSTALLER_SHA256\": \"$sum\"" wrangler.new || { echo "::error::main's wrangler.jsonc has no INSTALLER_SHA256 to move"; exit 1; }
+          api -X PUT "$R/contents/wrangler.jsonc" -d "$(jq -n --arg m "chore(site): get.aidenhq.ai serves $TAG" --arg c "$(base64 -w0 wrangler.new)" --arg s "$(jq -er .sha cur.json)" --arg b "$br" '{message: $m, content: $c, sha: $s, branch: $b}')" >/dev/null
+          api -X POST "$R/pulls" -d "$(jq -n --arg t "chore(site): get.aidenhq.ai serves $TAG" --arg h "$br" --arg b "Merging deploys the site with get.aidenhq.ai serving release $TAG's install.sh (sha256 $sum)." '{title: $t, head: $h, base: "main", body: $b}')" | jq -r .html_url
