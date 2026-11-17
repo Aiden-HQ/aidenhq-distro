@@ -34,3 +34,6 @@ jobs:
       - run: sh installer/test.sh
       - run: if command -v dash >/dev/null; then dash installer/test.sh; else echo "no dash on this runner"; fi
       - run: node --check .github/release/suites.mjs
+      # release.yml runs on these runners too: the tools it needs are here.
+      - name: Release tools on this runner
+        run: for t in git jq gh python3 sha256sum curl; do command -v "$t" >/dev/null || { echo "::error::no $t on this runner (release.yml needs it)"; exit 1; }; done; git --version
