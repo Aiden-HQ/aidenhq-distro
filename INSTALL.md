@@ -7,7 +7,7 @@ curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 It checks the machine, asks for your email (the board's owner account), fetches and verifies the release, runs the
-product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, and `AIDENHQ_SSH_TUNNEL=` with `--no-tailscale`, for scripts and agents). Everything after
+product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, and `AIDENHQ_SSH_TUNNEL=` with `--no-tailscale`, for scripts and agents). Along the way it prints `AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>` lines (the percent never goes down and reaches 100 just before the link; the weights are estimates in one table at the top of `install.sh`). Everything after
 that happens in your browser: your password and authenticator, your model key, your channels.
 
 `get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves `install.sh` directly as `text/plain`. To read the script before running it:

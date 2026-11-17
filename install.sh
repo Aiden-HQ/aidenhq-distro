@@ -47,7 +47,68 @@ setup_ui() {
   else B='' G='' Y='' R='' D='' N=''; fi
 }
 log() { [ -n "${LOG:-}" ] && printf '%s %s\n' "$(date -u +%H:%M:%S)" "$*" >>"$LOG" 2>/dev/null || :; }
-step() { STEP="$*"; log "== $*"; printf '%s==>%s %s%s%s\n' "$G" "$N" "$B" "$*" "$N"; }
+# ------------------------------------------------------------------------------------------------ progress
+# step() also prints AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>, plain at the start of a line, for the
+# one-prompt install (site/prompt.md) and scripts to poll. The percent never goes down and the last line before
+# AIDENHQ_SETUP_URL= is 100%.
+#
+# THE WEIGHTS: one row per step: key (what the step's text starts with) | estimated seconds on 4 cores / 8 GB / a good link |
+# what the owner is told. They are ESTIMATES from the product's `apply timing:` phase names and image sizes, until Task 0's
+# measurements replace them: edit only this table. The percent is the share of the weights before a step; the minutes are
+# the share after it. A step that doesn't run (tools already there) is skipped, so the bar jumps over its weight. The setup
+# row is the product's whole run: ops/setup.sh and its apply print their own lines inside it (AIDENHQ_PROGRESS_BASE).
+PROGRESS_LINUX='This machine|2|checking this server
+Service user|5|creating the service user
+Bootstrap tools|40|installing base tools
+Release|5|fetching the release
+Fetch and verify|20|verifying the code
+Docker log|3|setting up Docker limits
+AidenHQ setup|780|installing AidenHQ and downloading its images
+Disk guard|5|finishing up
+ready|0|ready'
+progress_sum() {
+  pg_s=0
+  while IFS='|' read -r pg_k pg_w pg_l; do [ -z "$pg_k" ] || pg_s=$((pg_s + pg_w)); done <<EOF
+$1
+EOF
+  echo "$pg_s"
+}
+# On a Mac the Linux install above runs inside the VM, so one row weighs the whole table above.
+progress_mac_table() {
+  printf 'This Mac|3|checking this Mac\nLima|60|installing Lima\nLinux VM|120|creating the Linux VM\nAidenHQ in the VM|%s|installing AidenHQ in the VM\nready|0|ready\n' \
+    "$(progress_sum "$PROGRESS_LINUX")"
+}
+# progress_calc TEXT: the table row TEXT starts; sets PG_LABEL PG_N PG_TOTAL PG_PCT PG_END (where the row ends) PG_SECS.
+# With AIDENHQ_PROGRESS_BASE=<n>/<total>/<percent>/<span>/<seconds> (the Mac's installer, for the one in the VM) the table
+# fills that slice of a bigger run and keeps its n/total.
+progress_calc() {
+  [ -n "${PG_TABLE:-}" ] || return 1
+  pg_sum=$(progress_sum "$PG_TABLE") pg_cum=0 pg_n=0 pg_i=0 pg_row=0
+  while IFS='|' read -r pg_k pg_w pg_l; do
+    [ -n "$pg_k" ] || continue
+    pg_n=$((pg_n + 1))
+    if [ "$pg_i" = 0 ]; then
+      case "$1" in "$pg_k"*) pg_i=$pg_n PG_LABEL=$pg_l pg_row=$pg_w ;; *) pg_cum=$((pg_cum + pg_w)) ;; esac
+    fi
+  done <<EOF
+$PG_TABLE
+EOF
+  [ "$pg_i" != 0 ] || return 1
+  if [ -n "${AIDENHQ_PROGRESS_BASE:-}" ]; then
+    IFS=/ read -r PG_N PG_TOTAL pg_p0 pg_span PG_SECS <<EOF
+$AIDENHQ_PROGRESS_BASE
+EOF
+  else PG_N=$pg_i PG_TOTAL=$pg_n pg_p0=0 pg_span=100 PG_SECS=$pg_sum; fi
+  PG_PCT=$((pg_p0 + pg_span * pg_cum / pg_sum)) PG_END=$((pg_p0 + pg_span * (pg_cum + pg_row) / pg_sum))
+  [ "$PG_PCT" -ge "${PG_LAST:-0}" ] || PG_PCT=$PG_LAST   # never down
+  PG_LAST=$PG_PCT
+}
+progress_emit() {
+  progress_calc "$1" || return 0
+  printf 'AIDENHQ_PROGRESS=%s/%s %s%% %s ~%s\n' "$PG_N" "$PG_TOTAL" "$PG_PCT" "$PG_LABEL" "$(( ((100 - PG_PCT) * PG_SECS + 5999) / 6000 ))"
+  PROGRESS_SLICE="$PG_N/$PG_TOTAL/$PG_PCT/$((PG_END > PG_PCT ? PG_END - PG_PCT : 0))/$PG_SECS"   # what this step hands its child
+}
+step() { STEP="$*"; log "== $*"; printf '%s==>%s %s%s%s\n' "$G" "$N" "$B" "$*" "$N"; progress_emit "$*"; }
 say() { log "$*"; printf '    %s\n' "$*"; }
 warn() { log "WARN $*"; printf '    %swarning:%s %s\n' "$Y" "$N" "$*" >&2; }
 die() { log "ERROR $*"; printf '%serror:%s %s\n' "$R" "$N" "$*" >&2; exit 1; }
@@ -549,14 +610,14 @@ run_setup() {
     return 0
   fi
   log "+ setup $*"
-  # The product's own progress lines ("• ...") reach the terminal; everything goes to the log.
+  # The product's own progress lines ("• ..." and AIDENHQ_PROGRESS=...) reach the terminal; everything goes to the log.
   # The release goes into the new instance.yaml (all three, or none when this copy wasn't cut for it).
   { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" MODULES="${MODULES:-}" \
       AIDENHQ_RELEASE="${REL_COMMIT:+$REL}" AIDENHQ_RELEASE_REPO="${REL_COMMIT:+$DISTRO_REPO}" AIDENHQ_RELEASE_SHA="$REL_COMMIT" \
-      MAX_CONCURRENT="$MAX_CONCURRENT" TIMEOUT_MINUTES="$JOB_TIMEOUT" CI_RUNNERS="$CI_RUNNERS" \
+      MAX_CONCURRENT="$MAX_CONCURRENT" TIMEOUT_MINUTES="$JOB_TIMEOUT" CI_RUNNERS="$CI_RUNNERS" AIDENHQ_PROGRESS_BASE="${PROGRESS_SLICE:-}" \
       bash "$KCOPY/ops/setup.sh" "$@" </dev/null 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } \
     | tee -a "$LOG" "$TMPD/setup.out" | while IFS= read -r l; do
-        case "$l" in "• "*) say "${l#• }" ;; *) if [ "$VERBOSE" = 1 ]; then printf '    %s\n' "$l"; fi ;; esac
+        case "$l" in "• "*) say "${l#• }" ;; AIDENHQ_PROGRESS=*) printf '%s\n' "$l" ;; *) if [ "$VERBOSE" = 1 ]; then printf '    %s\n' "$l"; fi ;; esac
       done
   rc=$(cat "$TMPD/rc")
   rm_penv
@@ -597,13 +658,13 @@ finish() {
     printf '\n%sDry run done.%s A real run ends with:\n' "$Y" "$N"; SETUP_URL="https://<board-host>:8446/setup?token=<one-time-token>"
     [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 $SVC@<this-host>"
   fi
-  # Inside a Mac's VM (the macOS path below): the Mac prints the way in, so only the machine-readable line is needed.
-  # The link also goes to a file the Mac reads back (0600: it is a one-time sign-in).
+  # Inside a Mac's VM (the macOS path below): the Mac prints the way in and the 100% line, once. The link goes to a file
+  # the Mac reads back (0600: it is a one-time sign-in).
   if [ -n "${AIDENHQ_MAC_VM:-}" ]; then
-    [ -z "$SETUP_URL" ] || printf '\nAIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
     [ "$DRY" = 1 ] || [ -z "$SETUP_URL" ] || (umask 077; printf '%s\n' "$SETUP_URL" >"$STATE_DIR/setup-url") || :
     return 0
   fi
+  progress_emit ready   # 100%, and the link follows
   printf '\n%sAidenHQ is running.%s\n\n' "$G$B" "$N"
   if [ -n "$SSH_TUNNEL" ]; then
     printf '  The board listens on this server only. On your laptop, open this tunnel first and leave it running:\n\n    %s%s%s\n\n' "$B" "$SSH_TUNNEL" "$N"
@@ -859,7 +920,7 @@ mac_inner() {
   rm -f "$TMPD/secrets"
   set -- sh -c "$w" aidenhq-install "$@"
   for k in AIDENHQ_RELEASE_URL AIDENHQ_GIT_BASE MODULES; do eval "v=\${$k:-}"; [ -z "$v" ] || set -- "$k=$v" "$@"; done
-  set -- env AIDENHQ_MAC_VM=1 AIDENHQ_OWNER_EMAIL="${AIDENHQ_OWNER_EMAIL:-}" \
+  set -- env AIDENHQ_MAC_VM=1 AIDENHQ_PROGRESS_BASE="${PROGRESS_SLICE:-}" AIDENHQ_OWNER_EMAIL="${AIDENHQ_OWNER_EMAIL:-}" \
     AIDENHQ_OWNER_NAME="${AIDENHQ_OWNER_NAME:-$(id -F 2>/dev/null || id -un)}" "$@"
   # A terminal goes through (Tailscale's sign-in link, prompts): limactl gives the VM a terminal only when its own stdout
   # is one, so the VM's output goes straight to it (its own log keeps it) and the link comes back in a file.
@@ -875,6 +936,7 @@ mac_inner() {
 
 mac_finish() {
   lc=limactl; [ "$(command -v limactl 2>/dev/null)" = "$LIMACTL" ] || lc=$LIMACTL
+  progress_emit ready
   if [ "$DRY" = 1 ]; then printf '\n%sDry run done.%s Nothing on this Mac changed. A real run ends with the link to open here.\n' "$Y" "$N"; return 0; fi
   printf '\n%sAidenHQ is running in its Linux VM on this Mac.%s\n\n' "$G$B" "$N"
   if [ -n "$SETUP_URL" ]; then
@@ -949,6 +1011,8 @@ main() {
   setup_ui
   parse_args "$@"
   TMPD=$(mktemp -d 2>/dev/null || mktemp -d -t aidenhq) STEP='' REFUSALS='' KEEPALIVE='' RELFILE=''
+  PG_TABLE=$PROGRESS_LINUX PG_LAST=0 PROGRESS_SLICE=''
+  [ "$(uname -s)" != Darwin ] || PG_TABLE=$(progress_mac_table)
   KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
