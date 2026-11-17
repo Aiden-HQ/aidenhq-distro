@@ -69,3 +69,47 @@ curl -fsSL https://get.aidenhq.ai | sh
 
 The installer checks your server, fetches a tested release of the kernel and the essential modules pinned by commit,
 verifies every commit, and hands you to setup. Aiden says hello on your board when it's ready.
+
+## About this repo
+
+This repo is the distribution of AidenHQ: how you get a tested set of the kernel and modules onto a server.
+
+| Repo | What it holds |
+|---|---|
+| [AidenHQ](https://github.com/Aiden-HQ/AidenHQ) | The kernel, runner, board and setup scripts. |
+| [aidenhq-modules](https://github.com/Aiden-HQ/aidenhq-modules) | The official modules and the `aidenhq` marketplace. |
+| aidenhq-distro (this repo) | The installer, the website and the release manifests. |
+
+| Path | What it is |
+|---|---|
+| `install.sh` | The installer `curl -fsSL https://get.aidenhq.ai \| sh` runs. See [INSTALL.md](INSTALL.md). |
+| `installer/` | `test.sh`, an offline test of the installer's release checks (`sh installer/test.sh`, needs only POSIX sh and git). `RESEARCH.md` has the design notes. |
+| `releases/` | One manifest per release, for example `releases/2026.11.json`. |
+| `site/` | The aidenhq.ai website (static files, `llms.txt`, `prompt.md`). |
+| `web/`, `wrangler.jsonc` | The Cloudflare Worker that serves `install.sh` at get.aidenhq.ai and the site. |
+
+### Releases
+
+A release manifest pins three things by commit sha: the kernel (`kernel`, from AidenHQ), the modules marketplace
+(`marketplace.sha`, from aidenhq-modules) and each essential module (`modules.<name>`). The installer fetches those
+exact commits, checks that each module sha is in the marketplace history, and refuses a manifest whose sha256 does not
+match the one baked into the tagged `install.sh`. A manifest that still has `TODO-` placeholders is not cut yet and the
+installer refuses it.
+
+After install, an instance moves on its own: its owner bumps the `product:` sha in `instance.yaml` (kernel) and the
+`aidenhq` marketplace sha (modules). A new release does not change a running instance.
+
+### Test locally
+
+```sh
+sh installer/test.sh
+```
+
+### Licence
+
+MIT, see [LICENSE](LICENSE). The kernel is AGPL-3.0-only and the modules are MIT or AGPL-3.0-only per module; see their
+repos.
+
+### Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
