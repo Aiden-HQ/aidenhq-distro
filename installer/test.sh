@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2034,SC2016,SC2030,SC2031  # variables are read by the sourced install.sh; hook bodies are eval'd later
+# shellcheck disable=SC2034,SC2016,SC2030,SC2031,SC2329  # variables are read by the sourced install.sh; hook bodies are eval'd later
 # Offline test of install.sh's release verification (lean-core spec A17): local fixture repos and a release file pass;
 # a tampered release, a moved checkout or a module sha off the marketplace history each stop it.
 #   sh installer/test.sh            (any POSIX sh with git; also run under dash)
@@ -188,7 +188,6 @@ install_run() { # N [kill-pull]
     TMPD=$(mktemp -d "$work/t.XXXX") LOG="$TMPD/log" DIR="$work/p" SETUP_URL='' SSH_TUNNEL='' PENV='' KERNEL_SHA=x MAX_CONCURRENT=2 JOB_TIMEOUT=60 CI_RUNNERS=1
     REL=2026.11 REL_COMMIT=$K DISTRO_REPO=acme/distro AIDENHQ_OWNER_EMAIL=a@example.com
     PG_TABLE=$PROGRESS_LINUX PG_LAST=0 PROGRESS_SLICE=''
-    # shellcheck disable=SC2329
     sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { KCOPY="$work/p"; }
     export STUB_TOKEN="$work/p/token"; [ -z "${2:-}" ] || export STUB_KILL_PULL=1
     step "This machine"; step "Service user x"; step "Bootstrap tools"; step "Release 2026.11"
