@@ -1,8 +1,8 @@
-# A small core. Add-ons for everything else.
+# Shape the workspace around how you work.
 
 > A small kernel that enforces the rules, modules for everything else, and distros: tested bundles of a kernel and a set of modules that fit how you work. Add, swap or publish your own.
 
-AidenHQ is built like Linux. A slim kernel enforces the rules. Modules add the agents, channels, tools and apps. A distro bundles a kernel and a set of modules into one release, tested together, that fits how you work.
+Add modules, connect your tools, build your own agents and pin the panels you want. Underneath, AidenHQ is built like Linux. A slim kernel enforces the rules. Modules add the agents, channels, tools and apps. A distro bundles a kernel and a set of modules into one release, tested together, that fits how you work.
 
 _Animation: a distro is assembled: the kernel at the base, then modules for chat, tools, agents and apps stack on top, and the whole set is sealed as one release tested together_
 

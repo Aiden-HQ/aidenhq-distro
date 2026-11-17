@@ -1,6 +1,6 @@
-# AidenHQ: the autonomous agentic workspace
+# AidenHQ: the workspace that runs itself
 
-> The autonomous agentic workspace. Agents run work end to end; you join in to collaborate, guide and step in whenever you like, on a server you own.
+> The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.
 
 Agents plan, build, ship, maintain and follow up on their own, with the tools, data and instructions they need. You
 join in however you like: comment on a shared doc, chat with any agent, give one a Slack channel, approve with a tap.
@@ -16,14 +16,20 @@ curl -fsSL https://get.aidenhq.ai | sh
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
 ```
 
-## Three promises
+## What sets it apart
 
-- **Agents run the work end to end.** They plan it, build it, ship it, keep it running and follow up, waking on
-  schedules and events. [Agents and teams](https://aidenhq.ai/agents/index.md)
-- **You join in however you like.** Comment on a shared doc, chat with any agent, give one a Slack channel, or just
-  ask Aiden, the workspace's chief of staff. Guide the work or leave it to them. [Workspace](https://aidenhq.ai/workspace/index.md)
-- **You decide what matters.** Every action that changes something is checked by the system: safe steps run, a second
-  AI checks the risky ones, and the important ones wait for your tap. [Safety](https://aidenhq.ai/safety/index.md)
+- **Never off the clock: work that moves while you sleep.** They plan, build, ship, maintain and follow up on
+  schedules and events, day and night, without being prompted, and work counts as done only when a grader has checked
+  it. [Agents](https://aidenhq.ai/agents/index.md) · [Apps](https://aidenhq.ai/apps/index.md)
+- **Side by side: shape the work without taking it over.** Shared pages and whiteboards with comments that
+  wake agents, chat with any agent (or ask Aiden, the chief of staff), agents in your Slack channels, approvals from
+  your phone. [Workspace](https://aidenhq.ai/workspace/index.md) · [Approvals](https://aidenhq.ai/safety/index.md)
+- **Made to measure: a workspace that fits you.** Start from a distro, add modules, connect any tool,
+  build your own agents, pin board panels, and keep a working-style profile every agent follows.
+  [Modules and distros](https://aidenhq.ai/modules/index.md) · [Integrations](https://aidenhq.ai/integrations/index.md)
+
+Also: it runs on your own server, every action that changes something is checked in code, it is open source, and
+spend is capped per agent, task and day.
 
 Built for one person and their agents. Invite teammates whenever you like: they join the same docs, channels and
 approvals, and work with the same agents.

@@ -580,7 +580,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .pane-c .avatar { width: 24px; height: 24px; font-size: 10px; border-radius: 6px; }
 .pane-b { padding: 10px 12px; display: grid; gap: 7px; }
 .row { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.row > span:not(.chip):not(.avatar):not(.src) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row > span:not(.chip):not(.avatar):not(.src):not(.tap-btn) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chk { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--line-2); flex-shrink: 0; position: relative; transition: background .3s, border-color .3s; }
 .chk.done { background: var(--teal); border-color: var(--teal); }
 .chk.done::after { content: ""; position: absolute; left: 4.5px; top: 1.5px; width: 3.5px; height: 7.5px; border: solid #fff; border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); }
@@ -825,3 +825,33 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .faces.big i { width: 30px; height: 30px; font-size: 11px; border-radius: 8px; margin-left: -7px; }
 @media (max-width: 720px) { .mates { flex-direction: column; align-items: flex-start; gap: 10px; } }
 @media (max-width: 1100px) and (min-width: 721px) { .day { grid-template-columns: minmax(0, 1fr); } }
+/* Home: three pillars */
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1.4vw, 20px); }
+.pillar { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 10px 10px 20px; position: relative; overflow: hidden; }
+.pillar::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); }
+.pillar .num { margin: 16px 10px 4px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: color-mix(in srgb, var(--c) 64%, var(--text)); }
+.pillar h3 { margin: 0 10px 6px; font-size: clamp(19px, .5vw + 16px, 23px); }
+.pillar > p { margin: 0 10px; color: var(--text-2); font-size: 15.5px; }
+.pillar .ticks { margin: 12px 10px 0; gap: 6px; }
+.pillar .ticks li { font-size: 14.5px; }
+.pillar .links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: auto 10px 0; padding-top: 12px; }
+.pillar .links .more { margin-top: 0; font-size: 14.5px; }
+.support { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 16px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.support li { background: var(--surface); padding: 14px 16px; font-size: 14.5px; color: var(--text-2); }
+.support b { display: block; color: var(--text); font-size: 15px; font-weight: 650; }
+.clock { display: grid; gap: 7px; }
+.tl { display: grid; grid-template-columns: 44px 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 9px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
+.tl .t { font-family: var(--mono); font-size: 11.5px; color: var(--text-3); }
+.tl .avatar { width: 24px; height: 24px; font-size: 9.5px; border-radius: 6px; }
+.tl > span:nth-child(3) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-p { font-size: 12.5px; color: var(--text-2); }
+.ins { background: color-mix(in srgb, var(--violet) 12%, transparent); border-radius: 3px; padding: 0 3px; color: var(--text); }
+.sc .row .tap-btn { margin-left: auto; }
+.sc.s4 .row { }
+.ext { display: grid; gap: 7px; }
+.ext-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
+.ext-k { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); }
+.ext-row b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1100px) { .pillars { grid-template-columns: minmax(0, 1fr); } .support { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .support { grid-template-columns: minmax(0, 1fr); } }
+.sc > * { flex-shrink: 0; }

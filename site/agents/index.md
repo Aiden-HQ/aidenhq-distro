@@ -2,7 +2,7 @@
 
 > Autonomous agents that run work end to end: specialists who plan, build, ship, maintain and follow up on schedules and events, a chief of staff to route requests, and new agents built from a one-sentence description.
 
-Specialists that plan, build, ship, maintain and follow up on their own, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.
+Specialists that plan, build, ship, maintain and follow up on their own, around the clock, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.
 
 _Animation: the team at work: Aiden hands a task to the Researcher, the Follow-up Tracker chases a reply, the Meeting Librarian files notes, and the DevOps Engineer confirms every app is healthy_
 
