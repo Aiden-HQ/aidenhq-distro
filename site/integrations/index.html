@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Integrations: AidenHQ</title>
+<meta name="description" content="Connect Slack, Telegram, Gmail, Calendar, Drive, Jira, GitHub, Glean, Grafana and ClickHouse once, with your own accounts. Then grant each agent read or write access, tool by tool.">
+<link rel="canonical" href="https://aidenhq.ai/integrations/">
+<link rel="alternate" type="text/markdown" href="/integrations/index.md">
+<!--#include head-->
+</head>
+<body>
+<!--#include header-->
+<main id="main">
+
+<section class="ph" style="--c: var(--sky)">
+  <div class="wrap ph-in">
+    <div>
+      <p class="eyebrow">Integrations</p>
+      <h1>Connect a tool once. Every agent you allow can use it.</h1>
+      <p class="lede">Sign in to Slack, Gmail, GitHub and the rest with your own accounts, one time. Then decide, agent by agent and tool by tool, who may read and who may write.</p>
+      <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#tools">See every tool</a></div>
+    </div>
+    <div class="reveal">
+<!--#include scene-grants-->
+    </div>
+  </div>
+</section>
+
+<section class="section-sm band" id="tools">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-sky">Tools</p>
+      <h2>Works with the tools you already use.</h2>
+      <p>Each integration is an add-on: turn on the ones you need. The ones marked core come with every install.</p>
+    </div>
+    <div class="lgroup reveal"><h3>Talk and message</h3>
+<!--#include logos-talk-->
+    </div>
+    <div class="lgroup reveal"><h3>Work and documents</h3>
+<!--#include logos-work-->
+    </div>
+    <div class="lgroup reveal"><h3>Data and models</h3>
+<!--#include logos-data-->
+    </div>
+  </div>
+</section>
+
+<section class="section" id="uses">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-pink">What they unlock</p>
+      <h2>Tools work best together.</h2>
+      <p>Agents combine connections the way a person would, and every source feeds one shared database your apps can build on.</p>
+    </div>
+    <table class="tbl reveal">
+      <thead><tr><th>Tools</th><th>What your agents do with them</th><th class="hide-sm">Included</th></tr></thead>
+      <tbody>
+        <tr><td>Telegram</td><td>Your chief of staff in your pocket: chat, voice notes and one-tap approvals.</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Slack</td><td>Agents in your channels, follow-ups on what people promised, and <code>/aiden assign-channel</code>.</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Gmail, Calendar, Drive</td><td>Follow-ups that never drop, meeting prep with every doc you need, and calendar changes on approval.</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>GitHub</td><td>Engineers open changes, reviewers check them, and apps are built and deployed from them.</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Jira</td><td>A live status board of what every team is working on.</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Glean</td><td>Answers from across your company's documents when an agent needs context.</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Grafana, ClickHouse</td><td>Incident digests with the graphs attached, and metrics for your dashboards.</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>OpenRouter</td><td>The AI models your agents run on: pick any model for any agent.</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Warehouse</td><td>One shared database every source feeds and every app can read, each with its own private space.</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section band" id="grants">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-violet">Permissions</p>
+      <h2>Read for some, write for few.</h2>
+      <p>Every tool is marked as reading or writing. Agents get only the tools their job needs, and every call is checked against that list.</p>
+    </div>
+    <ul class="caps">
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Your own sign-in</h3><p>Connections use the tool's official sign-in with your account, so access matches what you already have.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Granted tool by tool</h3><p>The Researcher may read Slack; only the Follow-up Tracker may post. Change it any time, with one approval.</p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Writes go through approvals</h3><p>A granted write still passes the approval levels: some run, a second AI checks some, you decide the rest.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Connect it once</h3><p>Every agent you allow shares the one connection, so there are no per-agent keys to manage.</p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Blocked and logged</h3><p>A call to a tool an agent was not granted is refused and recorded, no matter what it was told.</p></li>
+      <li class="cap reveal" style="--c: var(--blue)"><h3>Add your own</h3><p>Any tool with an MCP server can be packaged as a module and connected the same way.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="wrap">
+    <div class="next reveal">
+      <a href="/modules/" style="--c: var(--violet)"><small>Next</small><b>Modules and distros</b><span>Add, swap or build your own add-ons.</span></a>
+      <a href="/safety/" style="--c: var(--pink)"><small>Safety</small><b>Approvals</b><span>What happens when an agent writes.</span></a>
+      <a href="/apps/" style="--c: var(--teal)"><small>Product</small><b>Apps</b><span>Built on the data your tools feed in.</span></a>
+    </div>
+  </div>
+</section>
+
+<!--#include cta-->
+
+</main>
+<!--#include footer-->
+</body>
+</html>

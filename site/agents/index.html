@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Agents and teams: AidenHQ</title>
+<meta name="description" content="A team of AI agents that knows its job: Aiden your chief of staff, specialists who wake on schedules and events, and new agents built from a one-sentence description.">
+<link rel="canonical" href="https://aidenhq.ai/agents/">
+<link rel="alternate" type="text/markdown" href="/agents/index.md">
+<!--#include head-->
+</head>
+<body>
+<!--#include header-->
+<main id="main">
+
+<section class="ph" style="--c: var(--violet)">
+  <div class="wrap ph-in">
+    <div>
+      <p class="eyebrow">Agents and teams</p>
+      <h1>A team of agents that already knows its job.</h1>
+      <p class="lede">Aiden leads a team of specialists who research, follow up, build and keep things running. Need someone new? Describe them in a sentence and the Agent Architect builds them.</p>
+      <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#build">Build your own agent</a></div>
+    </div>
+    <div class="reveal">
+<!--#include scene-team-->
+    </div>
+  </div>
+</section>
+
+<section class="section-sm band" id="team">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-violet">Your team</p>
+      <h2>Specialists, each with clear instructions.</h2>
+      <p>Every agent has a role, a short set of instructions you can read, the tools it is allowed to use and a model picked for the job. Start with the core team and add the rest as add-ons.</p>
+    </div>
+    <ul class="roster reveal">
+      <li><span class="avatar a-aiden">A</span><b>Aiden</b><span>Chief of staff. Turns requests into tasks, delegates, chases and briefs you.</span></li>
+      <li><span class="avatar" style="background:#0B8FD6">R</span><b>Researcher</b><span>Finds and checks facts across the web and your tools.</span></li>
+      <li><span class="avatar a-arch">AA</span><b>Agent Architect</b><span>Designs new agents from your description and tries them out.</span></li>
+      <li><span class="avatar" style="background:#C9466F">AC</span><b>Agent Coach</b><span>Reviews agents' work and proposes better instructions.</span></li>
+      <li><span class="avatar a-ops">DO</span><b>DevOps Engineer</b><span>Deploys apps, watches their health and rolls back bad releases.</span></li>
+      <li><span class="avatar" style="background:#435069">PE</span><b>Platform Engineer</b><span>Applies approved changes to your setup, with full history.</span></li>
+      <li><span class="avatar a-fu">FT</span><b>Follow-up Tracker</b><span>Spots promises in Slack and email and chases them.</span></li>
+      <li><span class="avatar" style="background:#7553F2">ML</span><b>Meeting Librarian</b><span>Keeps notes, decisions and follow-ups from your meetings.</span></li>
+      <li><span class="avatar a-eng">EN</span><b>Engineers</b><span>Write code in a locked-down workspace and open changes for review.</span></li>
+      <li><span class="avatar" style="background:#D2457E">UI</span><b>UI Designer and Reviewer</b><span>Draft layouts, then check screenshots of every change.</span></li>
+      <li><span class="avatar" style="background:#2F7BE0">SW</span><b>Security Watch</b><span>Scans for known security holes and proposes fixes.</span></li>
+      <li><span class="avatar" style="background:#0B1426">RT</span><b>Red Teamer</b><span>Attacks your own setup to find weak spots first.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="aiden">
+  <div class="wrap split">
+    <div class="reveal">
+      <p class="eyebrow c-blue">Aiden, your chief of staff</p>
+      <h2>You talk to one assistant. It runs the team.</h2>
+      <p class="lede-sm">Aiden is the only agent you need to talk to. It reads your messages and forwards, decides who should do the work, keeps track of it and comes back with results or a decision for you.</p>
+      <ul class="ticks" style="--c: var(--blue)">
+        <li><b>Delegates</b> each request to the right specialist, with a clear definition of done.</li>
+        <li><b>Chases</b> people and agents until the work lands, and tells you if something stalls.</li>
+        <li><b>Briefs you</b> every morning and batches the rest into a digest.</li>
+        <li><b>Relays your approvals</b> word for word, and never sends anything as you.</li>
+      </ul>
+    </div>
+    <div class="reveal">
+<!--#include scene-brief-->
+    </div>
+  </div>
+</section>
+
+<section class="section band" id="schedules">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-teal">Always on, never idle</p>
+      <h2>Agents wake up when there is work.</h2>
+      <p>Agents do not run in endless loops burning money. They wake on a schedule, when something happens in one of your tools, or when someone hands them a task, and they plan their own follow-ups.</p>
+    </div>
+    <ul class="caps">
+      <li class="cap reveal" style="--c: var(--teal)"><h3>On a schedule</h3><p>The morning brief at 08:00, a weekly metrics review on Mondays, a health check every hour.</p></li>
+      <li class="cap reveal" style="--c: var(--blue)"><h3>When something happens</h3><p>A new email, a failed deploy, a mention in Slack or a comment on a doc wakes the right agent.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Self-scheduled</h3><p>Agents set their own reminders: "check back on Thursday if Sam has not replied".</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="build">
+  <div class="wrap split rev">
+    <div class="reveal">
+      <p class="eyebrow c-pink">Build your own agent</p>
+      <h2>Describe the agent you wish you had.</h2>
+      <p class="lede-sm">Tell Aiden what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.</p>
+      <ul class="ticks" style="--c: var(--pink)">
+        <li><b>No prompt writing.</b> You describe the outcome; the Architect writes the instructions.</li>
+        <li><b>Trial first.</b> New agents run on trial with limited reach until their work is graded.</li>
+        <li><b>One tap to keep it.</b> You approve the new agent like any other change, and can undo it later.</li>
+        <li><b>Readable.</b> Every agent is a short file you can read, edit or hand to a colleague.</li>
+      </ul>
+    </div>
+    <div class="reveal">
+<!--#include scene-architect-->
+    </div>
+  </div>
+</section>
+
+<section class="section band" id="handbook">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-amber">Shared know-how</p>
+      <h2>One company handbook every agent follows.</h2>
+      <p>How your company works is written down once, in short sections, and every agent reads what applies to its job. Skills (how to write a brief, how to review a design) are shared the same way.</p>
+    </div>
+    <ul class="caps four">
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Sections, not walls of text</h3><p>Each section says who it applies to. Agents load what they need and look up the rest.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Shared vocabulary</h3><p>One glossary and one list of your goals, so every task links back to something you care about.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Skills</h3><p>Reusable how-tos any agent can pick up, from drafting a reply to preparing a meeting.</p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Your working style</h3><p>A short profile of how you like to read, decide and be asked, followed by every agent.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="better">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-sky">Better every week</p>
+      <h2>Correct an agent once. It stays fixed.</h2>
+      <p>When you correct an agent, the correction becomes a rule or an automatic check, so the same mistake does not come back.</p>
+    </div>
+    <ul class="caps">
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Done means checked</h3><p>A grader checks the work against its definition of done before a task counts as finished.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>A coach on the team</h3><p>The Agent Coach reviews runs, spots repeat mistakes and proposes better instructions.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Memory</h3><p>Agents keep short notes of what worked, checked against the source before they rely on them.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="wrap">
+    <div class="note reveal">
+      <span class="pi"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+      <div><b>How it stays safe</b><p>Agents may decide, but they cannot act on their own say-so. Each agent can use only the tools you granted it, every change it wants to make passes approvals in code, and changes to an agent's own instructions are reviewed like any other change. <a href="/safety/">More on safety</a></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="wrap">
+    <div class="next reveal">
+      <a href="/apps/" style="--c: var(--teal)"><small>Next</small><b>Apps</b><span>Internal tools your agents build and maintain.</span></a>
+      <a href="/modules/" style="--c: var(--violet)"><small>Extend</small><b>Modules and distros</b><span>Add agents and tools as add-ons.</span></a>
+      <a href="/workspace/" style="--c: var(--blue)"><small>Product</small><b>Workspace</b><span>Where you and your agents meet.</span></a>
+    </div>
+  </div>
+</section>
+
+<!--#include cta-->
+
+</main>
+<!--#include footer-->
+</body>
+</html>

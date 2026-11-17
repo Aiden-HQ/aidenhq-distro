@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Modules and distros: AidenHQ</title>
+<meta name="description" content="A small kernel that enforces the rules, modules for everything else, and distros: tested bundles of a kernel and a set of modules that fit how you work. Add, swap or publish your own.">
+<link rel="canonical" href="https://aidenhq.ai/modules/">
+<link rel="alternate" type="text/markdown" href="/modules/index.md">
+<!--#include head-->
+</head>
+<body>
+<!--#include header-->
+<main id="main">
+
+<section class="ph" style="--c: var(--violet)">
+  <div class="wrap ph-in">
+    <div>
+      <p class="eyebrow">Modules and distros</p>
+      <h1>A small core. Add-ons for everything else.</h1>
+      <p class="lede">AidenHQ is built like Linux. A slim kernel enforces the rules. Modules add the agents, channels, tools and apps. A distro bundles a kernel and a set of modules into one release, tested together, that fits how you work.</p>
+      <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#distros">Pick a distro</a></div>
+    </div>
+    <div class="reveal">
+<!--#include scene-distro-->
+    </div>
+  </div>
+</section>
+
+<section class="section-sm band" id="kernel">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-blue">The kernel</p>
+      <h2>The part that keeps everyone honest.</h2>
+      <p>The kernel is deliberately small. It holds the things that must be true for every agent and every module, whoever wrote them, and nothing else.</p>
+    </div>
+    <ul class="caps four">
+      <li class="cap reveal" style="--c: var(--blue)"><h3>Model gateway</h3><p>Every AI call goes through one door that meters it, applies spend limits and records it.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Tool checkpoint</h3><p>Every tool call is checked against the agent's grants, and outside text is marked as information, not orders.</p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Approvals</h3><p>Every write becomes a record with its exact request, given its level by rules in code, and decided by the right party.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Identity and the locked box</h3><p>Sign-in for you and your admins, a sealed workspace for coding jobs, and a log of everything.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="modules">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-violet">Modules</p>
+      <h2>Everything else is a module.</h2>
+      <p>A module is a folder that can add agents, chat channels, tool connections, apps or coding engines. Ours use exactly the same public rules as anyone else's, and each declares up front what it can read and write.</p>
+    </div>
+    <table class="tbl reveal">
+      <thead><tr><th>Module</th><th>What it adds</th><th class="hide-sm">Included</th></tr></thead>
+      <tbody>
+        <tr><td>Chief of staff</td><td>Aiden, your front door, and the morning brief</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Board</td><td>Your daily view: tasks, chats, approvals, apps, costs and panels</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Agent builder and coach</td><td>The Agent Architect and the Agent Coach</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Engineering</td><td>Engineers in the locked box, with code checks and reviews</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Apps platform and warehouse</td><td>Apps your agents build and run, on one shared database</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>AI reviewer and grader</td><td>The second AI that checks risky actions, and the grader that checks finished work</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Telegram</td><td>Talk to Aiden and approve from your phone</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
+        <tr><td>Slack</td><td>Aiden and your agents in your workspace</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Google Workspace</td><td>Gmail, Calendar and Drive</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Follow-ups and meetings</td><td>The Follow-up Tracker and the Meeting Librarian</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Jira, Glean, Grafana, ClickHouse</td><td>Connections to your work and data tools</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Security</td><td>Security Watch and the Red Teamer</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
+        <tr><td>Coding engines</td><td>Codex by default; Claude Code or opencode instead</td><td class="hide-sm"><span class="tag opt">Swap</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section band" id="add">
+  <div class="wrap split">
+    <div class="reveal">
+      <p class="eyebrow c-teal">One step to add</p>
+      <h2>Add a module in one step, and see exactly what it gets.</h2>
+      <p class="lede-sm">Add a module from the board or with one command. Before anything changes you see what it will be able to read and write, which agents and schedules it brings and which settings it needs, on a single approval card.</p>
+      <ul class="ticks" style="--c: var(--teal)">
+        <li><b>Held to its word.</b> What a module declares is checked on every call, not just at install.</li>
+        <li><b>Pinned and checked.</b> Every module is pinned to an exact version and passes the same supply-chain checks as ours.</li>
+        <li><b>Easy to remove.</b> Taking a module out is the same single step, and history lets you undo it.</li>
+      </ul>
+    </div>
+    <div class="reveal">
+<!--#include scene-module-->
+    </div>
+  </div>
+</section>
+
+<section class="section" id="distros">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-pink">Distros</p>
+      <h2>Start from a workspace that already fits you.</h2>
+      <p>A distro is a tested release: one kernel plus a chosen set of modules, pinned to exact versions and run through the same test suites together before release. Pick the one closest to how you work, then make it yours.</p>
+    </div>
+    <ul class="caps reveal">
+      <li class="cap" style="--c: var(--blue)"><h3>Founder office</h3><p>Aiden, follow-ups across Slack and email, meeting notes, a morning brief, and internal apps on demand.</p><p style="margin-top:10px"><span class="tag r">Chief of staff</span> <span class="tag r">Slack</span> <span class="tag r">Google</span> <span class="tag r">Meetings</span></p></li>
+      <li class="cap" style="--c: var(--violet)"><h3>Engineering team</h3><p>Engineers, reviewers, UI design and review, DevOps and security, wired to GitHub and Jira.</p><p style="margin-top:10px"><span class="tag r">Engineering</span> <span class="tag r">GitHub</span> <span class="tag r">Jira</span> <span class="tag r">Security</span></p></li>
+      <li class="cap" style="--c: var(--teal)"><h3>Personal life admin</h3><p>Your personal inbox and calendar, bills and renewals chased, and a weekly plan on Telegram.</p><p style="margin-top:10px"><span class="tag r">Telegram</span> <span class="tag r">Google</span> <span class="tag r">Follow-ups</span></p></li>
+    </ul>
+    <ul class="caps" style="margin-top: 14px">
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Tested together</h3><p>Every release pins a kernel and each module to an exact version, so what you install is exactly what passed the tests. Release 2026.11 is the current one.</p></li>
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Swap or add anything</h3><p>Start from a distro, then add Slack, swap the coding engine or drop what you do not need. Your choices live in your own settings, with history.</p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Publish your own</h3><p>Built a setup that works for your team or your industry? Publish it as a distro so others can install it in one command.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section band" id="marketplace">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-amber">An open marketplace</p>
+      <h2>Anyone can build and publish modules.</h2>
+      <p>The marketplace is open. Publish a module or a whole distro from your own repository, under your own licence, commercial included. Third-party modules follow exactly the rules ours do, and the kernel enforces them for everyone.</p>
+    </div>
+    <ul class="caps">
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Same rules for everyone</h3><p>No private shortcuts: official modules use the same public contracts as yours.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Licences that fit</h3><p>The kernel is AGPL-3.0. The official modules, app starter and design system are MIT. Your modules can carry any licence you choose.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Grow from your own setup</h3><p>Write a module inside your own workspace first, then promote it to the marketplace when it is ready.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="wrap">
+    <div class="next reveal">
+      <a href="/install/" style="--c: var(--teal)"><small>Next</small><b>Install guide</b><span>Install the current release in one command.</span></a>
+      <a href="/integrations/" style="--c: var(--sky)"><small>Extend</small><b>Integrations</b><span>The tools modules connect.</span></a>
+      <a href="/agents/#build" style="--c: var(--pink)"><small>Extend</small><b>Build your own agent</b><span>No module needed: describe it.</span></a>
+    </div>
+  </div>
+</section>
+
+<!--#include cta-->
+
+</main>
+<!--#include footer-->
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Safety and approvals: AidenHQ</title>
+<meta name="description" content="Agents act, you decide what matters. Every action that changes something is checked by the system, not the agent: some run by themselves, a second AI checks others, and you approve the rest with one tap.">
+<link rel="canonical" href="https://aidenhq.ai/safety/">
+<link rel="alternate" type="text/markdown" href="/safety/index.md">
+<!--#include head-->
+</head>
+<body>
+<!--#include header-->
+<main id="main">
+
+<section class="ph" style="--c: var(--pink)">
+  <div class="wrap ph-in">
+    <div>
+      <p class="eyebrow">Safety</p>
+      <h1>Agents act. You decide what matters.</h1>
+      <p class="lede">Agents are free to think, plan and draft. Anything that changes something (a message, a deploy, a merge, a settings change) is checked by the system before it happens, and the important ones come to you with the exact request.</p>
+      <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#private">Private by design</a></div>
+    </div>
+    <div class="reveal">
+<!--#include scene-phone-->
+    </div>
+  </div>
+</section>
+
+<section class="section-sm band" id="approvals">
+  <div class="wrap split">
+    <div class="reveal">
+      <p class="eyebrow c-amber">Approvals</p>
+      <h2>Three levels, decided by the system.</h2>
+      <p class="lede-sm">Which level an action gets is set by rules in code, not by the agent asking. An agent cannot talk its way into a lower level, and you can raise or lower how much runs on its own with one setting.</p>
+      <ul class="levels">
+        <li style="--c: var(--teal)"><b>Runs by itself</b><span>Safe, reversible steps: updating a task, drafting a reply, reading a doc.</span></li>
+        <li style="--c: var(--violet)"><b>A second AI checks it</b><span>Merges, deploys, messages to allowed people. The reviewer is always a different AI model family from the one asking.</span></li>
+        <li style="--c: var(--amber)"><b>You decide</b><span>Anything that widens an agent's reach, raises spending, or vetoes a decision. One tap from your phone.</span></li>
+      </ul>
+    </div>
+    <div class="reveal">
+      <table class="tbl">
+        <thead><tr><th>Action</th><th>Who decides</th></tr></thead>
+        <tbody>
+          <tr><td>Update a task or a board</td><td><span class="tag on">Runs by itself</span></td></tr>
+          <tr><td>Remind a teammate on Slack</td><td><span class="tag" style="--c: var(--violet)">Second AI</span></td></tr>
+          <tr><td>Merge a reviewed code change</td><td><span class="tag" style="--c: var(--violet)">Second AI</span></td></tr>
+          <tr><td>Deploy a new app version</td><td><span class="tag" style="--c: var(--violet)">Second AI</span></td></tr>
+          <tr><td>Give an agent a new tool</td><td><span class="tag w">You</span></td></tr>
+          <tr><td>Raise a spend limit</td><td><span class="tag w">You</span></td></tr>
+          <tr><td>Share an app with a new group</td><td><span class="tag w">You</span></td></tr>
+        </tbody>
+      </table>
+      <p class="lede-sm" style="margin-top:14px;font-size:15px">Each card shows exactly what will happen: the full email text, the exact code change, the precise setting. What you approve is what runs.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="guards">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-pink">Built-in guards</p>
+      <h2>Checked by the system, not by the agent.</h2>
+      <p>The rules sit below the AI. They read the real state of things (who asked, what changed, which tool), never what an agent says about it.</p>
+    </div>
+    <ul class="caps">
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Text cannot give orders</h3><p>Emails, chats and documents are treated as information, never instructions. A message saying "ignore your rules" is just a message.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Tool by tool permissions</h3><p>Every tool call passes one checkpoint that confirms the agent was granted that exact tool.</p></li>
+      <li class="cap reveal" style="--c: var(--blue)"><h3>A locked box for code</h3><p>Coding agents work in a sealed space with their own network and no passwords, so they cannot touch the rest of your server.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Never as you</h3><p>Agents speak as a labelled assistant. Nothing is ever sent from your own account.</p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Security on staff</h3><p>Security Watch scans for known security holes and proposes fixes; a Red Teamer attacks your own setup to find weak spots first.</p></li>
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Careful with updates</h3><p>Every component is pinned to an exact version, and new releases wait a week before they are used, unless they fix a security hole.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section band" id="private">
+  <div class="wrap split">
+    <div class="reveal">
+      <p class="eyebrow c-sky">Private by design</p>
+      <h2>Your server, your keys, your history.</h2>
+      <p class="lede-sm">AidenHQ runs on one machine you control. Nothing about your setup lives in someone else's cloud, and every change is recorded so it can be undone.</p>
+      <ul class="ticks" style="--c: var(--sky)">
+        <li><b>No public doors.</b> The board is reachable only on your private network, behind a password and a one-time code.</li>
+        <li><b>An encrypted vault.</b> Passwords and keys are kept encrypted, out of every prompt; each service gets only its own.</li>
+        <li><b>Logins stay with the connection.</b> Agents use your tools through a connection that holds the sign-in; they never see it.</li>
+        <li><b>Full history.</b> Agents, instructions, settings and apps live in your own private repository. Go back to any earlier version.</li>
+        <li><b>A record of everything.</b> Every decision, tool change and AI call is logged.</li>
+      </ul>
+    </div>
+    <div class="reveal">
+      <div class="note" style="border-color: color-mix(in srgb, var(--sky) 35%, var(--line)); background: color-mix(in srgb, var(--sky) 6%, var(--surface))">
+        <span class="pi" style="--c: var(--sky)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><b>What does leave your server</b><p>Agents reach the tools you connect (Slack, Gmail, GitHub and so on), and the AI models run through OpenRouter, set to zero data retention so providers keep no copy of your prompts. You choose the model for each agent. Outbound access is open by design: agents may call the services they are granted.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="costs">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-amber">Spend limits</p>
+      <h2>Set the limit. Never get a surprise bill.</h2>
+      <p>Agents that run all night can quietly run up a bill. Here every AI call is metered and capped.</p>
+    </div>
+    <ul class="caps four">
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Per agent</h3><p>Limits per run, per task and per day. An agent stops when it reaches its limit.</p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>One monthly cap</h3><p>The model key has its own monthly limit ($50 by default), so the total can never run away.</p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>Low-cost by default</h3><p>Most agents run on a fast, inexpensive model. Premium models only where they earn it.</p></li>
+      <li class="cap reveal" style="--c: var(--blue)"><h3>Every cost on record</h3><p>The Costs page shows spend by agent and by task, so you see exactly where it goes.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="wrap">
+    <div class="next reveal">
+      <a href="/integrations/" style="--c: var(--sky)"><small>Next</small><b>Integrations</b><span>Connect once, grant per agent.</span></a>
+      <a href="/modules/" style="--c: var(--violet)"><small>Extend</small><b>Modules and distros</b><span>A small core, held to the same rules.</span></a>
+      <a href="/install/" style="--c: var(--teal)"><small>Docs</small><b>Install guide</b><span>Set it up on your own server.</span></a>
+    </div>
+  </div>
+</section>
+
+<!--#include cta-->
+
+</main>
+<!--#include footer-->
+</body>
+</html>
