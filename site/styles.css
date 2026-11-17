@@ -521,7 +521,8 @@ a:hover > .more::after, .more:hover::after { translate: 3px 0; }
 }
 .term-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.08); color: #8796B0; font-size: 12px; }
 .term-bar .lights i { background: rgba(255,255,255,.18); }
-.term-body { padding: 16px 18px; min-height: 100%; }
+.term-body { padding: 16px 18px; }
+@media (max-width: 720px) { .term { font-size: 12px; } .term-body { padding: 12px; } }
 .term-body p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .term .pr { color: #33E0C8; }
 .term .ok { color: #5BE3A6; }
@@ -739,10 +740,12 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
   .logos, .lgroup .logos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .logo { height: 88px; }
   .day-card { padding: 8px 8px 20px; }
-  .sc { padding: 12px; --h: var(--hm, 400px); }
+  .sc { padding: 12px; height: var(--hm, var(--h, 400px)); }
+  .sc.fit-m { height: auto; }
   .doc { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; }
   .doc-side { grid-template-columns: 1fr; }
-  .bricks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bricks { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .brick { font-size: 10.5px; padding: 7px 6px; }
   .kan { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kan div:last-child { display: none; }
   .tbl { font-size: 14px; }
