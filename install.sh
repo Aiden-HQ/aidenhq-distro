@@ -28,7 +28,10 @@
 set -eu
 
 DEFAULT_RELEASE=2026.11
-RELEASE_SHA256=""   # set by the release cut for DEFAULT_RELEASE; empty = not cut yet (the file's own sha checks still run)
+# Baked in by the release CI (.github/workflows/release.yml) when it publishes this file beside <release>.json: that file's
+# sha256 and the distro commit it was cut from. Empty = an uncut copy, which installs only from AIDENHQ_RELEASE_FILE.
+RELEASE_SHA256=""
+RELEASE_COMMIT=""
 DISTRO_REPO=Aiden-HQ/aidenhq-distro
 MIN_CORES=2 WARN_CORES=4 MIN_RAM_MB=5800 WARN_RAM_MB=7400 MIN_DISK_GB=60 WARN_DISK_GB=90
 SUPPORTED="Ubuntu 22.04, 24.04, 26.04 and Debian 12, 13"
@@ -312,11 +315,21 @@ fetch_release() {
       die "can't fetch the release file $url"; }
     say "release file: $url"
   fi
+  # A fetched release file must be the one this installer was cut with: its digest is baked in, so a release this copy
+  # wasn't cut for (another --release, or an uncut copy) is refused; each release's own install.sh carries its digest.
   digest=$(sha256 "$RELFILE")
-  if [ "$REL" = "$DEFAULT_RELEASE" ] && [ -n "$RELEASE_SHA256" ] && [ -z "${AIDENHQ_RELEASE_FILE:-}" ]; then
-    [ "$digest" = "$RELEASE_SHA256" ] || die "release file digest $digest isn't the one this installer was cut with"
-    say "digest matches the installer's ($digest)"
+  if [ -z "${AIDENHQ_RELEASE_FILE:-}" ]; then
+    if [ "$REL" != "$DEFAULT_RELEASE" ] || [ -z "$RELEASE_SHA256" ]; then
+      why="this installer carries no digest for release $REL: use its own https://github.com/$DISTRO_REPO/releases/download/$REL/install.sh"
+      [ "$DRY" = 1 ] || die "$why"
+      warn "$why (a real run stops here)"
+    else
+      [ "$digest" = "$RELEASE_SHA256" ] || die "release file digest $digest isn't the one this installer was cut with ($RELEASE_SHA256)"
+      say "digest matches the installer's ($digest)"
+    fi
   fi
+  # The distro commit setup pins in instance.yaml (release:), only for the release this copy was cut for.
+  REL_COMMIT=''; [ "$REL" != "$DEFAULT_RELEASE" ] || REL_COMMIT=$RELEASE_COMMIT
   [ "$(rel .release)" = "$REL" ] || die "the release file says it is '$(rel .release)', not $REL"
   KERNEL_SHA=$(rel .kernel) KERNEL_REPO=$(rel .kernel_repo) MKT_SHA=$(rel .marketplace.sha) MKT_REPO=$(rel .marketplace.source.repo)
   [ -n "$KERNEL_REPO" ] || KERNEL_REPO=Aiden-HQ/AidenHQ
@@ -491,7 +504,9 @@ run_setup() {
   log "+ setup $*"
   # The product's own progress lines ("• ...") reach the terminal; everything goes to the log. Tailscale's sign-in link
   # (when it needs one) goes straight to the terminal from setup.
+  # The release goes into the new instance.yaml (all three, or none when this copy wasn't cut for it).
   { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" MODULES="${MODULES:-}" \
+      AIDENHQ_RELEASE="${REL_COMMIT:+$REL}" AIDENHQ_RELEASE_REPO="${REL_COMMIT:+$DISTRO_REPO}" AIDENHQ_RELEASE_SHA="$REL_COMMIT" \
       MAX_CONCURRENT="$MAX_CONCURRENT" TIMEOUT_MINUTES="$JOB_TIMEOUT" CI_RUNNERS="$CI_RUNNERS" \
       bash "$DIR/ops/setup.sh" "$@" </dev/null 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } \
     | tee -a "$LOG" "$TMPD/setup.out" | while IFS= read -r l; do
@@ -888,7 +903,7 @@ main() {
   setup_ui
   parse_args "$@"
   TMPD=$(mktemp -d 2>/dev/null || mktemp -d -t aidenhq) STEP='' REFUSALS='' KEEPALIVE='' RELFILE=''
-  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' AUTH_HDR=''
+  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
   trap 'exit 130' INT TERM

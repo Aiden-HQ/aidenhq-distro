@@ -1,0 +1,67 @@
+# Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
+# releases/<release>.json names real shas. This job installs exactly that set in a container (install.sh's own fetch and
+# verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
+# Private kernel or modules repos need the RELEASE_READ_TOKEN secret (contents: read on both); public ones need nothing.
+name: release
+on:
+  push:
+    tags: ["20[0-9][0-9].[0-9]*"]
+permissions:
+  contents: write
+concurrency: release-${{ github.ref_name }}
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TAG: ${{ github.ref_name }}
+      NODE_IMAGE: node:24.22.2-bookworm@sha256:8fa96264f302f58bbb13aa7339c541547b56975766ce956c875da149452a3e40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The tag is on main and its release file names real shas
+        run: |
+          [[ "$TAG" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+)?$ ]] || { echo "::error::$TAG isn't a release name (2026.11, 2026.11.1)"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$TAG isn't on main"; exit 1; }
+          f="releases/$TAG.json"
+          [ -f "$f" ] || { echo "::error::no $f"; exit 1; }
+          jq -e --arg t "$TAG" '
+            def sha: type == "string" and test("^[0-9a-f]{40}$");
+            .release == $t and (.kernel | sha) and .marketplace.name == "aidenhq" and (.marketplace.sha | sha)
+            and (.modules | length > 0) and (.modules | to_entries | all(.value | sha))' "$f" >/dev/null \
+            || { echo "::error::$f has a placeholder or malformed sha, or isn't release $TAG"; exit 1; }
+      - name: Install the set in a container and run the release suites
+        env:
+          AIDENHQ_GITHUB_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/set"
+          docker run --rm -e AIDENHQ_GITHUB_TOKEN -v "$PWD:/distro:ro" -v "$RUNNER_TEMP/set:/set" "$NODE_IMAGE" \
+            sh /distro/.github/release/test-set.sh "/distro/releases/$TAG.json" /set
+          jq -e 'type == "array"' "$RUNNER_TEMP/set/suites.json"
+      - name: Write tested, bake install.sh
+        run: |
+          mkdir -p dist
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          jq --arg run "$run_url" --slurpfile s "$RUNNER_TEMP/set/suites.json" '.tested = { ci_run: $run, suites: $s[0] } | del(.todo)' \
+            "releases/$TAG.json" > "dist/$TAG.json"
+          digest=$(sha256sum "dist/$TAG.json" | cut -d' ' -f1)
+          sed -e "s/^DEFAULT_RELEASE=.*/DEFAULT_RELEASE=$TAG/" -e "s/^RELEASE_SHA256=\"\"/RELEASE_SHA256=\"$digest\"/" \
+            -e "s/^RELEASE_COMMIT=\"\"/RELEASE_COMMIT=\"$GITHUB_SHA\"/" install.sh > dist/install.sh
+          grep -qx "DEFAULT_RELEASE=$TAG" dist/install.sh && grep -qx "RELEASE_SHA256=\"$digest\"" dist/install.sh \
+            && grep -qx "RELEASE_COMMIT=\"$GITHUB_SHA\"" dist/install.sh || { echo "::error::install.sh wasn't baked"; exit 1; }
+          [ "$(tail -1 dist/install.sh)" = 'main "$@"' ]
+          shellcheck dist/install.sh
+          cat "dist/$TAG.json"
+          echo "release file sha256 $digest, distro commit $GITHUB_SHA"
+      - name: Publish install.sh and the release file
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" "dist/install.sh" "dist/$TAG.json" --verify-tag --title "AidenHQ $TAG" \
+            --notes "Install: \`curl -fsSL https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/install.sh | sh\`. Tested: $(jq -c .tested "dist/$TAG.json")"
+          # What was published is what was tested and baked.
+          mkdir -p check && gh release download "$TAG" --dir check
+          cmp check/install.sh dist/install.sh && cmp "check/$TAG.json" "dist/$TAG.json"

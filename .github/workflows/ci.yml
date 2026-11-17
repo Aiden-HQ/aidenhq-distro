@@ -1,0 +1,21 @@
+# The installer's checks on every PR and on main: shellcheck, and installer/test.sh (A17's installer half: the release
+# verification, the baked digest, the setup handover) under sh and dash.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  installer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: shellcheck install.sh installer/test.sh .github/release/test-set.sh
+      - run: sh installer/test.sh
+      - run: dash installer/test.sh
+      - run: node --check .github/release/suites.mjs

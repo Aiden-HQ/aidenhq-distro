@@ -66,7 +66,7 @@ has an environment form.
 
 | Flag | Environment | |
 |---|---|---|
-| `--release <name>` | `AIDENHQ_RELEASE` | release to install (default: the one the script was cut with) |
+| `--release <name>` | `AIDENHQ_RELEASE` | release to install (default and only: the one the script was cut with; each release's own `install.sh` installs it) |
 | `--dir <path>` | `AIDENHQ_DIR` | product checkout (default `~<user>/aidenhq`) |
 | `--non-interactive` | `AIDENHQ_NON_INTERACTIVE=1` | never wait on a terminal (implied when there is none) |
 | `--dry-run` | `AIDENHQ_DRY_RUN=1` | detect and print the plan; change nothing |
@@ -116,8 +116,8 @@ CI runner units. Docker settings are added only where `daemon.json` doesn't alre
 The installer is the one `curl | sh` the project allows. It is served only from a tagged release, and it verifies
 everything it fetches:
 
-- the default release's file, against the digest baked into the tagged script (another `--release` relies on its tag
-  and the sha checks below);
+- the release file, against the sha256 baked into the tagged script when the release was cut (a release the script
+  wasn't cut for, or an uncut copy, is refused unless you pass a local `AIDENHQ_RELEASE_FILE`);
 - the kernel and each module, at the exact sha (HEAD must equal the pin, with no tracked changes);
 - the host packages are not the installer's: the verified kernel's own `ops/vm/setup.sh` installs them from the key
   fingerprints, repositories and exact versions in its `ops/vm/pins.json`.
@@ -129,6 +129,17 @@ file that `mktemp` creates as a new root-owned 0600 file in `/run`, deleted afte
 another host.
 
 It sends no telemetry.
+
+The new instance pins the release it was installed from (`release:` in `instance.yaml`, with the distro commit it was cut
+from); every apply reads that file again at that commit and refuses a kernel other than the release's.
+
+## Releases
+
+A release is cut by pushing its tag (`2026.11`, patch releases `2026.11.1`) on a `main` commit whose `releases/<tag>.json`
+names real shas. `.github/workflows/release.yml` then installs exactly that set in a container (this script's own fetch
+and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
+publishes both as the release's assets. `get.aidenhq.ai` should redirect to the latest tagged `install.sh` asset, never
+to a branch.
 
 `releases/2026.11.json` holds placeholder shas until the first release is cut, so a real run refuses it.
 
