@@ -1,7 +1,7 @@
 {
   "name": "AidenHQ",
   "release": "2026.11",
-  "todo": "Not cut yet: every sha below is a placeholder, so install.sh refuses this file. The 5c release CI fills kernel, marketplace.sha and modules, records tested.ci_run, tags 2026.11 and bakes this file's sha256 into the tagged install.sh (RELEASE_SHA256).",
+  "todo": "PLACEHOLDERS, not cut: kernel, marketplace.sha and every module sha are TODO until lean-core phase 4 and 5b merge. Fill them with the merged shas, merge to main, then tag 2026.11: .github/workflows/release.yml refuses any non-sha, tests the set, writes tested, drops this key and publishes the file beside the baked install.sh.",
   "kernel": "TODO-kernel-sha",
   "kernel_repo": "Aiden-HQ/AidenHQ",
   "marketplace": {

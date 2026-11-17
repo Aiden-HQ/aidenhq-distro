@@ -68,8 +68,6 @@ case_ "a tracked change in the checkout"         stop "$K" "$M" "$M" "$M1" 'echo
 case_ "a checkout moved to another commit"       stop "$K" "$M" "$M" "$M1" 'git -C "$DIR" checkout -q --detach HEAD~1; checkout_at() { :; }'
 case_ "a rerun on a verified checkout"           pass "$K" "$M" "$M" "$M1" ':'
 
-
-# lib CMDS: run CMDS with install.sh's functions loaded and a neutral environment; exit status is the result.
 lib() {
   (
     # shellcheck disable=SC1091
@@ -84,6 +82,15 @@ expect() { # NAME pass|stop CMDS
   why=$(grep -E 'error:|refus' "$work/out" | tail -1 | sed 's/.*error:[^ ]* //')
   if [ "$got" = "$2" ]; then ok "$1${why:+  ($why)}"; else bad "$1 (got $got)"; sed 's/^/     /' "$work/out"; fi
 }
+
+# The baked digest: a fetched release file must be the one this copy was cut with (the release CI bakes RELEASE_SHA256).
+release "$K" "$M" "$M" "$M1" >"$work/cut.json"
+CUT=$(sha256sum "$work/cut.json" 2>/dev/null | cut -d' ' -f1 || shasum -a 256 "$work/cut.json" | cut -d' ' -f1)
+fetched() { echo "fetch() { cp '$work/cut.json' \"\$2\"; }; DRY=0 REL=$1 RELEASE_SHA256=$2 RELEASE_COMMIT=$K; fetch_release; ${3:-:}"; }
+expect "a fetched release with the baked digest is accepted, and its commit goes to setup" pass "$(fetched 2026.11 "$CUT" '[ "$REL_COMMIT" = '"$K"' ]')"
+expect "a fetched release with another digest stops"            stop "$(fetched 2026.11 "$(flip "$CUT")")"
+expect "an uncut installer (no baked digest) stops on a fetched file" stop "$(fetched 2026.11 '')"
+expect "another --release than the one this copy was cut for stops" stop "$(fetched 2026.12 "$CUT")"
 
 # Derived defaults on the two calibration hosts (lean VM and the EX44).
 expect "4 vCPU / 8 GB / 100 GB -> 2 jobs, 60 min, 1 CI runner, 15 GB reserve" pass \
@@ -120,6 +127,7 @@ cat >"$work/h/ops/setup.sh" <<'EOS'
 #!/bin/bash
 echo "• a step"
 echo "args=$*"; echo "env=$OWNER_EMAIL,$MAX_CONCURRENT,$TIMEOUT_MINUTES,$CI_RUNNERS,$AIDENHQ_USER"
+echo "release=$AIDENHQ_RELEASE,$AIDENHQ_RELEASE_REPO,$AIDENHQ_RELEASE_SHA"
 while [ $# -gt 0 ]; do [ "$1" = --config ] && cfg=$2; shift; done
 echo "cfgmode=$(ls -l "$cfg" | cut -c1-10)"; echo "cfg=$(tr '\n' ' ' <"$cfg")"; echo "cfgpath=$cfg"
 echo AIDENHQ_SSH_TUNNEL=ssh-x; echo AIDENHQ_SETUP_URL=http://old; echo AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t
@@ -127,8 +135,10 @@ EOS
 expect "setup is driven unattended: env, a 0600 config, parsed links, config deleted" pass \
   "sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { :; }; mktemp() { command mktemp '$work/pe.XXXX'; }
    DIR='$work/h' NO_TS=1 NONINT=1 SETUP_URL='' SSH_TUNNEL='' PENV='' KERNEL_SHA=x MAX_CONCURRENT=2 JOB_TIMEOUT=60 CI_RUNNERS=1
+   REL=2026.11 REL_COMMIT=$K DISTRO_REPO=acme/distro
    AIDENHQ_OWNER_EMAIL=a@example.com OPENROUTER_KEY=sk-or-x; run_setup
    grep -qx 'args=--unattended --no-tailscale --config .*' \"\$LOG\" && grep -qx 'env=a@example.com,2,60,1,'\"\$SVC\" \"\$LOG\" \
+     && grep -qx 'release=2026.11,acme/distro,$K' \"\$LOG\" \
      && grep -qx 'cfgmode=-rw-------' \"\$LOG\" && grep -qx 'cfg=OPENROUTER_KEY=\"sk-or-x\" ' \"\$LOG\" \
      && [ \"\$SETUP_URL\" = http://127.0.0.1:3121/setup/t ] && [ \"\$SSH_TUNNEL\" = ssh-x ] \
      && [ ! -e \"\$(sed -n 's/^cfgpath=//p' \"\$LOG\")\" ]"

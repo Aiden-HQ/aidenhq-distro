@@ -1,0 +1,4 @@
+# Exceptions to the supply-chain rule (pin everything exactly; nothing published less than 7 days ago; no `curl | sh`),
+# each approved by the owner. Same format as the kernel repo's file.
+exceptions:
+  - { ecosystem: script, package: install.sh, version: tagged-release, owner: approved, reason: "owner decision 16 (lean-core spec §6.8): `curl -fsSL <tagged release URL>/install.sh | sh` is allowed for this one script. It is served only from a tagged release asset, is one readable POSIX sh file (shellcheck-clean, tested in this repo's CI), carries its release file's sha256 baked in, and verifies every checkout against the release's shas before the kernel's setup runs." }
