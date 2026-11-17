@@ -1,0 +1,48 @@
+{
+  "name": "AidenHQ",
+  "release": "2026.11.1",
+  "kernel": "a6a584f32731c149629aa5e60be4a037a9a737e9",
+  "kernel_repo": "Aiden-HQ/AidenHQ",
+  "marketplace": {
+    "name": "aidenhq",
+    "source": {
+      "source": "github",
+      "repo": "Aiden-HQ/aidenhq-modules"
+    },
+    "sha": "809278ef79970172fa8e226c9d63b2c07968b4ef"
+  },
+  "modules": {
+    "agent-builder": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "ai-reviewer": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "apps-platform": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "board": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "channel-slack": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "channel-telegram": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "chat-lane": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "chief-of-staff": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "coach": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "codehost-github": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "engine-codex": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "engineering": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "fleet-ops": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "github": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "google": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "grading": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "memory": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "model-tools": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "models-openrouter": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "platform": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "tasks": "809278ef79970172fa8e226c9d63b2c07968b4ef",
+    "warehouse": "809278ef79970172fa8e226c9d63b2c07968b4ef"
+  },
+  "tested": {
+    "ci_run": "",
+    "suites": [
+      "kernel-only",
+      "swap",
+      "parity",
+      "adversarial",
+      "twin"
+    ]
+  }
+}
