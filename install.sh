@@ -550,8 +550,9 @@ ensure_timezone() {
   esac
 }
 mac_timezone() {
-  [ -n "${AIDENHQ_TIMEZONE:-}" ] || { AIDENHQ_TIMEZONE=$(readlink /etc/localtime 2>/dev/null || :); AIDENHQ_TIMEZONE=${AIDENHQ_TIMEZONE#*zoneinfo/}; }
-  case "$AIDENHQ_TIMEZONE" in */*|UTC) ;; *) AIDENHQ_TIMEZONE='' ;; esac
+  [ -z "${AIDENHQ_TIMEZONE:-}" ] || return 0
+  z=$(readlink /etc/localtime 2>/dev/null || :); z=${z#*zoneinfo/}
+  case "$z" in */*|UTC) AIDENHQ_TIMEZONE=$z ;; esac
 }
 # write_setup_config: secrets only, never read from the environment by setup. mktemp makes the file 0600, root-owned and
 # new (O_EXCL) in root's /run before anything is written to it. Owner, sizing and the rest go in the environment.
