@@ -18,6 +18,10 @@ on:
         description: "Only decide: print what tonight's cut would be"
         type: boolean
         default: false
+      kernel:
+        description: "Cut this product commit (a full sha on main) instead of main's head"
+        type: string
+        default: ""
 permissions: {}
 concurrency: nightly
 jobs:
@@ -43,6 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           NIGHTLY_CI_WAIT_MIN: "45"
+          NIGHTLY_KERNEL: ${{ inputs.kernel }}
         run: node .github/release/nightly.mjs
 
   images:
