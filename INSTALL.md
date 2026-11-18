@@ -43,14 +43,16 @@ framework and runs its own Linux path inside it, unchanged. It never uses sudo o
   `AIDENHQ_VM_CPUS`, `AIDENHQ_VM_MEMORY` and `AIDENHQ_VM_DISK` (GB). Later: `limactl stop aidenhq`,
   `limactl edit aidenhq --cpus 6 --memory 12 --disk 150` (the disk only grows), then run the installer again (it starts
   the VM under its login agent).
-- **Isolation**: no Mac folder is shared with the VM, and only the board's port 3121 is forwarded, to the Mac's localhost;
-  every other port stays inside the VM.
-- **The link**: with `--no-tailscale` the setup link is `http://127.0.0.1:3121/setup/...`: open it on the Mac, no tunnel.
+- **Isolation**: no Mac folder is shared with the VM, and only its browser ports are forwarded, to the Mac's localhost: the
+  board (3121), sign-in (3120) and the owner's apps (3130, `<app>.localhost:3130`); every other port stays inside the VM.
+- **The link**: with `--no-tailscale` the setup link is `http://localhost:3120/setup?token=...`: open it on the Mac, no tunnel.
   With Tailscale the VM joins your tailnet as its own machine and the link is its tailnet address.
 - **Secrets** (`OPENROUTER_KEY`, `TS_AUTHKEY`, `AIDENHQ_GITHUB_TOKEN`, ...) go into the VM over stdin as a 0600 file that
   is sourced and shredded there: never on a command line, never in Lima's config.
 - **Start at login**: a LaunchAgent, `~/Library/LaunchAgents/ai.aidenhq.vm.plist`, runs `limactl start aidenhq
-  --foreground`. `limactl stop aidenhq` stops the VM until the next login or installer run.
+  --foreground`. `limactl stop aidenhq` stops the VM until the next login or installer run;
+  `launchctl kickstart gui/$(id -u)/ai.aidenhq.vm` starts it again now (a plain `limactl start aidenhq` runs it outside the
+  agent, so without keep-awake).
 - **Sleep**: a Mac that sleeps pauses every agent. The installer asks once whether to keep the Mac awake while the VM
   runs (`AIDENHQ_KEEP_AWAKE=1` or `0` without a terminal; the default there is no). Yes runs the VM under
   `caffeinate -s`, which holds off system sleep on power only, while the VM runs; it changes no power settings, and

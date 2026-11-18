@@ -277,7 +277,7 @@ printf '%s\n' "$@" >"$d/args.$n"
 case "$1" in
   --version) echo "limactl version ${STUB_LIMA_VERSION:-2.3.0}" ;;
   list) [ -n "${STUB_STATE:-}" ] || exit 1; echo "$STUB_STATE" ;;
-  shell) cat >"$d/stdin.$n"; case "$*" in *setup-url*) printf 'http://lima-aidenhq:3121/setup/t\r\n' ;; esac ;;
+  shell) cat >"$d/stdin.$n"; case "$*" in *setup-url*) printf 'http://lima-aidenhq:3120/setup?token=t\r\n' ;; esac ;;
 esac
 EOS
 chmod +x "$work/mac/bin/limactl"
@@ -317,7 +317,8 @@ expect "the VM's run gets the flags and owner in argv, the secrets only over std
   mac_detect; AIDENHQ_INSTALLER_FILE="$work/mac/inst.sh" AIDENHQ_OWNER_EMAIL=a@example.com OPENROUTER_KEY=sk-or-canary AIDENHQ_GITHUB_TOKEN=ghp-canary; mac_inner
   ! calls | grep -q canary && grep -qx "OPENROUTER_KEY=\"sk-or-canary\"" "$STUB_DIR"/stdin.* && grep -qx "AIDENHQ_GITHUB_TOKEN=\"ghp-canary\"" "$STUB_DIR"/stdin.* \
     && calls | grep -qx -- --no-tailscale && calls | grep -qx AIDENHQ_OWNER_EMAIL=a@example.com && calls | grep -qx AIDENHQ_MAC_VM=1 \
-    && [ "$SETUP_URL" = http://127.0.0.1:3121/setup/t ]')"
+    && [ "$SETUP_URL" = "http://localhost:3120/setup?token=t" ] && AWAKE=0 LIMACTL=limactl UPGRADED="" && mac_finish | grep -q "forwarded to this Mac" \
+    && ! mac_finish | grep -q tailnet')"
 expect "a secret with a newline is refused before anything reaches the VM" pass "$(mac 'export STUB_STATE=Running
   mac_detect; AIDENHQ_INSTALLER_FILE="$work/mac/inst.sh" OPENROUTER_KEY="$(printf "k\nTS_AUTHKEY=x")"; (mac_inner) && exit 1; ! ls "$STUB_DIR"/stdin.* 2>/dev/null')"
 expect "uninstall with no terminal and no confirmation deletes nothing" pass "$(mac 'export STUB_STATE=Running; mac_detect; (mac_uninstall) && exit 1

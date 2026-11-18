@@ -18,7 +18,7 @@ GitHub token is needed (a private fork needs one: step 3).
 
 **On a Mac** (if the user wants AidenHQ on their Mac instead of a server): run the same command on the Mac itself, with
 `--no-tailscale` and no sudo. It installs pinned Lima, creates an Ubuntu 24.04 VM named `aidenhq` (about half the cores
-and memory, a 100 GB sparse disk) and runs the Linux install inside it. Open the printed `http://127.0.0.1:3121/...` link
+and memory, a 100 GB sparse disk) and runs the Linux install inside it. Open the printed `http://localhost:3120/setup?...` link
 on the Mac; no tunnel is needed. Needs macOS 13+, 12 GB memory and 60 GB free. A sleeping Mac pauses every agent, so
 recommend "keep awake" (on power). Skip step 2.
 
@@ -153,7 +153,9 @@ server not yet on the tailnet needs a `TS_AUTHKEY` (https://login.tailscale.com/
   `sudo OWNER_EMAIL=<email> ops/setup.sh --unattended --link`; a model key, `OPENROUTER_KEY=<key>` in a root-only
   `0600` file, then `sudo OWNER_EMAIL=<email> ops/setup.sh --unattended --config <file>`, then delete the file.
 - Remove: `sh ~/aidenhq-install.sh --uninstall --non-interactive` (root installs: as `aidenhq`,
-  `sudo sh /root/aidenhq-install.sh ...`). It keeps data, vault and packages.
+  `sudo sh /root/aidenhq-install.sh ...`). It keeps data, vault and packages. On a Mac it deletes the VM and everything
+  in it, so it needs `AIDENHQ_CONFIRM_DELETE_VM=1` on the `sh` side: confirm with the user first. To pause instead:
+  `limactl stop aidenhq`; start it again with `launchctl kickstart gui/$(id -u)/ai.aidenhq.vm` (or at login).
 
 ---
 
