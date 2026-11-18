@@ -100,7 +100,7 @@ Other inputs:
   Installs from 2026.11.2 or earlier upgrade once by hand: run the same command again
   (`curl -fsSL https://get.aidenhq.ai | sh`, as the same user). It reads the existing instance (its release and owner email),
   says `upgrading from <old> to <new>`, verifies the new release as on day one, moves the instance's pin (one commit) and
-  applies. An installer older than the release the server runs is refused: downgrades never happen.
+  applies; if that apply fails, the server is back on the old release and the pin commit is reverted. An installer older than the release the server runs is refused: downgrades never happen.
 - **Logs.** The log is `/var/log/aidenhq-install.log` when run as root, otherwise `~/.aidenhq/install.log` (mode 0600). On
   failure the installer prints the step, the last log lines and the log path.
 - **Removal.** `--uninstall` stops and removes the services and lists what it kept.
@@ -157,8 +157,8 @@ authority to any module). Installs show them when the release is available, and 
 Installs pick a new release up on their own (the product's `kernel/src/updates.ts`): they read the newest release tag
 over https from this repository, and install it only when its tag commit is on `main`, its kernel and modules commits are
 on their repositories' `main` and descend from what the install runs, and the published `<release>.json` asset equals the
-file at the tag with the `tested` stamp of a `release.yml` run on that commit. A tag without a published, tested release is
-never installed.
+file at the tag with the `tested` stamp of a successful `release.yml` run on that commit. A tag without a published, tested
+release is never installed, and a newer broken one doesn't hide the newest valid one.
 
 `releases/2026.11.json` holds placeholder shas until the first release is cut, so a real run refuses it.
 
