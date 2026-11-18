@@ -94,6 +94,13 @@ Other inputs:
 
 - **Re-runs.** Running the script again is safe: every step, including the product's setup, is idempotent, and every
   checkout is re-verified before anything in it runs.
+- **Upgrades.** An install updates itself: each night (02:00-05:00 in your timezone) it installs a newer release, verified
+  the same way, through the normal apply, and goes back to the previous release if the health check after it fails. Turn
+  it off with `auto_update: "off"` in Settings; the board's Settings > Instance shows what's available and has Update now.
+  Installs from 2026.11.2 or earlier upgrade once by hand: run the same command again
+  (`curl -fsSL https://get.aidenhq.ai | sh`, as the same user). It reads the existing instance (its release and owner email),
+  says `upgrading from <old> to <new>`, verifies the new release as on day one, moves the instance's pin (one commit) and
+  applies. An installer older than the release the server runs is refused: downgrades never happen.
 - **Logs.** The log is `/var/log/aidenhq-install.log` when run as root, otherwise `~/.aidenhq/install.log` (mode 0600). On
   failure the installer prints the step, the last log lines and the log path.
 - **Removal.** `--uninstall` stops and removes the services and lists what it kept.
@@ -143,6 +150,15 @@ names real shas. `.github/workflows/release.yml` then installs exactly that set 
 and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
 publishes both as the release's assets (a draft until they are checked), then opens a PR pinning `get.aidenhq.ai` to that `install.sh` by tag and sha256; merging it deploys the site. Never
 to a branch.
+
+A release file may carry `notes`: up to 20 one-line strings saying what changed (and whether the release adds new
+authority to any module). Installs show them when the release is available, and in the message after it installs.
+
+Installs pick a new release up on their own (the product's `kernel/src/updates.ts`): they read the newest release tag
+over https from this repository, and install it only when its tag commit is on `main`, its kernel and modules commits are
+on their repositories' `main` and descend from what the install runs, and the published `<release>.json` asset equals the
+file at the tag with the `tested` stamp of a `release.yml` run on that commit. A tag without a published, tested release is
+never installed.
 
 `releases/2026.11.json` holds placeholder shas until the first release is cut, so a real run refuses it.
 
