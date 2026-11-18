@@ -20,7 +20,8 @@ GitHub token is needed (a private fork needs one: step 3).
 `--no-tailscale` and no sudo. It installs pinned Lima, creates an Ubuntu 24.04 VM named `aidenhq` (about half the cores
 and memory, a 100 GB sparse disk) and runs the Linux install inside it. Open the printed `http://localhost:3120/setup?...` link
 on the Mac; no tunnel is needed. Needs macOS 13+, 12 GB memory and 60 GB free. A sleeping Mac pauses every agent, so
-recommend "keep awake" (on power). Skip step 2.
+add `AIDENHQ_KEEP_AWAKE=1` next to the email in steps 4 and 5 unless the user said otherwise: it keeps the Mac awake on
+power while the VM runs (without a terminal the installer can't ask, and leaves sleep alone). Skip step 2.
 
 ## 1. Ask the user
 
