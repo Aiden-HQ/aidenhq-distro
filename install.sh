@@ -378,10 +378,6 @@ rel() {
   k=${1#.}; k=${k##*.}
   sed -n "s/.*\"$k\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" "$RELFILE" | head -1
 }
-rel_modules() { # name sha, one per line
-  if have jq; then jq -r '.modules // {} | to_entries[] | "\(.key) \(.value)"' "$RELFILE"; return; fi
-  awk '/"modules"[[:space:]]*:/ { m = 1; next } m && /}/ { m = 0 } m { gsub(/[",]/, ""); sub(":", ""); print $1, $2 }' "$RELFILE"
-}
 is_sha() { case "$1" in *[!0-9a-f]*) return 1 ;; esac; [ ${#1} = 40 ]; }
 
 fetch_release() {
@@ -415,19 +411,18 @@ fetch_release() {
   # The distro commit setup pins in instance.yaml (release:), only for the release this copy was cut for.
   REL_COMMIT=''; [ "$REL" != "$DEFAULT_RELEASE" ] || REL_COMMIT=$RELEASE_COMMIT
   [ "$(rel .release)" = "$REL" ] || die "the release file says it is '$(rel .release)', not $REL"
-  KERNEL_SHA=$(rel .kernel) KERNEL_REPO=$(rel .kernel_repo) MKT_SHA=$(rel .marketplace.sha) MKT_REPO=$(rel .marketplace.source.repo)
+  # One product sha is the whole set: the official modules are its own modules/ tree. Images are pulled by digest (the
+  # release CI checked each one is built from this sha); here each must be a ghcr.io/aiden-hq digest reference.
+  KERNEL_SHA=$(rel .kernel) KERNEL_REPO=$(rel .kernel_repo)
   [ -n "$KERNEL_REPO" ] || KERNEL_REPO=Aiden-HQ/AidenHQ
-  bad=''
-  is_sha "$KERNEL_SHA" || bad="$bad kernel"
-  is_sha "$MKT_SHA" || bad="$bad marketplace"
-  rel_modules >"$TMPD/modules"
-  [ -s "$TMPD/modules" ] || bad="$bad modules(empty)"
-  while read -r m s; do is_sha "$s" || bad="$bad $m"; done <"$TMPD/modules"
-  if [ -n "$bad" ]; then
-    [ "$DRY" = 1 ] || die "release $REL isn't cut yet: no real sha for:$bad"
-    warn "release $REL has placeholder shas ($(echo "$bad" | wc -w | tr -d ' ') entries): a real run stops here"
+  if ! is_sha "$KERNEL_SHA"; then
+    [ "$DRY" = 1 ] || die "release $REL isn't cut yet: no real kernel sha"
+    warn "release $REL has a placeholder kernel sha: a real run stops here"
   fi
-  say "kernel $KERNEL_REPO@$KERNEL_SHA; marketplace $MKT_REPO@$MKT_SHA; $(wc -l <"$TMPD/modules" | tr -d ' ') modules"
+  ! have jq || jq -e '(.images // {}) | type == "object" and all(to_entries[]; (.key | test("^[a-z0-9][a-z0-9._-]*$"))
+      and (.value | type == "string" and test("^ghcr\\.io/aiden-hq/[a-z0-9][a-z0-9._-]*@sha256:[0-9a-f]{64}$")))' "$RELFILE" >/dev/null \
+    || die "release $REL's images aren't all ghcr.io/aiden-hq/<name>@sha256:<digest>"
+  say "kernel $KERNEL_REPO@$KERNEL_SHA (the official modules are its modules/)"
 }
 
 repo_url() { echo "${AIDENHQ_GIT_BASE:-https://github.com}/$1.git"; }
@@ -467,27 +462,12 @@ verify_at() {
 }
 
 fetch_sources() {
-  step "Fetch and verify the kernel and modules"
+  step "Fetch and verify the product"
   [ -n "$RELFILE" ] || { say "(no release file: skipped)"; return 0; }
   checkout_at "$DIR" "$(repo_url "$KERNEL_REPO")" "$KERNEL_SHA"
   verify_at "$DIR" "$KERNEL_SHA"
   as_svc mkdir -p -m 700 "$STATE_DIR"
-  MKT_DIR="$STATE_DIR/modules/marketplace"
-  checkout_at "$MKT_DIR" "$(repo_url "$MKT_REPO")" "$MKT_SHA"
-  verify_at "$MKT_DIR" "$MKT_SHA"
-  # Every module sha must be on the marketplace's history at the release's sha, and is materialised and checked.
-  cut -d' ' -f2 "$TMPD/modules" | sort -u >"$TMPD/shas"
-  while read -r s; do
-    [ "$s" = "$MKT_SHA" ] && continue
-    wt="$STATE_DIR/modules/$(echo "$s" | cut -c1-12)"
-    if [ "$DRY" = 0 ]; then
-      ugit -C "$MKT_DIR" merge-base --is-ancestor "$s" "$MKT_SHA" 2>/dev/null \
-        || die "verification failed: module sha $s isn't on the marketplace history at $MKT_SHA"
-      [ -e "$wt" ] || as_svc git -C "$MKT_DIR" worktree add -q --detach "$wt" "$s"
-    fi
-    verify_at "$wt" "$s"
-  done <"$TMPD/shas"
-  [ "$DRY" = 1 ] || say "verified: kernel and $(wc -l <"$TMPD/modules" | tr -d ' ') module pins match the release"
+  [ "$DRY" = 1 ] || say "verified: the product (kernel and official modules) matches the release"
 }
 
 # The pinned kernel must carry the unattended setup and its host pins, and list this host's release.
@@ -541,7 +521,9 @@ existing_install() {
   [ -n "${AIDENHQ_OWNER_EMAIL:-}" ] || [ -z "$INST_EMAIL" ] || AIDENHQ_OWNER_EMAIL=$INST_EMAIL
 }
 # check_upgrade: this release against the one the existing instance follows. Newer: the product's setup moves the pin (one
-# instance commit) before its apply; the same: a repair; older: refused, nothing changed.
+# instance commit: product:, release:, and the obsolete `aidenhq` marketplace entry dropped, since the official modules now
+# ship inside the product; other marketplaces stay) before its apply, and reverts that commit when the apply fails, so the
+# installer never edits instance.yaml itself; the same: a repair; older: refused, nothing changed.
 check_upgrade() {
   [ -n "${INST_YAML:-}" ] || return 0
   if [ -z "$INST_REL" ]; then
@@ -554,6 +536,8 @@ check_upgrade() {
     warn "$why (a real run stops here)"
   else
     say "upgrading from $INST_REL to $REL: setup moves the instance's pin, then applies; a failed health check goes back to $INST_REL"
+    ! grep -Eq '^[[:space:]]*-[[:space:]]*\{[[:space:]]*name:[[:space:]]*"?aidenhq"?[[:space:],]' "$INST_YAML" \
+      || say "the instance's aidenhq marketplace entry goes with that pin: the official modules are in the product now"
   fi
 }
 ensure_owner_email() {
@@ -1063,7 +1047,7 @@ main() {
   PG_TABLE=$PROGRESS_LINUX PG_LAST=0 PROGRESS_SLICE=''
   [ "$(uname -s)" != Darwin ] || PG_TABLE=$(progress_mac_table)
   INST_YAML='' INST_REL='' INST_EMAIL=''
-  KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
+  KERNEL_SHA='' KERNEL_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
   trap 'exit 130' INT TERM

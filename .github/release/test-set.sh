@@ -3,8 +3,8 @@
 # Install a release set and test it, in the release CI (.github/workflows/release.yml), in two separate steps:
 #   sh .github/release/test-set.sh fetch  <release file> <work dir>   fetch and verify (the only run given a token)
 #   sh .github/release/test-set.sh suites <work dir>                  the release suites, on the verified checkouts
-# fetch uses install.sh's own functions (fetch_release, fetch_sources: every checkout must be exactly the release's sha,
-# every module sha on the marketplace history) and runs nothing it fetched. AIDENHQ_GITHUB_TOKEN reads private repos; it
+# fetch uses install.sh's own functions (fetch_release, fetch_sources: the product checkout must be exactly the release's
+# sha; the official modules are its modules/ tree) and runs nothing it fetched. AIDENHQ_GITHUB_TOKEN reads private repos; it
 # rides in git's environment only (never a file in a checkout), and the suites run in a separate step that never gets
 # it. The suites that ran go to <work dir>/suites.json.
 set -eu
@@ -43,12 +43,11 @@ work=$1
 for v in AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN GH_TOKEN GIT_CONFIG_COUNT; do
   eval "[ -z \"\${$v:-}\" ]" || { echo "refusing: $v is set; the suites run without credentials" >&2; exit 1; }
 done
-# The kernel's tests read the official modules at kernel/modules (its own CI checks the modules repo out there): the
-# verified marketplace checkout, at the release's marketplace sha, goes in that place.
-[ -e "$work/kernel/modules" ] || cp -R "$work/state/modules/marketplace" "$work/kernel/modules"
+# The official modules are the product's own modules/ tree, verified with it.
+[ -f "$work/kernel/modules/marketplace.json" ] || { echo "the product checkout has no modules/marketplace.json: the official modules ship inside it" >&2; exit 1; }
 git config --global user.name ci && git config --global user.email ci@example.com
 rc=0
-node "$here/.github/release/suites.mjs" "$work/kernel" "$work/state/modules/marketplace" kernel-only swap parity adversarial twin >"$work/suites.out" 2>&1 || rc=$?
+node "$here/.github/release/suites.mjs" "$work/kernel" kernel-only swap parity adversarial twin >"$work/suites.out" 2>&1 || rc=$?
 cat "$work/suites.out"
 [ "$rc" = 0 ] || { echo "a release suite failed (exit $rc): this set isn't cut" >&2; exit 1; }
 tail -1 "$work/suites.out" >"$work/suites.json"

@@ -1,13 +1,14 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11.18, 2026.11.18.1) on a main commit whose
-# releases/<release>.json names real shas. On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# releases/<release>.json names a real product sha (`kernel`: the product commit, whose modules/ tree is the official
+# modules). On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # Prebuilt images: the release file may carry `images` (name -> ghcr.io/aiden-hq/<name>@sha256:<digest>), which apply pulls
 # instead of building. The apply reads the release file from git at the pinned commit, so the digests are in the file before
 # the tag: run this workflow by hand first (Actions > release > Run workflow, release = the name), which builds every image
-# the release's kernel and modules build locally for amd64 and arm64, pushes them, and prints the `images` block (and keeps it
+# the release's product checkout (its kernel and its modules/) builds locally for amd64 and arm64, pushes them, and prints the `images` block (and keeps it
 # as the `images.json` artifact) to paste into releases/<release>.json. The tag run then checks that each digest is there for
 # both platforms and names an image this release builds. A release file without `images` installs by building, as before.
-# RELEASE_READ_TOKEN (contents: read) is optional: only a private kernel or modules repo needs it; public repos fetch
+# RELEASE_READ_TOKEN (contents: read) is optional: only a private product repo needs it; public repos fetch
 # anonymously, and an unset secret gives the fetch no token.
 # A tag run is a push of the tag, or this workflow dispatched on the tag (Run workflow, "Use workflow from" = the tag; the
 # nightly does this, since a tag it pushes with GITHUB_TOKEN starts no workflow). Any other run builds images.
@@ -61,7 +62,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
-      - name: The tag is on main and its release file names real shas
+      - name: The tag is on main and its release file names a real product sha
         run: |
           [[ "$TAG" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$ ]] || { echo "::error::$TAG isn't a release name (2026.11.18, 2026.11.18.1)"; exit 1; }
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$TAG isn't on main"; exit 1; }
@@ -69,10 +70,10 @@ jobs:
           [ -f "$f" ] || { echo "::error::no $f"; exit 1; }
           jq -e --arg t "$TAG" '
             def sha: type == "string" and test("^[0-9a-f]{40}$");
-            .release == $t and (.kernel | sha) and .marketplace.name == "aidenhq" and (.marketplace.sha | sha)
-            and (.modules | length > 0) and (.modules | to_entries | all(.value | sha))
+            .release == $t and (.kernel | sha) and ((.kernel_repo // "x/y") | type == "string" and test("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"))
+            and (has("marketplace") or has("modules") | not)
             and ((.notes // []) | type == "array" and length <= 20 and all(.[]; type == "string" and length <= 300))' "$f" >/dev/null \
-            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, or its notes aren't up to 20 lines of text"; exit 1; }
+            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), or its notes aren't up to 20 lines of text"; exit 1; }
       # The only step that sees the read token: install.sh's fetch and verify, which runs nothing it fetched.
       - name: Fetch and verify the set (install.sh's own checks)
         env:
@@ -89,7 +90,7 @@ jobs:
           jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
           echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
 
-  # The images a release builds, from its own kernel (scripts/release-images.mjs list): the fetched set, as a tarball for the
+  # The images a release builds, from its own product checkout (scripts/release-images.mjs list, over its kernel and modules/): the fetched set, as a tarball for the
   # build legs, and their chains (a computer image builds FROM its parent, so a chain builds in order in one leg). A tag
   # run whose file has no `images` stops here (go=false): there is nothing to check.
   plan:
@@ -143,7 +144,7 @@ jobs:
         run: |
           set="$RUNNER_TEMP/set"
           [ -f "$set/kernel/scripts/release-images.mjs" ] || { echo "::error::$REL's kernel predates prebuilt images (no scripts/release-images.mjs)"; exit 1; }
-          [ -e "$set/kernel/modules" ] || cp -R "$set/state/modules/marketplace" "$set/kernel/modules"
+          [ -f "$set/kernel/modules/marketplace.json" ] || { echo "::error::$REL's product has no modules/ (the official modules ship inside it)"; exit 1; }
           npm ci --ignore-scripts --no-audit --no-fund --prefix "$set/kernel/scripts"
           chains=$(env -u AIDENHQ_GITHUB_TOKEN node "$set/kernel/scripts/release-images.mjs" list "$set/kernel" "$set/kernel/modules" \
             | jq -c --arg p "$set/kernel/" 'map(map(.context |= ltrimstr($p)))')

@@ -128,7 +128,8 @@ everything it fetches:
 
 - the release file, against the sha256 baked into the tagged script when the release was cut (a release the script
   wasn't cut for, or an uncut copy, is refused unless you pass a local `AIDENHQ_RELEASE_FILE`);
-- the kernel and each module, at the exact sha (HEAD must equal the pin, with no tracked changes);
+- the product (the kernel and, in its `modules/`, the official modules) at the release's exact sha (HEAD must equal the
+  pin, with no tracked changes);
 - the host packages are not the installer's: the verified kernel's own `ops/vm/setup.sh` installs them from the key
   fingerprints, repositories and exact versions in its `ops/vm/pins.json`.
 
@@ -143,10 +144,24 @@ It sends no telemetry.
 The new instance pins the release it was installed from (`release:` in `instance.yaml`, with the distro commit it was cut
 from); every apply reads that file again at that commit and refuses a kernel other than the release's.
 
+Running the installer again on a server that already runs AidenHQ upgrades it (or repairs it on the same release; an
+older release is refused). The product's setup moves the instance's pin in one commit: `product:`, `release:`, and the
+instance's `aidenhq` marketplace entry is dropped, since the official modules now ship inside the product. Other
+marketplaces (third-party modules) stay as they are. If the apply then fails, that commit is reverted. The installer
+itself never edits `instance.yaml`.
+
 ## Releases
 
-A release is cut by pushing its tag (`2026.11`, patch releases `2026.11.1`) on a `main` commit whose `releases/<tag>.json`
-names real shas. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch
+A release is cut by pushing its tag (`2026.11.18`, a day's second cut `2026.11.18.1`) on a `main` commit whose
+`releases/<tag>.json` names a real product sha. A release file pins:
+
+- `kernel`: one commit of [AidenHQ](https://github.com/Aiden-HQ/AidenHQ) on its `main`, which holds the kernel and the
+  official modules (its `modules/`); `kernel_repo` names that repository (optional, `Aiden-HQ/AidenHQ` by default);
+- `images`: each prebuilt image by digest (`ghcr.io/aiden-hq/<name>@sha256:…`), built from that commit;
+- `notes` (optional) and `tested` (written when the release is published).
+
+It has no `marketplace` or `modules` entries: third-party modules are the instance's own marketplaces in
+`instance.yaml`, never part of a release. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch
 and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
 publishes both as the release's assets (a draft until they are checked), then opens a PR pinning `get.aidenhq.ai` to that `install.sh` by tag and sha256; merging it deploys the site. Never
 to a branch.
@@ -155,12 +170,14 @@ A release file may carry `notes`: up to 20 one-line strings saying what changed 
 authority to any module). Installs show them when the release is available, and in the message after it installs.
 
 Installs pick a new release up on their own (the product's `kernel/src/updates.ts`): they read the newest release tag
-over https from this repository, and install it only when its tag commit is on `main`, its kernel and modules commits are
-on their repositories' `main` and descend from what the install runs, and the published `<release>.json` asset equals the
+over https from this repository, and install it only when its tag commit is on `main`, its product commit is on the
+product's `main` and descends from what the install runs, and the published `<release>.json` asset equals the
 file at the tag with the `tested` stamp of a successful `release.yml` run on that commit. A tag without a published, tested
 release is never installed, and a newer broken one doesn't hide the newest valid one.
 
-`releases/2026.11.json` holds placeholder shas until the first release is cut, so a real run refuses it.
+`releases/2026.11.json`, `2026.11.1.json` and `2026.11.2.json` are the older two-repo shape (a `marketplace` and a
+`modules` map beside the kernel). They stay as they were cut, since their digests are baked into published installers;
+an install on 2026.11.2 moves to the one-sha shape by running the installer again.
 
 ## Test
 

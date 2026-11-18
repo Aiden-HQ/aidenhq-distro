@@ -1,19 +1,17 @@
 // The release suites (lean-core spec §6.8, §9) on a verified checkout of the release set:
-//   node suites.mjs <kernel checkout> <marketplace checkout | -> <suite>...
+//   node suites.mjs <product checkout> <suite>...
 // Prints, as its last line, the JSON list of suites that ran and passed; a suite with no test in this kernel yet is skipped
 // (and said so). Exit 1 when any test fails: the release is not cut.
 //
 // A suite is a list of test files: the kernel's own checklists (scripts/lean/adversarial.json, parity.json) or one named
 // file. Each file runs in its package (the nearest package.json; installed once with `npm ci --ignore-scripts` when it has
-// a lockfile): `.mjs` with node's test runner, `.ts` with vitest when the package uses it, else node. A `modules/<m>/…`
-// file missing from the kernel checkout is looked up in the marketplace checkout (after the modules move to their own
-// repository). The twin runs with the kernel CI's own command for it (the fixtures/twin row of .github/ci/areas.json).
+// a lockfile): `.mjs` with node's test runner, `.ts` with vitest when the package uses it, else node. The official modules
+// are the product checkout's own modules/ tree. The twin runs with the kernel CI's own command for it (the fixtures/twin row of .github/ci/areas.json).
 import { execFileSync, execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 
-const [kernel, market, ...suites] = process.argv.slice(2);
-const mkt = market && market !== "-" && existsSync(market) ? market : "";
+const [kernel, ...suites] = process.argv.slice(2);
 const json = (p) => JSON.parse(readFileSync(join(kernel, p), "utf8"));
 
 const files = {
@@ -32,13 +30,8 @@ function testsOf(list) {
 
 /** Where a file is: [package dir (absolute), path inside it]. */
 function locate(file) {
-  let abs = join(kernel, file);
-  let top = kernel;
-  if (!existsSync(abs)) {
-    const rel = file.replace(/^modules\//, "");
-    if (!mkt || rel === file || !existsSync(join(mkt, rel))) throw new Error(`${file}: not in the kernel or the marketplace checkout`);
-    [abs, top] = [join(mkt, rel), mkt];
-  }
+  const abs = join(kernel, file), top = kernel;
+  if (!existsSync(abs)) throw new Error(`${file}: not in the product checkout`);
   let d = dirname(abs);
   while (d.startsWith(top) && d !== top && !existsSync(join(d, "package.json"))) d = dirname(d);
   // No package.json (a module whose tests need nothing installed): its tests run from the folder holding test/.
