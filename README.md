@@ -117,16 +117,17 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    names.
 2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. They build and
    push every image for amd64 and arm64.
-3. **Cut.** It commits `releases/<name>.json` with its `images` to main and tags that commit. Both use the release App's
-   token, because a tag pushed with `GITHUB_TOKEN` starts no workflow.
-4. **Test and publish.** The tag push runs `release.yml` exactly as for a hand cut: install and test on a fresh
-   runner, then publish. Its `site` job commits `wrangler.jsonc`'s pins (tag and install.sh sha256) to main and deploys
-   the Worker. Installs' updaters pick up the release that night, between 02:00 and 05:00 in their own timezone.
+3. **Cut.** It commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
+   on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
+   A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
+   `release.yml` run on the tag, whether a push or a dispatch.
+4. **Test and publish.** The tag run is the same as for a hand cut: install and test on a fresh runner, then publish.
+   Installs' updaters pick up the release that night, between 02:00 and 05:00 in their own timezone. get.aidenhq.ai
+   serves it within minutes (below).
 
 A tag run that doesn't publish deletes its tag and any draft release, then opens an issue, so nothing untested is ever
 offered. A failed nightly before the tag only opens an issue. A failed release leaves its file on main, and its name is
-used up: the next cut that day takes the next `.N`. A failed site deploy keeps the release and opens an issue. To retry
-it, re-run the failed `site` job.
+used up: the next cut that day takes the next `.N`.
 
 - **Preview tonight's cut:** `GITHUB_TOKEN=$(gh auth token) node .github/release/nightly.mjs`, or run `nightly` with
   `dry_run` from the Actions tab.
@@ -138,22 +139,31 @@ it, re-run the failed `site` job.
   1. Write `releases/<name>.json` with no `images` (copy the nightly's shape, `notes` included).
   2. Run `release` by hand with `release=<name>`.
   3. Merge the `images.json` artifact into the file and land it on main.
-  4. Push the tag `<name>` on that commit, using an account or App token, not `GITHUB_TOKEN`.
+  4. Push the tag `<name>` on that commit, or run `release` on the tag.
 
-  The tag run then tests, publishes and moves the site.
+  The tag run then tests and publishes it.
 
-Setup, once:
+No setup: the workflows use only the built-in `GITHUB_TOKEN`.
 
-- **An environment named `release`** (Settings › Environments). Under deployment branches and tags, choose "Selected
-  branches and tags" and allow the branch `main` and the tag pattern `20*`. The nightly's `cut` job runs from main, and
-  `release.yml`'s `site` job runs from the release tag.
-- **A GitHub App** with Repository permissions › Contents: Read and write, installed on this repository only. Store
-  its id and private key as the `release` environment's secrets `RELEASE_APP_ID` and `RELEASE_APP_KEY`.
-- **A Cloudflare API token** that can deploy the `aidenhq-site` Worker: the "Edit Cloudflare Workers" template,
-  limited to the one account and the `aidenhq.ai` zone. Store it as the `release` environment's secret
-  `CLOUDFLARE_API_TOKEN`. Store the account id as the variable `CLOUDFLARE_ACCOUNT_ID`.
-- The site deploys with the wrangler in [`web/deploy`](web/deploy) (exact pin and lockfile). Bump it there, at a
-  version at least 7 days old.
+### get.aidenhq.ai
+
+The Worker ([`web/worker.js`](web/worker.js)) serves GitHub's `releases/latest/download/install.sh` as `text/plain`. It
+caches that file for five minutes and keeps the last good copy, which it serves when GitHub fails. A release changes
+nothing on the site, and the site needs no deploy for it. Pages and styles are still deployed by hand when they change
+(`sh web/build.sh && npx -y wrangler@4.160.0 deploy`).
+
+What it serves is exactly the asset GitHub published for the latest release:
+
+- GitHub's "latest" is the newest release that is neither a draft nor a prerelease.
+- `release.yml` keeps a release a draft until its install-and-test has passed and its uploaded assets match what was
+  tested and baked. If a release fails, it deletes the draft and the tag.
+- `release.yml` marks a release latest only when no published release has a newer name. A re-run of an older tag never
+  moves the site back.
+- The Worker serves only a cut installer: one with a release name, its release file's sha256 and the distro commit
+  baked in. The installer then refuses any release file whose sha256 differs from the baked one.
+
+The trust is in this repository and its release workflow, the same as for the release assets themselves. There is no
+separate pin in the Worker.
 
 ### Test locally
 

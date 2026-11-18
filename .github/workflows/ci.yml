@@ -50,3 +50,4 @@ jobs:
         with:
           node-version: 24.x
       - run: sh web/build.sh
+      - run: node --test web/worker.test.mjs

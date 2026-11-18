@@ -10,7 +10,7 @@ It checks the machine, asks for your email (the board's owner account), fetches 
 product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, and `AIDENHQ_SSH_TUNNEL=` with `--no-tailscale`, for scripts and agents). Along the way it prints `AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>` lines (the percent never goes down and reaches 100 just before the link; the weights are estimates in one table at the top of `install.sh`). Everything after
 that happens in your browser: your password and authenticator, your model key, your channels.
 
-`get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves one tagged release's `install.sh` (its release file's digest baked in) as `text/plain`, only if it matches the sha256 pinned beside the tag in `wrangler.jsonc`. To read the script before running it:
+`get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves the latest published release's `install.sh` (its release file's digest baked in) as `text/plain`: exactly the asset GitHub published once the release passed its install-and-test (README "get.aidenhq.ai"). To read the script before running it:
 
 ```sh
 curl -fsSLo install.sh https://get.aidenhq.ai && less install.sh && sh install.sh
