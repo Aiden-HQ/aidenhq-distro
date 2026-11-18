@@ -190,6 +190,11 @@ expect "the final output carries the two machine-readable lines, no --verbose ne
    sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t' \
      && printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SSH_TUNNEL=ssh-x'"
 
+expect "an upgrade or repair prints the release and the board address, not a setup link" pass \
+  "DRY=0 VERBOSE=0 N='' B='' G='' Y='' LOG=/dev/null DIR=/x SETUP_URL='' SSH_TUNNEL='' INST_YAML=/x/instance.yaml REL=2026.11.18 BOARD_URL=https://box.ts.net
+   sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -q 'updated to release 2026.11.18. The board is at https://box.ts.net' \
+     && ! printf '%s\n' \"\$out\" | grep -qi 'setup link'"
+
 # Progress lines (AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>): the weights table keys are real step texts.
 expect "every weights row is the start of a step() text in install.sh, Linux and Mac" pass \
   "for t in \"\$PROGRESS_LINUX\" \"\$(progress_mac_table)\"; do printf '%s\n' \"\$t\" | while IFS='|' read -r k w l; do
