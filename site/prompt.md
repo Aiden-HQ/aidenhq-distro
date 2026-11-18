@@ -35,6 +35,8 @@ Ask only these two things, in one message (skip any you already know):
 
 Fill in `AIDENHQ_TIMEZONE=<the user's IANA zone, e.g. Asia/Dubai>` yourself too, from their machine or what you know of
 them: schedules and the morning brief run in it, and a server's clock is usually UTC. Ask only if you truly can't tell.
+Fill in `AIDENHQ_OWNER_NAME=<the name Aiden should call them>` the same way, from what you know of them (no quotes in
+it); leave it out only if you truly can't tell.
 
 Ask nothing else: the installer derives sizes, and the browser setup asks for the model key.
 
@@ -84,7 +86,7 @@ It downloads and starts everything, so run it detached:
 ssh <target> 'umask 077; cat > ~/aidenhq-install-run.sh' <<'EOF'
 #!/bin/sh
 if [ -f "$HOME/.aidenhq-secrets.env" ]; then set -a; . "$HOME/.aidenhq-secrets.env"; set +a; fi
-AIDENHQ_OWNER_EMAIL='<email>' AIDENHQ_TIMEZONE='<zone>' sh "$HOME/aidenhq-install.sh" --non-interactive --no-tailscale
+AIDENHQ_OWNER_EMAIL='<email>' AIDENHQ_OWNER_NAME='<name>' AIDENHQ_TIMEZONE='<zone>' sh "$HOME/aidenhq-install.sh" --non-interactive --no-tailscale
 echo "AIDENHQ_INSTALL_EXIT=$?"
 shred -u "$HOME/.aidenhq-secrets.env" 2>/dev/null || rm -f "$HOME/.aidenhq-secrets.env"
 EOF
