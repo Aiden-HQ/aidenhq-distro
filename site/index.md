@@ -97,7 +97,7 @@ A Linux server with Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13: at least 2
 
 ### What does it cost to run?
 
-AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Setup puts a monthly limit on that key, each agent has spend caps per run, per task and per day, and the Costs page shows where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
+AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Each agent has spend caps per run, per task and per day, you can put a monthly limit on the key itself, and the Costs page shows where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
 
 ### Where does my data live?
 
