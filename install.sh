@@ -531,6 +531,31 @@ safe_val() {
 }
 # The owner's email: the board's owner account is made for it, and setup stops without it. AIDENHQ_OWNER_EMAIL, else
 # asked for on the terminal (the one thing the installer can't derive).
+# An existing install of this user (ops/setup.sh's instance repo): the release it follows and its owner. A run on it is an
+# upgrade (or a repair): the owner email is the instance's, and an older release than it follows is refused (check_upgrade).
+existing_install() {
+  INST_YAML="$SVC_HOME/aidenhq-instance/instance.yaml" INST_REL='' INST_EMAIL=''
+  [ -r "$INST_YAML" ] || { INST_YAML=''; return 0; }   # the service user's own file, or root's run
+  INST_REL=$(sed -n 's/^release: *{ *name: *"\{0,1\}\([0-9][0-9.]*\)"\{0,1\}.*/\1/p' "$INST_YAML" | head -1)
+  INST_EMAIL=$(sed -n 's/^  owner_email: *"\{0,1\}\([^"]*\)"\{0,1\} *$/\1/p' "$INST_YAML" | head -1)
+  [ -n "${AIDENHQ_OWNER_EMAIL:-}" ] || [ -z "$INST_EMAIL" ] || AIDENHQ_OWNER_EMAIL=$INST_EMAIL
+}
+# check_upgrade: this release against the one the existing instance follows. Newer: the product's setup moves the pin (one
+# instance commit) before its apply; the same: a repair; older: refused, nothing changed.
+check_upgrade() {
+  [ -n "${INST_YAML:-}" ] || return 0
+  if [ -z "$INST_REL" ]; then
+    say "existing install with no release pinned (its product is pinned by hand): setup leaves its pin as it is"
+  elif [ "$INST_REL" = "$REL" ]; then
+    say "existing install on $REL: this run repairs it"
+  elif ver_ge "$INST_REL" "$REL"; then
+    why="this server runs $INST_REL, newer than $REL: downgrades are refused (use the newest installer, https://get.aidenhq.ai)"
+    [ "$DRY" = 1 ] || die "$why"
+    warn "$why (a real run stops here)"
+  else
+    say "upgrading from $INST_REL to $REL: setup moves the instance's pin, then applies; a failed health check goes back to $INST_REL"
+  fi
+}
 ensure_owner_email() {
   if [ -z "${AIDENHQ_OWNER_EMAIL:-}" ] && [ "$NONINT" = 0 ] && [ "$DRY" = 0 ]; then
     printf '    Owner email (the board account is made for it): ' >/dev/tty
@@ -1007,7 +1032,10 @@ mac_main() {
   step "This Mac"
   say "macOS $MACOS ($MARCH); $MCORES cores, $MRAM_GB GB memory, $MFREE_GB GB free"
   say "AidenHQ runs in a Linux VM ($VM, Lima): the Linux install runs inside it, with every security gate as on a server"
-  ensure_owner_email; mac_timezone; ensure_timezone
+  # A run on an existing VM is an upgrade or a repair: the install inside it reads the owner from its instance.
+  if [ -n "$(vm_state)" ] && [ -z "${AIDENHQ_OWNER_EMAIL:-}" ]; then say "the VM exists: this run upgrades or repairs it, keeping its owner"
+  else ensure_owner_email; fi
+  mac_timezone; ensure_timezone
   if [ -n "$REFUSALS" ]; then
     printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would refuse' || echo 'Refusing to install')" "$N" "$REFUSALS"
     [ "$DRY" = 1 ] || { STEP=''; exit 1; }
@@ -1034,6 +1062,7 @@ main() {
   TMPD=$(mktemp -d 2>/dev/null || mktemp -d -t aidenhq) STEP='' REFUSALS='' KEEPALIVE='' RELFILE=''
   PG_TABLE=$PROGRESS_LINUX PG_LAST=0 PROGRESS_SLICE=''
   [ "$(uname -s)" != Darwin ] || PG_TABLE=$(progress_mac_table)
+  INST_YAML='' INST_REL='' INST_EMAIL=''
   KERNEL_SHA='' KERNEL_REPO='' MKT_SHA='' MKT_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
@@ -1048,6 +1077,7 @@ main() {
   derive_defaults
   plan_summary
   check_minimums
+  existing_install
   ensure_owner_email; ensure_timezone
   if [ -n "$REFUSALS" ]; then
     printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would refuse' || echo 'Refusing to install')" "$N" "$REFUSALS"
@@ -1064,6 +1094,7 @@ main() {
     apt_get install --no-install-recommends ca-certificates curl git gnupg jq sudo
   fi
   fetch_release
+  check_upgrade
   fetch_sources
   check_product
   if [ -n "$REFUSALS" ]; then

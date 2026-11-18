@@ -52,8 +52,9 @@ jobs:
           jq -e --arg t "$TAG" '
             def sha: type == "string" and test("^[0-9a-f]{40}$");
             .release == $t and (.kernel | sha) and .marketplace.name == "aidenhq" and (.marketplace.sha | sha)
-            and (.modules | length > 0) and (.modules | to_entries | all(.value | sha))' "$f" >/dev/null \
-            || { echo "::error::$f has a placeholder or malformed sha, or isn't release $TAG"; exit 1; }
+            and (.modules | length > 0) and (.modules | to_entries | all(.value | sha))
+            and ((.notes // []) | type == "array" and length <= 20 and all(.[]; type == "string" and length <= 300))' "$f" >/dev/null \
+            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, or its notes aren't up to 20 lines of text"; exit 1; }
       # The only step that sees the read token: install.sh's fetch and verify, which runs nothing it fetched.
       - name: Fetch and verify the set (install.sh's own checks)
         env:

@@ -92,6 +92,21 @@ expect "a fetched release with another digest stops"            stop "$(fetched 
 expect "an uncut installer (no baked digest) stops on a fetched file" stop "$(fetched 2026.11 '')"
 expect "another --release than the one this copy was cut for stops" stop "$(fetched 2026.12 "$CUT")"
 
+# A run on an existing install (an upgrade by hand): the instance's release and owner are read; an older release is refused.
+mkdir -p "$work/up/aidenhq-instance"
+cat >"$work/up/aidenhq-instance/instance.yaml" <<'EOS'
+product: 1111111111111111111111111111111111111111
+release: { name: "2026.11.2", source: { source: github, repo: Aiden-HQ/aidenhq-distro }, sha: 2222222222222222222222222222222222222222 }
+settings:
+  owner_name: "Acme"
+  owner_email: "owner@example.com"
+EOS
+up() { echo "SVC_HOME='$work/up' DRY=0 REL=$1; unset AIDENHQ_OWNER_EMAIL; existing_install; check_upgrade; ${2:-:}"; }
+expect "an upgrade from 2026.11.2 to 2026.11.3 goes on, with the instance's owner email" pass "$(up 2026.11.3 '[ "$INST_REL" = 2026.11.2 ] && [ "$AIDENHQ_OWNER_EMAIL" = owner@example.com ]')"
+expect "the same release again is a repair" pass "$(up 2026.11.2)"
+expect "an older release than the instance runs is refused" stop "$(up 2026.11.1)"
+expect "a fresh server has no existing install" pass "SVC_HOME='$work/none' DRY=0 REL=2026.11.3; existing_install; check_upgrade; [ -z \"\$INST_YAML\" ]"
+
 # Derived defaults on the two calibration hosts (lean VM and the EX44).
 expect "4 vCPU / 8 GB / 100 GB -> 2 jobs, 60 min, 1 CI runner, 15 GB reserve" pass \
   'CORES=4 RAM_MB=7812 DISK_TOTAL_GB=96; derive_defaults; [ "$MAX_CONCURRENT/$JOB_TIMEOUT/$CI_RUNNERS/$DISK_RESERVE_GB" = 2/60/1/15 ]'
