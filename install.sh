@@ -894,7 +894,7 @@ mac_vm() {
   dom="gui/$(id -u)" changed=1
   [ -f "$plist" ] && cmp -s "$TMPD/plist" "$plist" && changed=0
   if [ "$DRY" = 1 ]; then
-    [ "$changed" = 0 ] || say "would write $plist (start at login$([ "$AWAKE" = 1 ] && echo ', awake on power')) and load it"
+    [ "$changed" = 0 ] || say "would write $plist (start at login$([ "$AWAKE" = 1 ] && echo ', awake on power' || echo '; the Mac may sleep: AIDENHQ_KEEP_AWAKE=1 keeps it awake on power')) and load it"
     return 0
   fi
   if [ "$changed" = 1 ]; then
@@ -961,10 +961,13 @@ mac_inner() {
   log "+ limactl shell $VM (the Linux installer; its log is ~/.aidenhq/install.log in the VM)"
   if vm_sh "$@" <"$in"; then rc=0; else rc=$?; fi
   # The VM's installer has already said where and why (STEP cleared: no second log tail).
+  # The install added the VM user to the docker group, but Lima's shared SSH connection keeps the groups it started
+  # with: close it, so the next limactl shell can run docker.
+  ssh -O exit -o ControlPath="$LIMA_HOME/$VM/ssh.sock" "$VM" >/dev/null 2>&1 || :
   [ "$rc" = 0 ] || { STEP=''; die "the install in the VM stopped (exit $rc). The VM stays; fix the cause and run the same command again."; }
   SETUP_URL=$(vm_sh sh -c 'cat "$HOME/.aidenhq/setup-url" 2>/dev/null || :' </dev/null | tr -d '\r')
-  # Without Tailscale the board is the VM's loopback 3121, which Lima forwards to this Mac's.
-  case "$SETUP_URL" in http://*:3121/*) SETUP_URL="http://127.0.0.1:3121/${SETUP_URL#http://*:3121/}" ;; esac
+  # Without Tailscale the link is on the VM's loopback (3120 sign-in, 3121 the board), which Lima forwards to this Mac's.
+  case "$SETUP_URL" in http://*:3120/*|http://*:3121/*) SETUP_URL="http://localhost:${SETUP_URL#http://*:}" ;; esac
 }
 
 mac_finish() {
@@ -975,7 +978,7 @@ mac_finish() {
   if [ -n "$SETUP_URL" ]; then
     printf '  Open this link in a browser on this Mac (one use, 72 hours):\n\n    %s%s%s\n\n' "$B" "$SETUP_URL" "$N"
     case "$SETUP_URL" in
-      http://127.0.0.1:3121/*) printf '  The VM'"'"'s browser ports (3121, 3120, 3130) are forwarded to this Mac'"'"'s localhost; nothing else in the VM is.\n' ;;
+      http://localhost:3120/*|http://localhost:3121/*) printf '  The VM'"'"'s browser ports (3121, 3120, 3130) are forwarded to this Mac'"'"'s localhost; nothing else in the VM is.\n' ;;
       *) printf '  This Mac (and any device you use) must be on the same tailnet as the VM.\n' ;;
     esac
   elif [ -n "$UPGRADED" ]; then printf '  The VM is updated to release %s. Open the board you already use.\n' "$REL"
