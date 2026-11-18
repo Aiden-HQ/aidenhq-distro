@@ -99,6 +99,56 @@ installer refuses it.
 After install, an instance moves on its own: its owner bumps the `product:` sha in `instance.yaml` (kernel) and the
 `aidenhq` marketplace sha (modules). A new release does not change a running instance.
 
+### Nightly releases
+
+Releases are named by their cut date (`2026.11.18`, UTC). A second cut on the same day is `2026.11.18.1`, then `.2`.
+Names compare part by part as numbers, so `2026.11.2` < `2026.11.18` < `2026.11.18.1` < `2026.11.19`. A kernel that
+predates four-part names ignores a day's second cut and takes the next day's release.
+
+Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the following:
+
+1. **Decide.** [`.github/release/nightly.mjs`](.github/release/nightly.mjs) reads product main's sha and its
+   `modules-pin.json`. If both equal the newest published release's, it stops. Otherwise it waits up to 45 minutes for
+   product main's `ci-required` check and skips the night unless that check passed. The release file pins the kernel,
+   the modules sha and the marketplace's `bundle` at that sha. Its `notes` come from the `feat`, `fix` and `perf`
+   commit subjects since the last release: features first, deduplicated, at most 20. A note flags a release that touches
+   host setup (`ops/setup.sh`, `ops/vm/`, `ops/units/`). Another note flags one that may add module authority, read
+   approximately from `module.yaml` diffs.
+2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. They build and
+   push every image for amd64 and arm64.
+3. **Cut.** It commits `releases/<name>.json` with its `images` to main and tags that commit. Both use the release App's
+   token, because a tag pushed with `GITHUB_TOKEN` starts no workflow.
+4. **Test and publish.** The tag push runs `release.yml` exactly as for a hand cut: install and test on a fresh
+   runner, then publish. Its `site` job commits `wrangler.jsonc`'s pins (tag and install.sh sha256) to main and deploys
+   the Worker. Installs' updaters pick up the release that night, between 02:00 and 05:00 in their own timezone.
+
+A tag run that doesn't publish deletes its tag and any draft release, then opens an issue, so nothing untested is ever
+offered. A failed nightly before the tag only opens an issue. A failed release leaves its file on main, and its name is
+used up: the next cut that day takes the next `.N`. A failed site deploy keeps the release and opens an issue. To retry
+it, re-run the failed `site` job.
+
+- **Preview tonight's cut:** `GITHUB_TOKEN=$(gh auth token) node .github/release/nightly.mjs`, or run `nightly` with
+  `dry_run` from the Actions tab.
+- **Skip one night:** cancel that night's `nightly` run.
+- **Hold nightlies:** `gh workflow disable nightly.yml -R Aiden-HQ/aidenhq-distro`. Use `gh workflow enable` to resume.
+- **Cut one now:** `gh workflow run nightly.yml -R Aiden-HQ/aidenhq-distro`. It makes the same checks as the
+  scheduled run.
+- **Cut one by hand,** e.g. pinning shas other than main's:
+  1. Write `releases/<name>.json` with no `images` (copy the nightly's shape, `notes` included).
+  2. Run `release` by hand with `release=<name>`.
+  3. Merge the `images.json` artifact into the file and land it on main.
+  4. Push the tag `<name>` on that commit, using an account or App token, not `GITHUB_TOKEN`.
+
+  The tag run then tests, publishes and moves the site.
+
+Setup, once:
+
+- **A GitHub App** with Repository permissions › Contents: Read and write, installed on this repository only. Store
+  its id and private key as the secrets `RELEASE_APP_ID` and `RELEASE_APP_KEY`.
+- **A Cloudflare API token** that can deploy the `aidenhq-site` Worker: the "Edit Cloudflare Workers" template,
+  limited to the one account and the `aidenhq.ai` zone. Store it as the secret `CLOUDFLARE_API_TOKEN`. Store the
+  account id as the variable `CLOUDFLARE_ACCOUNT_ID`.
+
 ### Test locally
 
 ```sh

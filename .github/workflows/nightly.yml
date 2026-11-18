@@ -1,0 +1,112 @@
+# The nightly release (README "Nightly releases"). Each evening, when product main moved since the newest published release
+# and its CI passed: decide (.github/release/nightly.mjs), build and push the images (release.yml's plan/images/collect,
+# called), write releases/<name>.json with them onto main and tag it. The tag push runs release.yml as for a hand cut: install
+# and test on a fresh runner, publish, move get.aidenhq.ai. A failed test deletes the tag (release.yml `alert`), so only a
+# passing release is ever seen by installs.
+# 18:00 UTC: built and published (about 20 minutes) before installs update, 02:00-05:00 in their own timezone.
+# Hold the nightlies: `gh workflow disable nightly.yml -R Aiden-HQ/aidenhq-distro` (enable to resume).
+# Secrets: RELEASE_APP_ID and RELEASE_APP_KEY, a GitHub App with contents: write on this repo only. Its token pushes the release
+# commit and the tag: a tag pushed with GITHUB_TOKEN starts no workflow, and the updater accepts only a release.yml push run.
+name: nightly
+on:
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only decide: print what tonight's cut would be"
+        type: boolean
+        default: false
+permissions: {}
+concurrency: nightly
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    outputs:
+      go: ${{ steps.decide.outputs.go }}
+      name: ${{ steps.decide.outputs.name }}
+      manifest: ${{ steps.decide.outputs.manifest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      # Waits up to 45 minutes for product CI still running on main's head.
+      - id: decide
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NIGHTLY_CI_WAIT_MIN: "45"
+        run: node .github/release/nightly.mjs
+
+  images:
+    needs: decide
+    if: needs.decide.outputs.go == 'true' && !inputs.dry_run
+    # The ceiling for every job release.yml declares (each job keeps its own, narrower, permissions); only plan/images/collect run.
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+    uses: ./.github/workflows/release.yml
+    with:
+      release: ${{ needs.decide.outputs.name }}
+      manifest: ${{ needs.decide.outputs.manifest }}
+    secrets:
+      RELEASE_READ_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
+
+  cut:
+    needs: [decide, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
+    env:
+      REL: ${{ needs.decide.outputs.name }}
+      MANIFEST: ${{ needs.decide.outputs.manifest }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: images.json
+          path: built
+      - name: The release file, with its images
+        run: |
+          printf '%s\n' "$MANIFEST" | jq -S --slurpfile i built/images.json '. + $i[0]' > release.json
+          jq -e --arg r "$REL" '.release == $r and (.images | length > 0) and (.notes | type == "array")' release.json >/dev/null
+          cat release.json
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0 (2026-10-12)
+        id: app
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          permission-contents: write
+      # A new file on main (refused if it exists), then the tag on that commit. The token goes to curl on stdin, never argv.
+      - name: Land on main and tag
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
+          R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
+          sha=$(api -X PUT "$R/contents/releases/$REL.json" -d "$(jq -n --arg m "chore(release): $REL (nightly)" --arg c "$(base64 -w0 release.json)" \
+            '{message: $m, content: $c, branch: "main"}')" | jq -er .commit.sha)
+          api -X POST "$R/git/refs" -d "$(jq -n --arg r "refs/tags/$REL" --arg s "$sha" '{ref: $r, sha: $s}')" >/dev/null
+          echo "Tagged $REL on $sha: release.yml now tests and publishes it." | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # Anything before the tag failed: no tag exists, nothing to clean up; say so where the owner sees it.
+  alert:
+    needs: [decide, images, cut]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REL: ${{ needs.decide.outputs.name }}
+        run: |
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- -X POST "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/issues" \
+            -d "$(jq -n --arg t "Nightly release ${REL:-(undecided)} failed" --arg b "The nightly stopped before tagging: nothing was released. Run: $run" '{title: $t, body: $b}')" | jq -r .html_url

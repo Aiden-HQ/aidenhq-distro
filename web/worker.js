@@ -29,7 +29,7 @@ export default {
     if (url.hostname.startsWith("get.")) {
       if (url.pathname !== "/" && url.pathname !== "/install.sh") return new Response("Not found\n", { status: 404 });
       // The pinned release's install.sh (wrangler.jsonc vars INSTALLER_TAG and INSTALLER_SHA256, set by the release workflow's
-      // PR): fetched, checked against its sha256, and served only if it matches. The repo's own copy is uncut and can't install.
+      // site job): fetched, checked against its sha256, and served only if it matches. The repo's own copy is uncut and can't install.
       const res = await fetch(`${RELEASES}/${env.INSTALLER_TAG}/install.sh`, { cf: { cacheTtl: 300 } });
       const body = res.ok ? await res.arrayBuffer() : null;
       if (!body || (await sha256(body)) !== env.INSTALLER_SHA256) return new Response("The installer is unavailable; try again shortly.\n", { status: 502 });

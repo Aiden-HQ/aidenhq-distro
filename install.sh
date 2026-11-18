@@ -200,7 +200,7 @@ parse_args() {
     esac
     shift
   done
-  case "$REL" in *[!0-9.]*|'') die "release names look like 2026.11 or 2026.11.1, not '$REL'" ;; esac
+  case "$REL" in *[!0-9.]*|'') die "release names look like 2026.11.18 or 2026.11.18.1, not '$REL'" ;; esac
   for v in DRY NO_TS UNINSTALL VERBOSE NONINT; do eval "case \$$v in 1|true|yes) $v=1 ;; *) $v=0 ;; esac"; done
   # No terminal to wait on: curl | sh in CI, cloud-init, or ssh without -t.
   if ! { [ -t 0 ] || (: </dev/tty) 2>/dev/null; }; then NONINT=1; fi

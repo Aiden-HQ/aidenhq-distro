@@ -1,4 +1,4 @@
-# Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11, 2026.11.1) on a main commit whose
+# Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11.18, 2026.11.18.1) on a main commit whose
 # releases/<release>.json names real shas. On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # Prebuilt images: the release file may carry `images` (name -> ghcr.io/aiden-hq/<name>@sha256:<digest>), which apply pulls
@@ -9,6 +9,11 @@
 # both platforms and names an image this release builds. A release file without `images` installs by building, as before.
 # RELEASE_READ_TOKEN (contents: read) is optional: only a private kernel or modules repo needs it; public repos fetch
 # anonymously, and an unset secret gives the fetch no token.
+# The nightly (nightly.yml) calls this workflow (workflow_call) for plan/images/collect with its release file as `manifest`,
+# then lands the file with the images on main and tags it: the tag push runs the rest, as for a hand cut.
+# A tag run that doesn't publish deletes its tag and any draft release (`alert`), so installs never see an untested release;
+# a published release moves get.aidenhq.ai (`site`: wrangler.jsonc's pins committed to main, then the Worker deployed with
+# CLOUDFLARE_API_TOKEN and the CLOUDFLARE_ACCOUNT_ID variable). Either failing opens an issue.
 # Isolation: the test job's suites step is the only one that runs fetched code, and it has no token; publish is a separate
 # job (needs: test), so it lands on a fresh runner that never ran the suites.
 name: release
@@ -18,10 +23,25 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Build and push this release's images (the name of releases/<name>.json, e.g. 2026.11.1)"
+        description: "Build and push this release's images (the name of releases/<name>.json, e.g. 2026.11.18)"
         required: true
+  workflow_call:
+    inputs:
+      release:
+        type: string
+        required: true
+      # The release file itself, when it isn't on this commit yet (the nightly's).
+      manifest:
+        type: string
+        required: false
+    secrets:
+      RELEASE_READ_TOKEN:
+        required: false
+      # Only the tag run's site job uses it; the nightly never passes it.
+      CLOUDFLARE_API_TOKEN:
+        required: false
 permissions: {}
-concurrency: release-${{ inputs.release || github.ref_name }}
+concurrency: release-${{ inputs.release || github.ref_name }}-${{ github.event_name }}
 jobs:
   # Fetch and test with a read-only token; publishing is a separate job, the only one that can write.
   test:
@@ -45,7 +65,7 @@ jobs:
           node-version: 24.x
       - name: The tag is on main and its release file names real shas
         run: |
-          [[ "$TAG" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+)?$ ]] || { echo "::error::$TAG isn't a release name (2026.11, 2026.11.1)"; exit 1; }
+          [[ "$TAG" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$ ]] || { echo "::error::$TAG isn't a release name (2026.11.18, 2026.11.18.1)"; exit 1; }
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::$TAG isn't on main"; exit 1; }
           f="releases/$TAG.json"
           [ -f "$f" ] || { echo "::error::no $f"; exit 1; }
@@ -92,9 +112,15 @@ jobs:
         with:
           node-version: 24.x
       - id: has
+        env:
+          MANIFEST: ${{ inputs.manifest }}
         run: |
-          [[ "$REL" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+)?$ ]] || { echo "::error::$REL isn't a release name (2026.11, 2026.11.1)"; exit 1; }
+          [[ "$REL" =~ ^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$ ]] || { echo "::error::$REL isn't a release name (2026.11.18, 2026.11.18.1)"; exit 1; }
           f="releases/$REL.json"
+          if [ -n "$MANIFEST" ]; then
+            [ ! -e "$f" ] || { echo "::error::$f is already on this commit"; exit 1; }
+            printf '%s\n' "$MANIFEST" > "$f"
+          fi
           [ -f "$f" ] || { echo "::error::no $f"; exit 1; }
           # Shape, where nothing can skip it: no images, or a non-empty map of name -> ghcr.io/aiden-hq/<name>@sha256:<digest>.
           jq -e '(.images // {}) | type == "object" and all(to_entries[]; (.key | test("^[a-z0-9][a-z0-9._-]*$")) and (.value | type == "string" and test("^ghcr\\.io/aiden-hq/[a-z0-9][a-z0-9._-]*@sha256:[0-9a-f]{64}$")))' "$f" >/dev/null \
@@ -146,9 +172,9 @@ jobs:
           path: ${{ runner.temp }}/names-out.txt
           retention-days: 1
 
-  # By hand only: builds and pushes every chain for amd64 and arm64 (one job per chain, in parallel).
+  # By hand or from the nightly, never on a tag: builds and pushes every chain for amd64 and arm64 (one job per chain, in parallel).
   images:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'push'
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -269,7 +295,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
-      pull-requests: write
+    outputs:
+      installer_sha256: ${{ steps.bake.outputs.sum }}
     env:
       TAG: ${{ github.ref_name }}
       SUITES: ${{ needs.test.outputs.suites }}
@@ -278,6 +305,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Write tested, bake install.sh
+        id: bake
         run: |
           mkdir -p dist
           run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
@@ -292,6 +320,7 @@ jobs:
           if command -v shellcheck >/dev/null; then shellcheck dist/install.sh; else echo "shellcheck not on this runner: ci.yml checks the source"; fi
           cat "dist/$TAG.json"
           echo "release file sha256 $digest, distro commit $GITHUB_SHA"
+          echo "sum=$(sha256sum dist/install.sh | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       # The runners have no gh: the REST API with curl. The token goes to curl on stdin (-H @-), never into a file or argv.
       - name: Publish install.sh and the release file
         env:
@@ -315,19 +344,90 @@ jobs:
           cmp check/install.sh dist/install.sh && cmp "check/$TAG.json" "dist/$TAG.json"
           # Drafted until here: only a release whose assets passed the checks above is ever published.
           api -X PATCH "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id" -d '{"draft":false}' >/dev/null
-      # get.aidenhq.ai serves the release wrangler.jsonc pins (tag + install.sh sha256): a PR moves the pin, and merging it
-      # deploys the site, so going live stays the owner's call.
-      - name: Open the PR that points get.aidenhq.ai at this release
+
+  # get.aidenhq.ai serves the release wrangler.jsonc pins (tag + install.sh sha256): moved on main to this release, unless the
+  # site already serves a newer one, then the Worker deployed from that commit. CLOUDFLARE_API_TOKEN deploys this one Worker.
+  site:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.ref_name }}
+      SUM: ${{ needs.publish.outputs.installer_sha256 }}
+    steps:
+      - name: Pin get.aidenhq.ai to this release on main
+        id: pin
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
-          sum=$(sha256sum dist/install.sh | cut -d' ' -f1) br="site/installer-$TAG" R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
-          main=$(api "$R/git/ref/heads/main" | jq -er .object.sha)
-          api -X POST "$R/git/refs" -d "$(jq -n --arg r "refs/heads/$br" --arg s "$main" '{ref: $r, sha: $s}')" >/dev/null
-          api "$R/contents/wrangler.jsonc?ref=$br" > cur.json
-          jq -er .content cur.json | base64 -d \
-            | sed -E "s/\"INSTALLER_TAG\": \"[^\"]*\"/\"INSTALLER_TAG\": \"$TAG\"/; s/\"INSTALLER_SHA256\": \"[0-9a-f]*\"/\"INSTALLER_SHA256\": \"$sum\"/" > wrangler.new
-          grep -q "\"INSTALLER_SHA256\": \"$sum\"" wrangler.new || { echo "::error::main's wrangler.jsonc has no INSTALLER_SHA256 to move"; exit 1; }
-          api -X PUT "$R/contents/wrangler.jsonc" -d "$(jq -n --arg m "chore(site): get.aidenhq.ai serves $TAG" --arg c "$(base64 -w0 wrangler.new)" --arg s "$(jq -er .sha cur.json)" --arg b "$br" '{message: $m, content: $c, sha: $s, branch: $b}')" >/dev/null
-          api -X POST "$R/pulls" -d "$(jq -n --arg t "chore(site): get.aidenhq.ai serves $TAG" --arg h "$br" --arg b "Merging deploys the site with get.aidenhq.ai serving release $TAG's install.sh (sha256 $sum)." '{title: $t, head: $h, base: "main", body: $b}')" | jq -r .html_url
+          R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
+          [[ "$SUM" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::publish gave no install.sh sha256"; exit 1; }
+          api "$R/contents/wrangler.jsonc?ref=main" > cur.json
+          jq -er .content cur.json | base64 -d > wrangler.cur
+          cur=$(sed -nE 's/.*"INSTALLER_TAG": "([^"]*)".*/\1/p' wrangler.cur)
+          newest=$(printf '%s\n%s\n' "$cur" "$TAG" | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)
+          if [ "$cur" = "$TAG" ]; then
+            echo "sha=$(api "$R/git/ref/heads/main" | jq -er .object.sha)" >> "$GITHUB_OUTPUT"
+          elif [ "$newest" != "$TAG" ]; then
+            echo "::notice::get.aidenhq.ai serves $cur, newer than $TAG: left as it is"
+          else
+            sed -E "s/\"INSTALLER_TAG\": \"[^\"]*\"/\"INSTALLER_TAG\": \"$TAG\"/; s/\"INSTALLER_SHA256\": \"[0-9a-f]*\"/\"INSTALLER_SHA256\": \"$SUM\"/" wrangler.cur > wrangler.new
+            grep -q "\"INSTALLER_SHA256\": \"$SUM\"" wrangler.new || { echo "::error::main's wrangler.jsonc has no INSTALLER_SHA256 to move"; exit 1; }
+            sha=$(api -X PUT "$R/contents/wrangler.jsonc" -d "$(jq -n --arg m "chore(site): get.aidenhq.ai serves $TAG" --arg c "$(base64 -w0 wrangler.new)" --arg s "$(jq -er .sha cur.json)" \
+              '{message: $m, content: $c, sha: $s, branch: "main"}')" | jq -er .commit.sha)
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.pin.outputs.sha != ''
+        with:
+          ref: ${{ steps.pin.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.pin.outputs.sha != ''
+        with:
+          node-version: 24.x
+      # wrangler 4.160.0 (2026-11-10), the version the site was deployed with by hand.
+      - name: Deploy the site
+        if: steps.pin.outputs.sha != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          AT: ${{ steps.pin.outputs.sha }}
+        run: |
+          if ! grep -q "\"INSTALLER_TAG\": \"$TAG\"" wrangler.jsonc || ! grep -q "\"INSTALLER_SHA256\": \"$SUM\"" wrangler.jsonc; then
+            echo "::error::wrangler.jsonc at $AT doesn't pin $TAG"; exit 1
+          fi
+          sh web/build.sh
+          npx -y wrangler@4.160.0 deploy
+          code=$(curl -fsS -o /dev/null -w '%{http_code}' https://get.aidenhq.ai/install.sh) && echo "get.aidenhq.ai answers $code"
+
+  # A tag run that didn't publish leaves no tag (and no draft release), so no install or updater ever sees it; either failure
+  # opens an issue.
+  alert:
+    needs: [test, plan, verify, publish, site]
+    if: ${{ always() && github.event_name == 'push' && (needs.publish.result != 'success' || needs.site.result != 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      issues: write
+    env:
+      TAG: ${{ github.ref_name }}
+      PUBLISHED: ${{ needs.publish.result == 'success' }}
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
+          R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY" run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ "$PUBLISHED" = true ]; then
+            title="get.aidenhq.ai didn't move to $TAG" body="Release $TAG is published (installs' updaters see it), but the site step failed. Run: $run"
+          else
+            for id in $(api "$R/releases?per_page=100" | jq -r --arg t "$TAG" '.[] | select(.draft and .tag_name == $t) | .id'); do api -X DELETE "$R/releases/$id"; done
+            api -X DELETE "$R/git/refs/tags/$TAG" || echo "tag $TAG is already gone"
+            title="Release $TAG failed" body="Release $TAG didn't pass its install-and-test or publish: its tag is deleted and nothing was released. Run: $run"
+          fi
+          api -X POST "$R/issues" -d "$(jq -n --arg t "$title" --arg b "$body" '{title: $t, body: $b}')" | jq -r .html_url
