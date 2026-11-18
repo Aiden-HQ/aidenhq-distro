@@ -33,6 +33,9 @@ Ask only these two things, in one message (skip any you already know):
   Mac (above). When the context makes it obvious, decide and say so instead of asking.
 - **The owner's email:** the board's owner account is created for it. Fill it in yourself when you know it.
 
+Fill in `AIDENHQ_TIMEZONE=<the user's IANA zone, e.g. Asia/Dubai>` yourself too, from their machine or what you know of
+them: schedules and the morning brief run in it, and a server's clock is usually UTC. Ask only if you truly can't tell.
+
 Ask nothing else: the installer derives sizes, and the browser setup asks for the model key.
 
 ## 2. Check the server
@@ -66,7 +69,7 @@ ssh <target> 'umask 077; cat > ~/.aidenhq-secrets.env' < ~/.aidenhq-secrets.env
 It prints the plan and changes nothing.
 
 ```sh
-ssh <target> 'curl -fsSLo ~/aidenhq-install.sh https://get.aidenhq.ai && AIDENHQ_OWNER_EMAIL=<email> sh ~/aidenhq-install.sh --dry-run --non-interactive --no-tailscale'
+ssh <target> 'curl -fsSLo ~/aidenhq-install.sh https://get.aidenhq.ai && AIDENHQ_OWNER_EMAIL=<email> AIDENHQ_TIMEZONE=<zone> sh ~/aidenhq-install.sh --dry-run --non-interactive --no-tailscale'
 ```
 
 Lines after `A real run would refuse:` or `A real run would stop here` are blockers: fix them or tell the user.
@@ -81,7 +84,7 @@ It downloads and starts everything, so run it detached:
 ssh <target> 'umask 077; cat > ~/aidenhq-install-run.sh' <<'EOF'
 #!/bin/sh
 if [ -f "$HOME/.aidenhq-secrets.env" ]; then set -a; . "$HOME/.aidenhq-secrets.env"; set +a; fi
-AIDENHQ_OWNER_EMAIL='<email>' sh "$HOME/aidenhq-install.sh" --non-interactive --no-tailscale
+AIDENHQ_OWNER_EMAIL='<email>' AIDENHQ_TIMEZONE='<zone>' sh "$HOME/aidenhq-install.sh" --non-interactive --no-tailscale
 echo "AIDENHQ_INSTALL_EXIT=$?"
 shred -u "$HOME/.aidenhq-secrets.env" 2>/dev/null || rm -f "$HOME/.aidenhq-secrets.env"
 EOF
