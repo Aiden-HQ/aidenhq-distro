@@ -43,5 +43,36 @@
       "adversarial",
       "twin"
     ]
+  },
+  "images": {
+    "ai-reviewer-ai-reviewer": "ghcr.io/aiden-hq/ai-reviewer-ai-reviewer@sha256:9e6aa0163ed97c95097f4c34a2ef97713fdf34f532350de135c5125842797880",
+    "apps-mcp": "ghcr.io/aiden-hq/apps-mcp@sha256:f6ae437bb3189dd578bf46f95111db1789708767f7da5aabad9a189bd819cdf7",
+    "board": "ghcr.io/aiden-hq/board@sha256:db48e58e3c2af637ea2230a98f0ba6bbbbe0c7ffd458b6a87cca785ccd67ae07",
+    "channel-slack-slack": "ghcr.io/aiden-hq/channel-slack-slack@sha256:613c6cc5ccef1fe19a13bfbf829862e36d91118d5f8e5aa3351aa3f9b359493c",
+    "channel-telegram-telegram": "ghcr.io/aiden-hq/channel-telegram-telegram@sha256:dbe85ecc71aba2d2dfa8a4b45a2dcd5dfade5796b43a4329c8c1aef223f303e9",
+    "chat-lane-lane": "ghcr.io/aiden-hq/chat-lane-lane@sha256:be11860c2d37efa2a3b5beaf1d4b9a97d74d0c3685657d5b15e2e3b0c5ca1096",
+    "ci-runner": "ghcr.io/aiden-hq/ci-runner@sha256:822d6ff253aafc24afa43029692eef2ecf8e2cf16e07a90a660dad4140962784",
+    "clickhouse-mcp": "ghcr.io/aiden-hq/clickhouse-mcp@sha256:01b34ae87c3ee8cc60304453d0df798f9f79b3656802ccadd269b1f183fd4774",
+    "computer-agent-base": "ghcr.io/aiden-hq/computer-agent-base@sha256:865408b36882f51f59dc29c4d0c06a2cec34a40b08e0d0c865cf1c3eea86505d",
+    "computer-browser": "ghcr.io/aiden-hq/computer-browser@sha256:428186d666092a13ed930f4d77a29448d8b1916502b2739c6a9bf9cbc1feb08c",
+    "computer-engineer": "ghcr.io/aiden-hq/computer-engineer@sha256:5a6dd839982cd27ddfe628ed7d40ea3fffc821f09afd562fd6cae93bdbdb2297",
+    "github-mcp": "ghcr.io/aiden-hq/github-mcp@sha256:160239be9127051fd4e2e4612cc9b8111c6737c80abc93c1972a34f0b8bf6058",
+    "glean-mcp": "ghcr.io/aiden-hq/glean-mcp@sha256:af504d17f58f926e7e6bd2363d64ddc99d51eb71a73a2d64b7494de74fe99800",
+    "google-workspace-mcp": "ghcr.io/aiden-hq/google-workspace-mcp@sha256:b3cef0ff9474ea5014413d5f5cbe1872f149e4449a854d5349241fb7bd6f0a3d",
+    "grading-grading": "ghcr.io/aiden-hq/grading-grading@sha256:541d3f681c1f48dc23895e55ea37fe7c529edee0aa8d7e02bfe71e39ace0b4fb",
+    "grafana-mcp": "ghcr.io/aiden-hq/grafana-mcp@sha256:48688b686a5d4277f794be6e545b5d836b2167cc4301b75ce5d7acd347a930dd",
+    "jira-mcp": "ghcr.io/aiden-hq/jira-mcp@sha256:4e64fbb0dcf010c4c49d5733a9187c0fa8ca50951d6e39b4ac795dddd4137246",
+    "meetings-ops-mcp": "ghcr.io/aiden-hq/meetings-ops-mcp@sha256:06f657c582fa634401c99432834bbf6450877666a858431e2d8a3a7bc9755890",
+    "monitoring-alertmanager": "ghcr.io/aiden-hq/monitoring-alertmanager@sha256:8400e51575742fce0841f1bd3c71d551067121a1a3880203cf57f9aecf06912f",
+    "monitoring-cadvisor": "ghcr.io/aiden-hq/monitoring-cadvisor@sha256:5f9dc9a7fed4d61fd622d3c282fe24070001fd4a9c95d4467b217f3e3975660a",
+    "monitoring-grafana": "ghcr.io/aiden-hq/monitoring-grafana@sha256:c75d3ae71dbff79fb100185fd6f2331ca539ef7918d014840a0a3ebbfced3c9a",
+    "monitoring-mcp-grafana": "ghcr.io/aiden-hq/monitoring-mcp-grafana@sha256:6c6c608d3c96fd3898e8f24c5503d2827202383ae8291b59f648c552d948c6c3",
+    "monitoring-node-exporter": "ghcr.io/aiden-hq/monitoring-node-exporter@sha256:13c4a87117e377b1356aeeefb71b41e49de7e0d4e2cd8a41186b9ec321fd3fe6",
+    "monitoring-prometheus": "ghcr.io/aiden-hq/monitoring-prometheus@sha256:c2c37cc203f1630ac9b2419d1bec5e5ad206cad726f3fcce71a254f87eadf0c2",
+    "primer-mcp": "ghcr.io/aiden-hq/primer-mcp@sha256:2b8960b9e72987ec63c1dc32f38935e54c48311c0d35208807966b7e4a1a9e8c",
+    "security-scanner": "ghcr.io/aiden-hq/security-scanner@sha256:0d8824e59402cec006560dea847eb7449e9838092007eef620d3cb1d8945f242",
+    "slack-mcp": "ghcr.io/aiden-hq/slack-mcp@sha256:410a1d513634eade93363a5dad392de75d331436f9ac5009acab76de6f376049",
+    "tasks-mcp": "ghcr.io/aiden-hq/tasks-mcp@sha256:1fb65a38dc41d29ec579a5b68c6faba248b8943c39b26bd0f17b8ba509d8f240",
+    "voice-whisper": "ghcr.io/aiden-hq/voice-whisper@sha256:5b1191c2bca4809624813a69a0c77006d2e88e91ad52edbcb180eca87e7385c1"
   }
 }
