@@ -99,6 +99,72 @@ installer refuses it.
 After install, an instance moves on its own: its owner bumps the `product:` sha in `instance.yaml` (kernel) and the
 `aidenhq` marketplace sha (modules). A new release does not change a running instance.
 
+### Nightly releases
+
+Releases are named by their cut date (`2026.11.18`, UTC). A second cut on the same day is `2026.11.18.1`, then `.2`.
+Names compare part by part as numbers, so `2026.11.2` < `2026.11.18` < `2026.11.18.1` < `2026.11.19`. A kernel that
+predates four-part names ignores a day's second cut and takes the next day's release.
+
+Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the following:
+
+1. **Decide.** [`.github/release/nightly.mjs`](.github/release/nightly.mjs) reads product main's sha and its
+   `modules-pin.json`. If both equal the newest published release's, it stops. Otherwise it waits up to 45 minutes for
+   product main's `ci-required` check and skips the night unless that check passed. The release file pins the kernel,
+   the modules sha and the marketplace's `bundle` at that sha. Its `notes` come from the `feat`, `fix` and `perf`
+   commit subjects since the last release: features first, deduplicated, at most 20. The notes start with a flag when a
+   release may add module authority, read approximately from `module.yaml` diffs. They end with a flag when it touches
+   host setup (`ops/setup.sh` or `ops/vm/`). A day's second cut waits until product main's kernel accepts four-part
+   names.
+2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. They build and
+   push every image for amd64 and arm64.
+3. **Cut.** It commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
+   on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
+   A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
+   `release.yml` run on the tag, whether a push or a dispatch.
+4. **Test and publish.** The tag run is the same as for a hand cut: install and test on a fresh runner, then publish.
+   Installs' updaters pick up the release that night, between 02:00 and 05:00 in their own timezone. get.aidenhq.ai
+   serves it within minutes (below).
+
+A tag run that doesn't publish deletes its tag and any draft release, then opens an issue, so nothing untested is ever
+offered. A failed nightly before the tag only opens an issue. A failed release leaves its file on main, and its name is
+used up: the next cut that day takes the next `.N`.
+
+- **Preview tonight's cut:** `GITHUB_TOKEN=$(gh auth token) node .github/release/nightly.mjs`, or run `nightly` with
+  `dry_run` from the Actions tab.
+- **Skip one night:** cancel that night's `nightly` run.
+- **Hold nightlies:** `gh workflow disable nightly.yml -R Aiden-HQ/aidenhq-distro`. Use `gh workflow enable` to resume.
+- **Cut one now:** `gh workflow run nightly.yml -R Aiden-HQ/aidenhq-distro`. It makes the same checks as the
+  scheduled run.
+- **Cut one by hand,** e.g. pinning shas other than main's:
+  1. Write `releases/<name>.json` with no `images` (copy the nightly's shape, `notes` included).
+  2. Run `release` by hand with `release=<name>`.
+  3. Merge the `images.json` artifact into the file and land it on main.
+  4. Push the tag `<name>` on that commit, or run `release` on the tag.
+
+  The tag run then tests and publishes it.
+
+No setup: the workflows use only the built-in `GITHUB_TOKEN`.
+
+### get.aidenhq.ai
+
+The Worker ([`web/worker.js`](web/worker.js)) serves GitHub's `releases/latest/download/install.sh` as `text/plain`. It
+caches that file for five minutes and keeps the last good copy, which it serves when GitHub fails. A release changes
+nothing on the site, and the site needs no deploy for it. Pages and styles are still deployed by hand when they change
+(`sh web/build.sh && npx -y wrangler@4.160.0 deploy`).
+
+What it serves is exactly the asset GitHub published for the latest release:
+
+- GitHub's "latest" is the newest release that is neither a draft nor a prerelease.
+- `release.yml` keeps a release a draft until its install-and-test has passed and its uploaded assets match what was
+  tested and baked. If a release fails, it deletes the draft and the tag.
+- `release.yml` marks a release latest only when no published release has a newer name. A re-run of an older tag never
+  moves the site back.
+- The Worker serves only a cut installer: one with a release name, its release file's sha256 and the distro commit
+  baked in. The installer then refuses any release file whose sha256 differs from the baked one.
+
+The trust is in this repository and its release workflow, the same as for the release assets themselves. There is no
+separate pin in the Worker.
+
 ### Test locally
 
 ```sh
