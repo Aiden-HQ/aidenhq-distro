@@ -647,6 +647,7 @@ run_setup() {
   # This run's output only (the log keeps earlier runs): the last of each line wins.
   SETUP_URL=$(sed -n 's/^AIDENHQ_SETUP_URL=//p' "$TMPD/setup.out" | tail -1)
   SSH_TUNNEL=$(sed -n 's/^AIDENHQ_SSH_TUNNEL=//p' "$TMPD/setup.out" | tail -1)
+  BOARD_URL=$(sed -n 's/^AIDENHQ_BOARD_URL=//p' "$TMPD/setup.out" | tail -1)
 }
 
 # Prune timers: the product's weekly Docker cleanup, plus a guard that prunes harder when free space drops below the reserve.
@@ -695,6 +696,8 @@ finish() {
     printf '  Open this link to finish in your browser (one use, 72 hours):\n\n    %s%s%s\n\n' "$B" "$SETUP_URL" "$N"
     printf '  It sets up your account and authenticator, your model key and your channels.\n'
     [ -n "$SSH_TUNNEL" ] || printf '  Your device must be on the same tailnet.\n'
+  elif [ -n "$INST_YAML" ]; then   # an upgrade or a repair: the owner's account exists, there is no setup link
+    printf '  This server is updated to release %s.%s\n' "$REL" "${BOARD_URL:+ The board is at $BOARD_URL}"
   else
     printf '  The setup link is in the log (search for "Done."): %s\n' "$LOG"
   fi
@@ -975,6 +978,7 @@ mac_finish() {
       http://127.0.0.1:3121/*) printf '  The VM'"'"'s browser ports (3121, 3120, 3130) are forwarded to this Mac'"'"'s localhost; nothing else in the VM is.\n' ;;
       *) printf '  This Mac (and any device you use) must be on the same tailnet as the VM.\n' ;;
     esac
+  elif [ -n "$UPGRADED" ]; then printf '  The VM is updated to release %s. Open the board you already use.\n' "$REL"
   else printf '  The setup link is in the log: %s\n' "$LOG"; fi
   printf '  The VM: %s shell %s (a shell in it), %s stop %s. It starts when you log in (%s).\n' "$lc" "$VM" "$lc" "$VM" "$plist"
   if [ "$AWAKE" = 1 ]; then printf '  This Mac stays awake on power while the VM runs. On battery, or with a laptop lid closed, it still sleeps, and every agent pauses.\n'
@@ -1017,7 +1021,8 @@ mac_main() {
   say "macOS $MACOS ($MARCH); $MCORES cores, $MRAM_GB GB memory, $MFREE_GB GB free"
   say "AidenHQ runs in a Linux VM ($VM, Lima): the Linux install runs inside it, with every security gate as on a server"
   # A run on an existing VM is an upgrade or a repair: the install inside it reads the owner from its instance.
-  if [ -n "$(vm_state)" ] && [ -z "${AIDENHQ_OWNER_EMAIL:-}" ]; then say "the VM exists: this run upgrades or repairs it, keeping its owner"
+  UPGRADED=''; [ -z "$(vm_state)" ] || UPGRADED=1
+  if [ -n "$UPGRADED" ] && [ -z "${AIDENHQ_OWNER_EMAIL:-}" ]; then say "the VM exists: this run upgrades or repairs it, keeping its owner"
   else ensure_owner_email; fi
   mac_timezone; ensure_timezone
   if [ -n "$REFUSALS" ]; then
@@ -1047,7 +1052,7 @@ main() {
   PG_TABLE=$PROGRESS_LINUX PG_LAST=0 PROGRESS_SLICE=''
   [ "$(uname -s)" != Darwin ] || PG_TABLE=$(progress_mac_table)
   INST_YAML='' INST_REL='' INST_EMAIL=''
-  KERNEL_SHA='' KERNEL_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
+  BOARD_URL='' KERNEL_SHA='' KERNEL_REPO='' SETUP_URL='' SSH_TUNNEL='' PENV='' KTOK_FILE='' KCOPY='' AUTH_HDR='' REL_COMMIT=''
   exec </dev/null   # with curl | sh, stdin is the script: nothing below may read it (prompts use /dev/tty)
   trap on_exit EXIT
   trap 'exit 130' INT TERM
