@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta charset="utf-8">
 <title>Install guide: AidenHQ</title>
 <meta name="description" content="Install AidenHQ with one command on an Ubuntu or Debian server or a Mac, or let your coding agent do it. Requirements, what you need first, what happens next, and what it costs to run.">
 <link rel="canonical" href="https://aidenhq.ai/install/">
@@ -10,8 +11,57 @@
 <meta property="og:title" content="Install guide: AidenHQ">
 <meta property="og:description" content="Install AidenHQ with one command on an Ubuntu or Debian server or a Mac, or let your coding agent do it. Requirements, what you need first, what happens next, and what it costs to run.">
 <meta property="og:url" content="https://aidenhq.ai/install/">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://aidenhq.ai/og/aidenhq.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AidenHQ: the workspace that runs itself. AI agents plan, build, ship and follow up around the clock, on a server you own.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Install guide: AidenHQ">
+<meta name="twitter:description" content="Install AidenHQ with one command on an Ubuntu or Debian server or a Mac, or let your coding agent do it. Requirements, what you need first, what happens next, and what it costs to run.">
+<meta name="twitter:image" content="https://aidenhq.ai/og/aidenhq.png">
+<meta name="twitter:image:alt" content="AidenHQ: the workspace that runs itself. AI agents plan, build, ship and follow up around the clock, on a server you own.">
 <!--#include head-->
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://aidenhq.ai/install/#webpage",
+   "url": "https://aidenhq.ai/install/",
+   "name": "Install guide: AidenHQ",
+   "description": "Install AidenHQ with one command on an Ubuntu or Debian server or a Mac, or let your coding agent do it. Requirements, what you need first, what happens next, and what it costs to run.",
+   "inLanguage": "en",
+   "isPartOf": {
+    "@id": "https://aidenhq.ai/#website"
+   },
+   "about": {
+    "@id": "https://aidenhq.ai/#software"
+   },
+   "primaryImageOfPage": "https://aidenhq.ai/og/aidenhq.png",
+   "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+     {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "AidenHQ",
+      "item": "https://aidenhq.ai/"
+     },
+     {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Install guide",
+      "item": "https://aidenhq.ai/install/"
+     }
+    ]
+   }
+  }
+ ]
+}
+</script>
 </head>
 <body>
 <!--#include header-->
@@ -54,7 +104,7 @@
       <li class="cap reveal" style="--c: var(--teal)"><h3>One command</h3><p>On the server, as root or a user with sudo. It installs Docker and Node itself, at pinned versions.</p>
         <div class="cmd" role="group" aria-label="Install command"><pre><code>curl -fsSL https://get.aidenhq.ai | sh</code></pre><button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.ai | sh" aria-label="Copy install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span class="copy-label">Copy</span></button></div></li>
       <li class="cap reveal" style="--c: var(--violet)"><h3>Ask your coding agent</h3><p>Using Claude Code, Codex or another coding agent? Paste one line and it does the whole install for you, checking each step.</p>
-        <p style="margin-top:12px"><button class="agent-btn" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md" aria-label="Copy a one-line setup prompt for your AI coding agent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/></svg><span class="agent-label">Copy prompt for your agent</span></button></p></li>
+        <p style="margin-top:12px"><button class="agent-btn" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/></svg><span class="agent-label">Copy prompt for your agent</span></button></p></li>
       <li class="cap reveal" style="--c: var(--blue)"><h3>Step by step</h3><p>Prefer to see every step? The setup guide walks through each one by hand, with a check after every step.</p><a class="more" href="https://github.com/Aiden-HQ/AidenHQ/blob/main/SETUP.md">Read the setup guide</a></li>
     </ol>
   </div>

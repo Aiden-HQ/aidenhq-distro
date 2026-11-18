@@ -383,7 +383,7 @@ h3 { font-size: clamp(18px, .4vw + 16px, 21px); letter-spacing: -.018em; font-we
 /* Shared bits */
 .lede-sm { font-size: clamp(16.5px, .3vw + 15px, 19px); color: var(--text-2); text-wrap: pretty; max-width: 38em; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-.more { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 15px; font-weight: 650; color: color-mix(in srgb, var(--c, var(--brand)) 78%, var(--text)); }
+.more { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; margin-top: 12px; font-size: 15px; font-weight: 650; color: color-mix(in srgb, var(--c, var(--brand)) 78%, var(--text)); }
 .more::after { content: "\2192"; transition: translate .2s var(--ease); }
 a:hover > .more::after, .more:hover::after { translate: 3px 0; }
 .band { background: var(--surface); border-block: 1px solid var(--line); }
@@ -471,7 +471,7 @@ a:hover > .more::after, .more:hover::after { translate: 3px 0; }
 .caps.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cap { padding: 22px 22px 24px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); position: relative; overflow: hidden; }
 .cap::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c, var(--brand)); }
-.cap h3 { font-size: 18px; margin-bottom: 6px; }
+.cap h3, .cap h2 { font-size: 18px; line-height: 1.25; letter-spacing: -.018em; font-weight: 680; max-width: none; margin-bottom: 6px; }
 .cap p { color: var(--text-2); font-size: 15.5px; }
 .cap .pi { margin-bottom: 14px; width: 36px; height: 36px; }
 .cap .pi svg { width: 20px; height: 20px; }
@@ -543,7 +543,7 @@ a:hover > .more::after, .more:hover::after { translate: 3px 0; }
 .foot .brand { font-size: 17px; }
 .foot .mark { width: 26px; height: 26px; }
 .foot-about p { margin-top: 12px; font-size: 14.5px; color: var(--text-2); max-width: 30em; }
-.foot h4 { font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); margin: 4px 0 12px; }
+.foot h2 { line-height: 1.4; max-width: none; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); margin: 4px 0 12px; }
 .foot ul { display: grid; gap: 8px; font-size: 14.5px; color: var(--text-2); }
 .foot ul a:hover { color: var(--text); }
 .foot-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--text-3); }
@@ -600,7 +600,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .appwin .bar-u .lights i { width: 8px; height: 8px; }
 .appwin .bar-u .url { flex: 1; text-align: center; }
 .kan { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px; }
-.kan h5 { margin: 0 0 6px; font-size: 11px; font-weight: 650; color: var(--text-3); }
+.kan .kh { margin: 0 0 6px; font-size: 11px; font-weight: 650; color: var(--text-3); }
 .kan i { display: block; font-style: normal; font-size: 11.5px; padding: 6px 7px; margin-bottom: 5px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--violet); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kan div:first-child i { border-left-color: var(--teal); } .kan div:last-child i { border-left-color: var(--amber); }
 .wire { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -636,7 +636,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 /* Shared document with comments */
 .doc { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 10px; height: 100%; }
 .doc-page { background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 14px 16px; overflow: hidden; box-shadow: var(--shadow-sm); }
-.doc-page h4 { font-size: 15px; margin-bottom: 8px; }
+.doc-page .doc-t { font-weight: 680; letter-spacing: -.018em; font-size: 15px; margin-bottom: 8px; }
 .doc-page p { color: var(--text-2); font-size: 12.5px; margin-bottom: 8px; }
 .doc-page mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inherit; border-radius: 2px; }
 .doc-tbl { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 4px; }
@@ -870,3 +870,14 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .duo figcaption span { color: var(--text-2); font-size: 15.5px; }
 .duo figure { margin: 0; }
 @media (max-width: 900px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+
+/* Large screens: past 1920px the whole layout scales up with the window (in small steps), so a 2560px or 4K display
+   gets the same proportions as a 1920px one instead of a fixed-size column. */
+@media (min-width: 2048px) { :root { zoom: 1.0667; } }
+@media (min-width: 2176px) { :root { zoom: 1.1333; } }
+@media (min-width: 2304px) { :root { zoom: 1.2; } }
+@media (min-width: 2432px) { :root { zoom: 1.2667; } }
+@media (min-width: 2560px) { :root { zoom: 1.3333; } }
+@media (min-width: 2880px) { :root { zoom: 1.5; } }
+@media (min-width: 3200px) { :root { zoom: 1.6667; } }
+@media (min-width: 3840px) { :root { zoom: 2; } }

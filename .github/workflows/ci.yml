@@ -1,4 +1,4 @@
-# The installer's checks on every PR and on main: shellcheck, and installer/test.sh (A17's installer half: the release
+# The installer's and the site's checks on every PR and on main: shellcheck, and installer/test.sh (A17's installer half: the release
 # verification, the baked digest, the setup handover) under sh and dash. On GitHub-hosted runners.
 name: ci
 on:
@@ -37,3 +37,16 @@ jobs:
       # release.yml runs on these runners too: the tools it needs are here.
       - name: Release tools on this runner
         run: for t in git jq python3 sha256sum curl base64 cmp; do command -v "$t" >/dev/null || { echo "::error::no $t on this runner (release.yml needs it)"; exit 1; }; done; git --version
+  # The site build and its share/SEO check (web/check-site.mjs): every page's title, description, canonical, Open Graph
+  # and Twitter tags, the og:image file, JSON-LD, headings, internal links, markdown twins and the sitemap.
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - run: sh web/build.sh
