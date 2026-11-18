@@ -30,7 +30,7 @@ jobs:
             sc="$RUNNER_TEMP/shellcheck-v0.11.0/shellcheck"
           fi
           "$sc" --version | head -2
-          "$sc" install.sh installer/test.sh .github/release/test-set.sh
+          "$sc" install.sh installer/test.sh .github/release/test-set.sh .github/release/upgrade.sh
       - run: sh installer/test.sh
       - run: if command -v dash >/dev/null; then dash installer/test.sh; else echo "no dash on this runner"; fi
       - run: node --check .github/release/suites.mjs
