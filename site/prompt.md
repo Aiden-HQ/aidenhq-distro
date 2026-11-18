@@ -113,7 +113,8 @@ ssh <target> 'grep -E "^AIDENHQ_(SETUP_URL|SSH_TUNNEL)=" ~/aidenhq-install.out'
 - `AIDENHQ_SETUP_URL=`: the owner's setup link. One use, valid 72 hours. Never open it yourself. It is printed only
   after the install's own health checks pass.
 - `AIDENHQ_SSH_TUNNEL=`: printed only when the board is not reachable directly (a server without a public address).
-  Replace its host with the address you SSH to; keep the user and local port 3121 (the board accepts only that).
+  Replace its host with the address you SSH to; keep the user and every local port as printed (3121 the board, 3120
+  sign-in, 3130 the owner's apps: each is part of its address, so a different local port doesn't work).
 
 Then check the services as the service user (`aidenhq` for root installs; on a Mac, run them inside the VM with
 `limactl shell aidenhq`):
