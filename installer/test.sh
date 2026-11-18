@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC2034,SC2016,SC2030,SC2031,SC2329  # variables are read by the sourced install.sh; hook bodies are eval'd later
 # Offline test of install.sh's release verification (lean-core spec A17): local fixture repos and a release file pass;
-# a tampered release, a moved checkout or a module sha off the marketplace history each stop it.
+# a tampered release or a moved checkout each stop it. A release pins one product sha; the official modules are its modules/.
 #   sh installer/test.sh            (any POSIX sh with git; also run under dash)
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
@@ -19,22 +19,16 @@ mkrepo() { # name files...: a repo with one commit per file on main; prints noth
 }
 mkdir -p "$work/git/acme"
 mkrepo kernel ops-a ops-b
-mkrepo modules m1 m2 m3
 mkrepo other x1
 K=$(git -C "$work/git/kernel.git.src" rev-parse HEAD)
-M=$(git -C "$work/git/modules.git.src" rev-parse HEAD)
-M1=$(git -C "$work/git/modules.git.src" rev-parse HEAD~2)
 X=$(git -C "$work/git/other.git.src" rev-parse HEAD)
 
 flip() { echo "$1" | awk '{ c = substr($0, 40, 1); print substr($0, 1, 39) (c == "0" ? "1" : "0") }'; }
-release() { # kernel marketplace module-a module-b
+release() { # kernel
   cat <<EOF
-{ "name": "AidenHQ", "release": "2026.11", "kernel": "$1", "kernel_repo": "acme/kernel",
-  "marketplace": { "name": "aidenhq", "source": { "source": "github", "repo": "acme/modules" }, "sha": "$2" },
-  "modules": {
-    "board": "$3",
-    "tasks": "$4"
-  } }
+{ "release": "2026.11", "kernel": "$1", "kernel_repo": "acme/kernel",
+  "images": { "board": "ghcr.io/aiden-hq/board@sha256:$(printf '%064d' 0)" },
+  "notes": ["A note"] }
 EOF
 }
 
@@ -42,8 +36,8 @@ EOF
 case_() {
   name=$1 expect=$2; shift 2
   home="$work/home-$pass-$fail"; mkdir -p "$home"
-  release "$1" "$2" "$3" "$4" >"$work/rel.json"
-  shift 4; pre="${1:-}"
+  release "$1" >"$work/rel.json"
+  shift; pre="${1:-}"
   if (
     # shellcheck disable=SC1091
     . "$work/lib.sh"
@@ -59,14 +53,13 @@ case_() {
   if [ "$got" = "$expect" ]; then ok "$name${why:+  ($why)}"; else bad "$name (got $got)"; sed 's/^/     /' "$work/out"; fi
 }
 
-case_ "a real release verifies"                  pass "$K" "$M" "$M" "$M1"
-case_ "placeholder shas stop it"                 stop "TODO-kernel-sha" "$M" "$M" "$M1"
-case_ "one flipped hex digit in the kernel sha"  stop "$(flip "$K")" "$M" "$M" "$M1"
-case_ "a kernel sha from another repo"           stop "$X" "$M" "$M" "$M1"
-case_ "a module sha off the marketplace history" stop "$K" "$M" "$M" "$X"
-case_ "a tracked change in the checkout"         stop "$K" "$M" "$M" "$M1" 'echo evil >>"$DIR/ops-a"'
-case_ "a checkout moved to another commit"       stop "$K" "$M" "$M" "$M1" 'git -C "$DIR" checkout -q --detach HEAD~1; checkout_at() { :; }'
-case_ "a rerun on a verified checkout"           pass "$K" "$M" "$M" "$M1" ':'
+case_ "a real release verifies, fetching only the product" pass "$K" '[ ! -e "$STATE_DIR/modules" ]'
+case_ "a placeholder sha stops it"               stop "TODO-kernel-sha"
+case_ "one flipped hex digit in the kernel sha"  stop "$(flip "$K")"
+case_ "a kernel sha from another repo"           stop "$X"
+case_ "a tracked change in the checkout"         stop "$K" 'echo evil >>"$DIR/ops-a"'
+case_ "a checkout moved to another commit"       stop "$K" 'git -C "$DIR" checkout -q --detach HEAD~1; checkout_at() { :; }'
+case_ "a rerun on a verified checkout"           pass "$K" ':'
 
 lib() {
   (
@@ -84,7 +77,7 @@ expect() { # NAME pass|stop CMDS
 }
 
 # The baked digest: a fetched release file must be the one this copy was cut with (the release CI bakes RELEASE_SHA256).
-release "$K" "$M" "$M" "$M1" >"$work/cut.json"
+release "$K" >"$work/cut.json"
 CUT=$(sha256sum "$work/cut.json" 2>/dev/null | cut -d' ' -f1 || shasum -a 256 "$work/cut.json" | cut -d' ' -f1)
 fetched() { echo "fetch() { cp '$work/cut.json' \"\$2\"; }; DRY=0 REL=$1 RELEASE_SHA256=$2 RELEASE_COMMIT=$K; fetch_release; ${3:-:}"; }
 expect "a fetched release with the baked digest is accepted, and its commit goes to setup" pass "$(fetched 2026.11 "$CUT" '[ "$REL_COMMIT" = '"$K"' ]')"
@@ -97,12 +90,19 @@ mkdir -p "$work/up/aidenhq-instance"
 cat >"$work/up/aidenhq-instance/instance.yaml" <<'EOS'
 product: 1111111111111111111111111111111111111111
 release: { name: "2026.11.2", source: { source: github, repo: Aiden-HQ/aidenhq-distro }, sha: 2222222222222222222222222222222222222222 }
+marketplaces:
+  - { name: aidenhq, source: { source: github, repo: Aiden-HQ/aidenhq-modules }, sha: 3333333333333333333333333333333333333333 }
+  - { name: acme-extras, source: { source: github, repo: acme/extras }, sha: 4444444444444444444444444444444444444444 }
 settings:
   owner_name: "Acme"
   owner_email: "owner@example.com"
 EOS
 up() { echo "SVC_HOME='$work/up' DRY=0 REL=$1; unset AIDENHQ_OWNER_EMAIL; existing_install; check_upgrade; ${2:-:}"; }
+cp "$work/up/aidenhq-instance/instance.yaml" "$work/up.before"
 expect "an upgrade from 2026.11.2 to 2026.11.3 goes on, with the instance's owner email" pass "$(up 2026.11.3 '[ "$INST_REL" = 2026.11.2 ] && [ "$AIDENHQ_OWNER_EMAIL" = owner@example.com ]')"
+# The aidenhq marketplace entry goes in setup's own pin commit (reverted with it on a failed apply), never by the installer.
+expect "an upgrade says the aidenhq marketplace entry goes with setup's pin, and leaves instance.yaml as it is" pass \
+  "$(up 2026.11.3 'grep -q "aidenhq marketplace entry goes with that pin" "$LOG" && cmp -s "$INST_YAML" '"'$work/up.before'"'')"
 expect "the same release again is a repair" pass "$(up 2026.11.2)"
 expect "an older release than the instance runs is refused" stop "$(up 2026.11.1)"
 expect "a fresh server has no existing install" pass "SVC_HOME='$work/none' DRY=0 REL=2026.11.3; existing_install; check_upgrade; [ -z \"\$INST_YAML\" ]"
@@ -208,7 +208,7 @@ install_run() { # N [kill-pull]
     sudo() { echo '(ALL) NOPASSWD: ALL'; }; verify_at() { :; }; root_verify() { KCOPY="$work/p"; }
     export STUB_TOKEN="$work/p/token"; [ -z "${2:-}" ] || export STUB_KILL_PULL=1
     step "This machine"; step "Service user x"; step "Bootstrap tools"; step "Release 2026.11"
-    step "Fetch and verify the kernel and modules"; step "Docker log and build-cache limits"
+    step "Fetch and verify the product"; step "Docker log and build-cache limits"
     run_setup; step "Disk guard and Docker cleanup"; finish
   ) >"$work/inst.$1" 2>&1
 }

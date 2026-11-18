@@ -67,8 +67,8 @@ One line on a fresh Ubuntu or Debian server; it installs Docker and Node itself.
 curl -fsSL https://get.aidenhq.ai | sh
 ```
 
-The installer checks your server, fetches a tested release of the kernel and the essential modules pinned by commit,
-verifies every commit, and hands you to setup. Aiden says hello on your board when it's ready.
+The installer checks your server, fetches a tested release of AidenHQ (the kernel and its official modules) pinned by
+one commit, verifies it, and hands you to setup. Aiden says hello on your board when it's ready.
 
 ## About this repo
 
@@ -76,8 +76,7 @@ This repo is the distribution of AidenHQ: how you get a tested set of the kernel
 
 | Repo | What it holds |
 |---|---|
-| [AidenHQ](https://github.com/Aiden-HQ/AidenHQ) | The kernel, runner, board and setup scripts. |
-| [aidenhq-modules](https://github.com/Aiden-HQ/aidenhq-modules) | The official modules and the `aidenhq` marketplace. |
+| [AidenHQ](https://github.com/Aiden-HQ/AidenHQ) | The kernel, runner, board, setup scripts and, in `modules/`, the official modules. |
 | aidenhq-distro (this repo) | The installer, the website and the release manifests. |
 
 | Path | What it is |
@@ -90,14 +89,16 @@ This repo is the distribution of AidenHQ: how you get a tested set of the kernel
 
 ### Releases
 
-A release manifest pins three things by commit sha: the kernel (`kernel`, from AidenHQ), the modules marketplace
-(`marketplace.sha`, from aidenhq-modules) and each essential module (`modules.<name>`). The installer fetches those
-exact commits, checks that each module sha is in the marketplace history, and refuses a manifest whose sha256 does not
-match the one baked into the tagged `install.sh`. A manifest that still has `TODO-` placeholders is not cut yet and the
-installer refuses it.
+A release manifest pins one product commit, `kernel`: a commit of AidenHQ on its `main`, holding the kernel and the
+official modules (`modules/`). Beside it are the prebuilt `images` by digest, the `notes` and, once published, the
+`tested` stamp. There is no `marketplace` or `modules` entry: third-party modules stay the instance's own marketplaces in
+`instance.yaml`. The installer fetches that exact commit, verifies it, and refuses a manifest whose sha256 does not
+match the one baked into the tagged `install.sh`. A manifest without a real sha is not cut yet and the installer refuses
+it. The 2026.11 to 2026.11.2 manifests are the older two-repo shape and stay as they were cut.
 
-After install, an instance moves on its own: its owner bumps the `product:` sha in `instance.yaml` (kernel) and the
-`aidenhq` marketplace sha (modules). A new release does not change a running instance.
+After install, an instance updates itself to each new release (the product's `kernel/src/updates.ts`): one instance
+commit moves `product:` and `release:`. Running the installer again on an existing install does the same through setup,
+and drops the instance's obsolete `aidenhq` marketplace entry in that commit; other marketplaces stay.
 
 ### Nightly releases
 
@@ -107,16 +108,17 @@ predates four-part names ignores a day's second cut and takes the next day's rel
 
 Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the following:
 
-1. **Decide.** [`.github/release/nightly.mjs`](.github/release/nightly.mjs) reads product main's sha and its
-   `modules-pin.json`. If both equal the newest published release's, it stops. Otherwise it waits up to 45 minutes for
-   product main's `ci-required` check and skips the night unless that check passed. The release file pins the kernel,
-   the modules sha and the marketplace's `bundle` at that sha. Its `notes` come from the `feat`, `fix` and `perf`
-   commit subjects since the last release: features first, deduplicated, at most 20. The notes start with a flag when a
-   release may add module authority, read approximately from `module.yaml` diffs. They end with a flag when it touches
+1. **Decide.** [`.github/release/nightly.mjs`](.github/release/nightly.mjs) reads product main's sha.
+   If it equals the newest published release's `kernel`, it stops. It also skips while product main has no
+   `modules/marketplace.json` (the official modules not yet in the product). Otherwise it waits up to 45 minutes for
+   product main's `ci-required` check and skips the night unless that check passed. The release file pins that one
+   product sha. Its `notes` come from the product's `feat`, `fix` and `perf` commit subjects since the last release's
+   kernel sha: features first, deduplicated, at most 20. The notes start with a flag when a release may add module
+   authority, read approximately from `modules/<name>/module.yaml` diffs. They end with a flag when it touches
    host setup (`ops/setup.sh` or `ops/vm/`). A day's second cut waits until product main's kernel accepts four-part
    names.
 2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. They build and
-   push every image for amd64 and arm64.
+   push every image the product checkout builds (its kernel and its `modules/`) for amd64 and arm64.
 3. **Cut.** It commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
    on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
    A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
@@ -173,8 +175,8 @@ sh installer/test.sh
 
 ### Licence
 
-MIT, see [LICENSE](LICENSE). The kernel is AGPL-3.0-only and the modules are MIT or AGPL-3.0-only per module; see their
-repos.
+MIT, see [LICENSE](LICENSE). The kernel is AGPL-3.0-only; the kernel's and the official modules' licences are in
+[AidenHQ](https://github.com/Aiden-HQ/AidenHQ).
 
 ### Contributing and security
 
