@@ -130,6 +130,8 @@ expect "no token, no file" pass 'KTOK_FILE=""; AIDENHQ_GITHUB_TOKEN="" GITHUB_TO
 expect "a plain email is accepted" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL=a.b+c@example.com; ensure_owner_email; [ -z "$REFUSALS" ]'
 expect "a missing email is refused" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL=""; ensure_owner_email; [ -n "$REFUSALS" ]'
 expect "an email with a space is refused" pass 'NONINT=1 DRY=0 REFUSALS=""; AIDENHQ_OWNER_EMAIL="a b@example.com"; ensure_owner_email; [ -n "$REFUSALS" ]'
+expect "a zone name is accepted" pass 'REFUSALS=""; AIDENHQ_TIMEZONE=America/Argentina/Buenos_Aires; ensure_timezone; [ -z "$REFUSALS" ]'
+expect "a zone name with other characters is refused" pass 'REFUSALS=""; AIDENHQ_TIMEZONE="UTC;id"; ensure_timezone; [ -n "$REFUSALS" ]'
 mkdir -p "$work/k/ops/vm"; echo '--unattended' >"$work/k/ops/setup.sh"; echo '{"releases":{"noble":{}}}' >"$work/k/ops/vm/pins.json"
 expect "a host the pins list is accepted" pass "DIR='$work/k' CODENAME=noble REFUSALS=''; check_product; [ -z \"\$REFUSALS\" ]"
 expect "a host the pins don't list is refused" pass "DIR='$work/k' CODENAME=bionic OS_NAME=Ubuntu REFUSALS=''; check_product; [ -n \"\$REFUSALS\" ]"

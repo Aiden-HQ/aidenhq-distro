@@ -79,6 +79,8 @@ Other inputs:
 - `AIDENHQ_OWNER_EMAIL`: the email of the board's owner account. Asked for on a terminal when unset; with no terminal
   the installer refuses before changing anything.
 - `AIDENHQ_OWNER_NAME`: the owner's name (default: the service user's name).
+- `AIDENHQ_TIMEZONE`: the owner's IANA timezone (`Asia/Dubai`), used for schedules and the morning brief. Default: the host's
+  zone; on a Mac, this Mac's (the VM's clock is UTC).
 - `AIDENHQ_USER`: the service user when you run as root. The default is `aidenhq`, created with passwordless sudo and root's SSH keys,
   because setup turns off root SSH login.
 - `OPENROUTER_KEY` (or `OPENROUTER_MANAGEMENT_KEY`) and `TS_AUTHKEY`: optional secrets. They go to the product's setup in a
