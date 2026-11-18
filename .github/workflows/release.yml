@@ -347,8 +347,11 @@ jobs:
 
   # get.aidenhq.ai serves the release wrangler.jsonc pins (tag + install.sh sha256): moved on main to this release, unless the
   # site already serves a newer one, then the Worker deployed from that commit. CLOUDFLARE_API_TOKEN deploys this one Worker.
+  # The `release` environment (main and release tags only) holds CLOUDFLARE_API_TOKEN; test proved this tag's commit is on main.
   site:
     needs: publish
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    environment: release
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -389,19 +392,25 @@ jobs:
         if: steps.pin.outputs.sha != ''
         with:
           node-version: 24.x
-      # wrangler 4.160.0 (2026-11-10), the version the site was deployed with by hand.
-      - name: Deploy the site
+      # No secret in this step: the site build and wrangler (web/deploy: 4.160.0, 2026-11-10, from its lockfile, no install scripts).
+      - name: Build the site and install wrangler
         if: steps.pin.outputs.sha != ''
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           AT: ${{ steps.pin.outputs.sha }}
         run: |
           if ! grep -q "\"INSTALLER_TAG\": \"$TAG\"" wrangler.jsonc || ! grep -q "\"INSTALLER_SHA256\": \"$SUM\"" wrangler.jsonc; then
             echo "::error::wrangler.jsonc at $AT doesn't pin $TAG"; exit 1
           fi
           sh web/build.sh
-          npx -y wrangler@4.160.0 deploy
+          npm ci --ignore-scripts --no-audit --no-fund --prefix web/deploy
+      # The token is given to the one wrangler command only.
+      - name: Deploy the site
+        if: steps.pin.outputs.sha != ''
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          CLOUDFLARE_API_TOKEN="$CF_TOKEN" web/deploy/node_modules/.bin/wrangler deploy
           code=$(curl -fsS -o /dev/null -w '%{http_code}' https://get.aidenhq.ai/install.sh) && echo "get.aidenhq.ai answers $code"
 
   # A tag run that didn't publish leaves no tag (and no draft release), so no install or updater ever sees it; either failure
@@ -425,6 +434,8 @@ jobs:
           R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY" run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           if [ "$PUBLISHED" = true ]; then
             title="get.aidenhq.ai didn't move to $TAG" body="Release $TAG is published (installs' updaters see it), but the site step failed. Run: $run"
+          elif api "$R/releases/tags/$TAG" >/dev/null 2>&1; then
+            title="Release $TAG: its run failed after it was published" body="Release $TAG is published, so its tag stays. Run: $run"
           else
             for id in $(api "$R/releases?per_page=100" | jq -r --arg t "$TAG" '.[] | select(.draft and .tag_name == $t) | .id'); do api -X DELETE "$R/releases/$id"; done
             api -X DELETE "$R/git/refs/tags/$TAG" || echo "tag $TAG is already gone"

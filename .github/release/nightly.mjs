@@ -36,8 +36,8 @@ export function note(subject) {
   return s && s[0].toUpperCase() + s.slice(1);
 }
 
-/** Up to 20 notes (the updater shows 20, the owner's message the first 5): flags, then features, then fixes, deduplicated. */
-export function notes(commits, flags = []) {
+/** Up to 20 notes (the updater shows 20, the owner's message the first 5): authority, features, fixes, then host setup. */
+export function notes(commits, { authority = [], host = [] } = {}) {
   const seen = new Set(), feats = [], fixes = [];
   for (const c of commits) {
     const n = note(c.commit.message.split("\n")[0]);
@@ -45,16 +45,16 @@ export function notes(commits, flags = []) {
     seen.add(n.toLowerCase());
     (/^feat/i.test(c.commit.message) ? feats : fixes).push(n);
   }
-  return [...flags, ...feats, ...fixes].slice(0, 20);
+  return [...[...authority, ...feats, ...fixes].slice(0, 20 - host.length), ...host];
 }
 
 /** Cheap, approximate flags from the changed files (the kernel's authority diff is the real check, at apply). */
 export function flagsOf(productFiles, moduleFiles) {
-  const out = [];
+  const out = { authority: [], host: [] };
   const authority = /^\+\s*(writes|privileged|default_grants|roles|isolation|secrets|connections)\s*:|^\+.*:\s*write\s*$/m;
   const mods = [...new Set(moduleFiles.filter((f) => /^[^/]+\/module\.yaml$/.test(f.filename) && (!f.patch || authority.test(f.patch))).map((f) => f.filename.split("/")[0]))];
-  if (mods.length) out.push(`May add authority (grants, writes, roles or secrets) in: ${mods.join(", ")}. Auto-updates accept it; turn them off to review first.`);
-  if (productFiles.some((f) => /^ops\/(setup\.sh|vm\/|units\/)/.test(f.filename))) out.push("Host setup changed: run the installer again (curl -fsSL https://get.aidenhq.ai | sh) to apply it.");
+  if (mods.length) out.authority.push(`May add authority (grants, writes, roles or secrets) in: ${mods.join(", ")}. Auto-updates accept it; turn them off to review first.`);
+  if (productFiles.some((f) => /^ops\/(setup\.sh|vm\/)/.test(f.filename))) out.host.push("Host setup changed (ops/setup.sh or ops/vm): an update runs apply only, so running the installer again may be needed (curl -fsSL https://get.aidenhq.ai | sh).");
   return out;
 }
 
@@ -97,6 +97,12 @@ export async function decide({ now = new Date(), waitMin = 0 } = {}) {
   if (pc.behind_by || mc.behind_by) return { go: false, why: `main doesn't descend from ${last} (kernel behind ${pc.behind_by}, modules behind ${mc.behind_by})`, ...base };
   const tags = (await api(`repos/${DISTRO}/tags?per_page=100`)).map((t) => t.name);
   const name = await nameFor(now, tags, async (n) => !!(await api(`repos/${DISTRO}/contents/releases/${n}.json?ref=main`, { allow404: true })));
+  // A day's second cut (four parts) needs a kernel that accepts it: an older one's ops/setup.sh refuses the name on a fresh install.
+  if (name.split(".").length === 4) {
+    const src = await api(`repos/${KERNEL}/contents/kernel/src/loader/release.ts?ref=${head}`);
+    const re = /const NAME = \/(.+)\/;/.exec(Buffer.from(src.content, "base64").toString("utf8"))?.[1];
+    if (!re || !new RegExp(re).test(name)) return { go: false, why: `${name} is a day's second cut, and the kernel at ${head.slice(0, 12)} doesn't accept four-part names yet`, ...base };
+  }
   const bundle = (await file(MODULES, "marketplace.json", pin.sha))?.bundle;
   if (!Array.isArray(bundle) || !bundle.length) throw new Error(`${MODULES}@${pin.sha}: marketplace.json has no bundle`);
   const release = {

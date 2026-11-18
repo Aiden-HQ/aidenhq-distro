@@ -5,8 +5,10 @@
 # passing release is ever seen by installs.
 # 18:00 UTC: built and published (about 20 minutes) before installs update, 02:00-05:00 in their own timezone.
 # Hold the nightlies: `gh workflow disable nightly.yml -R Aiden-HQ/aidenhq-distro` (enable to resume).
-# Secrets: RELEASE_APP_ID and RELEASE_APP_KEY, a GitHub App with contents: write on this repo only. Its token pushes the release
-# commit and the tag: a tag pushed with GITHUB_TOKEN starts no workflow, and the updater accepts only a release.yml push run.
+# Secrets: RELEASE_APP_ID and RELEASE_APP_KEY in the `release` environment (main and release tags only), a GitHub App with
+# contents: write on this repo only. Its token pushes the release commit and the tag: a tag pushed with GITHUB_TOKEN starts no
+# workflow, and the updater accepts only a release.yml push run. Every job runs from main only (a dispatch from another branch
+# does nothing).
 name: nightly
 on:
   schedule:
@@ -21,6 +23,7 @@ permissions: {}
 concurrency: nightly
 jobs:
   decide:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -45,7 +48,7 @@ jobs:
 
   images:
     needs: decide
-    if: needs.decide.outputs.go == 'true' && !inputs.dry_run
+    if: github.ref == 'refs/heads/main' && needs.decide.outputs.go == 'true' && !inputs.dry_run
     # The ceiling for every job release.yml declares (each job keeps its own, narrower, permissions); only plan/images/collect run.
     permissions:
       contents: write
@@ -60,6 +63,8 @@ jobs:
 
   cut:
     needs: [decide, images]
+    if: github.ref == 'refs/heads/main'
+    environment: release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions: {}

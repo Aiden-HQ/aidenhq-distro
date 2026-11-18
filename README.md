@@ -111,9 +111,10 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    `modules-pin.json`. If both equal the newest published release's, it stops. Otherwise it waits up to 45 minutes for
    product main's `ci-required` check and skips the night unless that check passed. The release file pins the kernel,
    the modules sha and the marketplace's `bundle` at that sha. Its `notes` come from the `feat`, `fix` and `perf`
-   commit subjects since the last release: features first, deduplicated, at most 20. A note flags a release that touches
-   host setup (`ops/setup.sh`, `ops/vm/`, `ops/units/`). Another note flags one that may add module authority, read
-   approximately from `module.yaml` diffs.
+   commit subjects since the last release: features first, deduplicated, at most 20. The notes start with a flag when a
+   release may add module authority, read approximately from `module.yaml` diffs. They end with a flag when it touches
+   host setup (`ops/setup.sh` or `ops/vm/`). A day's second cut waits until product main's kernel accepts four-part
+   names.
 2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. They build and
    push every image for amd64 and arm64.
 3. **Cut.** It commits `releases/<name>.json` with its `images` to main and tags that commit. Both use the release App's
@@ -143,11 +144,16 @@ it, re-run the failed `site` job.
 
 Setup, once:
 
+- **An environment named `release`** (Settings › Environments). Under deployment branches and tags, choose "Selected
+  branches and tags" and allow the branch `main` and the tag pattern `20*`. The nightly's `cut` job runs from main, and
+  `release.yml`'s `site` job runs from the release tag.
 - **A GitHub App** with Repository permissions › Contents: Read and write, installed on this repository only. Store
-  its id and private key as the secrets `RELEASE_APP_ID` and `RELEASE_APP_KEY`.
+  its id and private key as the `release` environment's secrets `RELEASE_APP_ID` and `RELEASE_APP_KEY`.
 - **A Cloudflare API token** that can deploy the `aidenhq-site` Worker: the "Edit Cloudflare Workers" template,
-  limited to the one account and the `aidenhq.ai` zone. Store it as the secret `CLOUDFLARE_API_TOKEN`. Store the
-  account id as the variable `CLOUDFLARE_ACCOUNT_ID`.
+  limited to the one account and the `aidenhq.ai` zone. Store it as the `release` environment's secret
+  `CLOUDFLARE_API_TOKEN`. Store the account id as the variable `CLOUDFLARE_ACCOUNT_ID`.
+- The site deploys with the wrangler in [`web/deploy`](web/deploy) (exact pin and lockfile). Bump it there, at a
+  version at least 7 days old.
 
 ### Test locally
 
