@@ -411,13 +411,17 @@ fetch_release() {
   # The distro commit setup pins in instance.yaml (release:), only for the release this copy was cut for.
   REL_COMMIT=''; [ "$REL" != "$DEFAULT_RELEASE" ] || REL_COMMIT=$RELEASE_COMMIT
   [ "$(rel .release)" = "$REL" ] || die "the release file says it is '$(rel .release)', not $REL"
-  # One product sha is the whole set: the official modules are its own modules/ tree (images are checked by the release CI).
+  # One product sha is the whole set: the official modules are its own modules/ tree. Images are pulled by digest (the
+  # release CI checked each one is built from this sha); here each must be a ghcr.io/aiden-hq digest reference.
   KERNEL_SHA=$(rel .kernel) KERNEL_REPO=$(rel .kernel_repo)
   [ -n "$KERNEL_REPO" ] || KERNEL_REPO=Aiden-HQ/AidenHQ
   if ! is_sha "$KERNEL_SHA"; then
     [ "$DRY" = 1 ] || die "release $REL isn't cut yet: no real kernel sha"
     warn "release $REL has a placeholder kernel sha: a real run stops here"
   fi
+  ! have jq || jq -e '(.images // {}) | type == "object" and all(to_entries[]; (.key | test("^[a-z0-9][a-z0-9._-]*$"))
+      and (.value | type == "string" and test("^ghcr\\.io/aiden-hq/[a-z0-9][a-z0-9._-]*@sha256:[0-9a-f]{64}$")))' "$RELFILE" >/dev/null \
+    || die "release $REL's images aren't all ghcr.io/aiden-hq/<name>@sha256:<digest>"
   say "kernel $KERNEL_REPO@$KERNEL_SHA (the official modules are its modules/)"
 }
 

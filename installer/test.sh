@@ -60,6 +60,8 @@ case_ "a kernel sha from another repo"           stop "$X"
 case_ "a tracked change in the checkout"         stop "$K" 'echo evil >>"$DIR/ops-a"'
 case_ "a checkout moved to another commit"       stop "$K" 'git -C "$DIR" checkout -q --detach HEAD~1; checkout_at() { :; }'
 case_ "a rerun on a verified checkout"           pass "$K" ':'
+case_ "an image by tag, not digest, stops it"    stop "$K" 'sed -i.b "s/@sha256:0*/:latest/" "$AIDENHQ_RELEASE_FILE"; fetch_release'
+
 
 lib() {
   (
@@ -84,6 +86,15 @@ expect "a fetched release with the baked digest is accepted, and its commit goes
 expect "a fetched release with another digest stops"            stop "$(fetched 2026.11 "$(flip "$CUT")")"
 expect "an uncut installer (no baked digest) stops on a fetched file" stop "$(fetched 2026.11 '')"
 expect "another --release than the one this copy was cut for stops" stop "$(fetched 2026.12 "$CUT")"
+
+# A rerun on a 2026.11.2 install: its checkout ignores /modules/ (materialised from the modules repo); the one-sha product
+# tracks modules/. Moving the checkout replaces the materialised files with the tracked ones and verifies.
+g init -q "$work/two"; printf '/modules/\n' >"$work/two/.gitignore"; echo a >"$work/two/k"; g -C "$work/two" add -A; g -C "$work/two" commit -qm old
+OLD=$(git -C "$work/two" rev-parse HEAD); g -C "$work/two" rm -q .gitignore; mkdir -p "$work/two/modules/board"; echo tracked >"$work/two/modules/board/module.yaml"
+g -C "$work/two" add -A; g -C "$work/two" commit -qm one-sha; NEW=$(git -C "$work/two" rev-parse HEAD); g clone -q "$work/two" "$work/twoc"
+expect "a 2026.11.2 checkout with materialised modules/ moves to a product that tracks modules/" pass \
+  "DIR='$work/twoc'; git -C \"\$DIR\" checkout -q --detach $OLD; mkdir -p \"\$DIR/modules/board\"; echo materialised >\"\$DIR/modules/board/module.yaml\"
+   as_svc() { \"\$@\"; }; checkout_at \"\$DIR\" '$work/two' $NEW && verify_at \"\$DIR\" $NEW && [ \"\$(cat \"\$DIR/modules/board/module.yaml\")\" = tracked ]"
 
 # A run on an existing install (an upgrade by hand): the instance's release and owner are read; an older release is refused.
 mkdir -p "$work/up/aidenhq-instance"
