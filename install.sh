@@ -16,7 +16,8 @@
 #   --uninstall         AIDENHQ_UNINSTALL=1      stop and remove services; keeps data, vault and packages
 #   --verbose           AIDENHQ_VERBOSE=1        stream every command's output, not just the steps
 # Other inputs: AIDENHQ_OWNER_EMAIL (the board's owner account; asked for on a terminal when unset), AIDENHQ_OWNER_NAME
-# (default: the service user's name), AIDENHQ_USER (service user when run as root; default aidenhq), AIDENHQ_GITHUB_TOKEN
+# (default: the service user's name), AIDENHQ_TIMEZONE (the owner's IANA zone, e.g. Asia/Dubai, for schedules and briefs;
+# default: the host's zone, on a Mac this Mac's), AIDENHQ_USER (service user when run as root; default aidenhq), AIDENHQ_GITHUB_TOKEN
 # (private repos), AIDENHQ_RELEASE_FILE / AIDENHQ_RELEASE_URL / AIDENHQ_GIT_BASE (mirrors, air-gapped installs and tests).
 # Optional secrets, passed to the product's setup in a root-only config file and never printed: OPENROUTER_KEY (or
 # OPENROUTER_MANAGEMENT_KEY), TS_AUTHKEY. Without them the first-run page asks for the model key, and a server off a
@@ -541,6 +542,18 @@ ensure_owner_email() {
     *) refuse "set AIDENHQ_OWNER_EMAIL=<email>: the board's owner account is made for it" ;;
   esac
 }
+# The owner's timezone: AIDENHQ_TIMEZONE, a plain IANA zone name, passed to setup as TIMEZONE. Unset on a Mac it is this
+# Mac's zone (the VM's clock is UTC); unset on Linux setup uses the host's.
+ensure_timezone() {
+  case "${AIDENHQ_TIMEZONE:-}" in
+    *[!A-Za-z0-9/_+-]*) refuse "AIDENHQ_TIMEZONE isn't a plain IANA zone name (like Asia/Dubai)" ;;
+  esac
+}
+mac_timezone() {
+  [ -z "${AIDENHQ_TIMEZONE:-}" ] || return 0
+  z=$(readlink /etc/localtime 2>/dev/null || :); z=${z#*zoneinfo/}
+  case "$z" in */*|UTC) AIDENHQ_TIMEZONE=$z ;; esac
+}
 # write_setup_config: secrets only, never read from the environment by setup. mktemp makes the file 0600, root-owned and
 # new (O_EXCL) in root's /run before anything is written to it. Owner, sizing and the rest go in the environment.
 SECRET_KEYS="OPENROUTER_KEY OPENROUTER_MANAGEMENT_KEY OPENROUTER_LIMIT_USD TS_AUTHKEY TS_APPS_AUTHKEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET"
@@ -605,14 +618,14 @@ run_setup() {
   write_token_file
   [ -z "$KTOK_FILE" ] || set -- "$@" --kernel-token-file "$KTOK_FILE"
   if [ "$DRY" = 1 ]; then
-    printf '    %swould run:%s %senv AIDENHQ_USER=%s OWNER_EMAIL=%s MAX_CONCURRENT=%s TIMEOUT_MINUTES=%s CI_RUNNERS=%s bash %s/ops/setup.sh %s\n' \
-      "$D" "$N" "${SUDO:+$SUDO }" "$SVC" "${AIDENHQ_OWNER_EMAIL:-<owner email>}" "$MAX_CONCURRENT" "$JOB_TIMEOUT" "$CI_RUNNERS" "$KCOPY" "$*"
+    printf '    %swould run:%s %senv AIDENHQ_USER=%s OWNER_EMAIL=%s TIMEZONE=%s MAX_CONCURRENT=%s TIMEOUT_MINUTES=%s CI_RUNNERS=%s bash %s/ops/setup.sh %s\n' \
+      "$D" "$N" "${SUDO:+$SUDO }" "$SVC" "${AIDENHQ_OWNER_EMAIL:-<owner email>}" "${AIDENHQ_TIMEZONE:-<host zone>}" "$MAX_CONCURRENT" "$JOB_TIMEOUT" "$CI_RUNNERS" "$KCOPY" "$*"
     return 0
   fi
   log "+ setup $*"
   # The product's own progress lines ("• ..." and AIDENHQ_PROGRESS=...) reach the terminal; everything goes to the log.
   # The release goes into the new instance.yaml (all three, or none when this copy wasn't cut for it).
-  { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" MODULES="${MODULES:-}" \
+  { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" TIMEZONE="${AIDENHQ_TIMEZONE:-}" MODULES="${MODULES:-}" \
       AIDENHQ_RELEASE="${REL_COMMIT:+$REL}" AIDENHQ_RELEASE_REPO="${REL_COMMIT:+$DISTRO_REPO}" AIDENHQ_RELEASE_SHA="$REL_COMMIT" \
       MAX_CONCURRENT="$MAX_CONCURRENT" TIMEOUT_MINUTES="$JOB_TIMEOUT" CI_RUNNERS="$CI_RUNNERS" AIDENHQ_PROGRESS_BASE="${PROGRESS_SLICE:-}" \
       bash "$KCOPY/ops/setup.sh" "$@" </dev/null 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } \
@@ -928,7 +941,7 @@ mac_inner() {
   rm -f "$TMPD/secrets"
   set -- sh -c "$w" aidenhq-install "$@"
   for k in AIDENHQ_RELEASE_URL AIDENHQ_GIT_BASE MODULES; do eval "v=\${$k:-}"; [ -z "$v" ] || set -- "$k=$v" "$@"; done
-  set -- env AIDENHQ_MAC_VM=1 AIDENHQ_PROGRESS_BASE="${PROGRESS_SLICE:-}" AIDENHQ_OWNER_EMAIL="${AIDENHQ_OWNER_EMAIL:-}" \
+  set -- env AIDENHQ_MAC_VM=1 AIDENHQ_PROGRESS_BASE="${PROGRESS_SLICE:-}" AIDENHQ_OWNER_EMAIL="${AIDENHQ_OWNER_EMAIL:-}" AIDENHQ_TIMEZONE="${AIDENHQ_TIMEZONE:-}" \
     AIDENHQ_OWNER_NAME="${AIDENHQ_OWNER_NAME:-$(id -F 2>/dev/null || id -un)}" "$@"
   # A terminal goes through (Tailscale's sign-in link, prompts): limactl gives the VM a terminal only when its own stdout
   # is one, so the VM's output goes straight to it (its own log keeps it) and the link comes back in a file.
@@ -994,7 +1007,7 @@ mac_main() {
   step "This Mac"
   say "macOS $MACOS ($MARCH); $MCORES cores, $MRAM_GB GB memory, $MFREE_GB GB free"
   say "AidenHQ runs in a Linux VM ($VM, Lima): the Linux install runs inside it, with every security gate as on a server"
-  ensure_owner_email
+  ensure_owner_email; mac_timezone; ensure_timezone
   if [ -n "$REFUSALS" ]; then
     printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would refuse' || echo 'Refusing to install')" "$N" "$REFUSALS"
     [ "$DRY" = 1 ] || { STEP=''; exit 1; }
@@ -1035,7 +1048,7 @@ main() {
   derive_defaults
   plan_summary
   check_minimums
-  ensure_owner_email
+  ensure_owner_email; ensure_timezone
   if [ -n "$REFUSALS" ]; then
     printf '%s%s:%s\n%s' "$R" "$([ "$DRY" = 1 ] && echo 'A real run would refuse' || echo 'Refusing to install')" "$N" "$REFUSALS"
     [ "$DRY" = 1 ] || { STEP=''; exit 1; }
