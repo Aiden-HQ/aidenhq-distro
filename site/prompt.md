@@ -155,7 +155,7 @@ server not yet on the tailnet needs a `TS_AUTHKEY` (https://login.tailscale.com/
 - Remove: `sh ~/aidenhq-install.sh --uninstall --non-interactive` (root installs: as `aidenhq`,
   `sudo sh /root/aidenhq-install.sh ...`). It keeps data, vault and packages. On a Mac it deletes the VM and everything
   in it, so it needs `AIDENHQ_CONFIRM_DELETE_VM=1` on the `sh` side: confirm with the user first. To pause instead:
-  `limactl stop aidenhq` (it starts again at login).
+  `limactl stop aidenhq`; start it again with `launchctl kickstart gui/$(id -u)/ai.aidenhq.vm` (or at login).
 
 ---
 

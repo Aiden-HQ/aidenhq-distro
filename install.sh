@@ -983,7 +983,8 @@ mac_finish() {
     esac
   elif [ -n "$UPGRADED" ]; then printf '  The VM is updated to release %s. Open the board you already use.\n' "$REL"
   else printf '  The setup link is in the log: %s\n' "$LOG"; fi
-  printf '  The VM: %s shell %s (a shell in it), %s stop %s. It starts when you log in (%s).\n' "$lc" "$VM" "$lc" "$VM" "$plist"
+  printf '  The VM: %s shell %s (a shell in it), %s stop %s. It starts when you log in (%s), or now with\n' "$lc" "$VM" "$lc" "$VM" "$plist"
+  printf '  launchctl kickstart gui/%s/%s (not limactl start, which runs it without its login agent or keep-awake).\n' "$(id -u)" "$VM_AGENT"
   if [ "$AWAKE" = 1 ]; then printf '  This Mac stays awake on power while the VM runs. On battery, or with a laptop lid closed, it still sleeps, and every agent pauses.\n'
   else printf '  When this Mac sleeps, every agent pauses until it wakes. To keep it awake on power, run this again with AIDENHQ_KEEP_AWAKE=1.\n'; fi
   if vm_sh sudo -n test -e /root/aidenhq-vault-recovery.txt 2>/dev/null; then

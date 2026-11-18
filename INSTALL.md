@@ -50,7 +50,9 @@ framework and runs its own Linux path inside it, unchanged. It never uses sudo o
 - **Secrets** (`OPENROUTER_KEY`, `TS_AUTHKEY`, `AIDENHQ_GITHUB_TOKEN`, ...) go into the VM over stdin as a 0600 file that
   is sourced and shredded there: never on a command line, never in Lima's config.
 - **Start at login**: a LaunchAgent, `~/Library/LaunchAgents/ai.aidenhq.vm.plist`, runs `limactl start aidenhq
-  --foreground`. `limactl stop aidenhq` stops the VM until the next login or installer run.
+  --foreground`. `limactl stop aidenhq` stops the VM until the next login or installer run;
+  `launchctl kickstart gui/$(id -u)/ai.aidenhq.vm` starts it again now (a plain `limactl start aidenhq` runs it outside the
+  agent, so without keep-awake).
 - **Sleep**: a Mac that sleeps pauses every agent. The installer asks once whether to keep the Mac awake while the VM
   runs (`AIDENHQ_KEEP_AWAKE=1` or `0` without a terminal; the default there is no). Yes runs the VM under
   `caffeinate -s`, which holds off system sleep on power only, while the VM runs; it changes no power settings, and
