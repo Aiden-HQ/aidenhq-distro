@@ -818,6 +818,10 @@ memory: ${VM_MEM}GiB
 disk: ${VM_DISK}GiB
 # Nothing of the Mac is shared: Engineer jobs run in here.
 mounts: []
+# Lima's default is the Mac's uid (501), but the services run as the VM user and the pinned Paperclip image (uid 1000)
+# writes into its own files when it starts: a uid other than 1000 leaves Paperclip crash-looping.
+user:
+  uid: 1000
 containerd:
   system: false
   user: false
