@@ -270,9 +270,9 @@ expect "an 8 GB Mac is refused" pass "$(mac 'MCORES=8 MRAM_GB=8 MFREE_GB=500; ma
 expect "a Lima older than 2.0 isn't used (the pinned one is installed instead)" pass "$(mac 'export STUB_LIMA_VERSION=1.2.0; mac_detect; [ -z "$LIMACTL" ]')"
 expect "a Lima download with the wrong digest stops before unpacking" stop "$(mac 'mac_detect; LIMACTL=""; fetch() { echo junk >"$2"; }
   mac_lima; true')"
-expect "the VM: vz, the pinned image digest, no Mac folders shared, only 3121 forwarded" pass "$(mac 'mac_detect; mac_size; mac_template >"$TMPD/t.yaml"
+expect "the VM: vz, the pinned image digest, no Mac folders shared, only 3121, 3120 and 3130 forwarded" pass "$(mac 'mac_detect; mac_size; mac_template >"$TMPD/t.yaml"
   grep -qx "vmType: vz" "$TMPD/t.yaml" && grep -qx "  digest: sha256:$UBUNTU_SHA256_arm64" "$TMPD/t.yaml" && grep -qx "mounts: \[\]" "$TMPD/t.yaml" \
-    && grep -qx "  arch: aarch64" "$TMPD/t.yaml" && [ "$(grep -c -- "^- guestPort:" "$TMPD/t.yaml")" = 1 ] && grep -qx -- "- guestPort: 3121" "$TMPD/t.yaml" \
+    && grep -qx "  arch: aarch64" "$TMPD/t.yaml" && [ "$(grep -c -- "^- guestPort:" "$TMPD/t.yaml")" = 3 ] && grep -qx -- "- guestPort: 3121" "$TMPD/t.yaml" && grep -qx -- "- guestPort: 3120" "$TMPD/t.yaml" && grep -qx -- "- guestPort: 3130" "$TMPD/t.yaml" \
     && [ "$(grep -c "ignore: true" "$TMPD/t.yaml")" = 2 ]')"
 expect "the login agent runs limactl start --foreground, under caffeinate -s only when kept awake" pass "$(mac 'mac_detect
   AWAKE=0; mac_agent_plist >"$TMPD/p0"; AWAKE=1; mac_agent_plist >"$TMPD/p1"

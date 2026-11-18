@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta charset="utf-8">
 <title>AidenHQ: the workspace that runs itself</title>
 <meta name="description" content="The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.">
 <link rel="canonical" href="https://aidenhq.ai/">
@@ -10,13 +11,137 @@
 <meta property="og:title" content="AidenHQ: the workspace that runs itself">
 <meta property="og:description" content="The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.">
 <meta property="og:url" content="https://aidenhq.ai/">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://aidenhq.ai/og/aidenhq.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AidenHQ: the workspace that runs itself. AI agents plan, build, ship and follow up around the clock, on a server you own.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AidenHQ: the workspace that runs itself">
+<meta name="twitter:description" content="The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.">
+<meta name="twitter:image" content="https://aidenhq.ai/og/aidenhq.png">
+<meta name="twitter:image:alt" content="AidenHQ: the workspace that runs itself. AI agents plan, build, ship and follow up around the clock, on a server you own.">
 <!--#include head-->
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"Organization","@id":"https://aidenhq.ai/#org","name":"AidenHQ","url":"https://aidenhq.ai/","sameAs":["https://github.com/Aiden-HQ"]},
-{"@type":"SoftwareApplication","name":"AidenHQ","url":"https://aidenhq.ai/","description":"The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.","applicationCategory":"BusinessApplication","operatingSystem":"Linux (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13)","installUrl":"https://get.aidenhq.ai","softwareHelp":"https://aidenhq.ai/prompt.md","license":"https://www.gnu.org/licenses/agpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://aidenhq.ai/#org"}}
-]}
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://aidenhq.ai/#org",
+   "name": "AidenHQ",
+   "url": "https://aidenhq.ai/",
+   "logo": "https://aidenhq.ai/icon-512.png",
+   "sameAs": [
+    "https://github.com/Aiden-HQ"
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://aidenhq.ai/#website",
+   "name": "AidenHQ",
+   "url": "https://aidenhq.ai/",
+   "inLanguage": "en",
+   "publisher": {
+    "@id": "https://aidenhq.ai/#org"
+   }
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://aidenhq.ai/#software",
+   "name": "AidenHQ",
+   "url": "https://aidenhq.ai/",
+   "description": "The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.",
+   "image": "https://aidenhq.ai/og/aidenhq.png",
+   "applicationCategory": "BusinessApplication",
+   "operatingSystem": "Linux (Ubuntu 22.04, 24.04, 26.04; Debian 12, 13), macOS 13+",
+   "installUrl": "https://get.aidenhq.ai",
+   "downloadUrl": "https://github.com/Aiden-HQ/aidenhq-distro/releases",
+   "softwareHelp": {
+    "@type": "CreativeWork",
+    "url": "https://aidenhq.ai/prompt.md"
+   },
+   "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+   "isAccessibleForFree": true,
+   "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+   },
+   "publisher": {
+    "@id": "https://aidenhq.ai/#org"
+   }
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://aidenhq.ai/#webpage",
+   "url": "https://aidenhq.ai/",
+   "name": "AidenHQ: the workspace that runs itself",
+   "isPartOf": {
+    "@id": "https://aidenhq.ai/#website"
+   },
+   "about": {
+    "@id": "https://aidenhq.ai/#software"
+   },
+   "primaryImageOfPage": "https://aidenhq.ai/og/aidenhq.png"
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://aidenhq.ai/#faq",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "What is AidenHQ?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "AidenHQ is an open-source, self-hosted workspace where a team of AI agents runs work end to end: it plans, builds and ships, follows up with people, and maintains the internal apps it builds. You talk to Aiden, the chief of staff, on the web, Telegram or Slack. Aiden hands work to specialist agents and brings you only the decisions."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do I install it?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Paste one line into Claude Code, Codex or another coding assistant: “Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md”. Or run curl -fsSL https://get.aidenhq.ai | sh on the server yourself. The install ends with a one-time setup link: open it, create your password and authenticator, and add your model key."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What do I need?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "A Linux server with Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13: at least 2 cores, 6 GB of memory and 60 GB of disk (4 cores, 8 GB and 100 GB recommended), reachable over SSH with a key. A Mac with macOS 13 or later, 12 GB of memory and 60 GB free also works. You also need an OpenRouter key for the AI models. Telegram, Slack and Google are optional."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What does it cost to run?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Each agent has spend caps per run, per task and per day, you can put a monthly limit on the key itself, and the Costs page shows where every cent goes."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Where does my data live?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "On the server you run it on. The workspace has no open ports: you reach it over an SSH tunnel or your private network. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is it open source?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. The kernel is AGPL-3.0-only. The official modules, the app starter and the design system are MIT, so the apps your agents build carry no AGPL obligations."
+     }
+    }
+   ]
+  }
+ ]
+}
 </script>
 </head>
 <body>
@@ -45,7 +170,7 @@
               <span class="copy-label">Copy</span>
             </button>
           </div>
-          <button class="agent-btn" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md" aria-label="Copy a one-line setup prompt for your AI coding agent">
+          <button class="agent-btn" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
             <span class="agent-label">Copy prompt for your agent</span>
           </button>
@@ -247,6 +372,24 @@
       <li style="--c: var(--sky)"><b>Distros that fit you</b><span>Start from a tested bundle, such as a founder's office or an engineering team, and swap any add-on.</span></li>
     </ul>
     <a class="more reveal" href="/modules/" style="--c: var(--teal)">Modules and distros</a>
+  </div>
+</section>
+
+<section class="section band" id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-blue">Questions</p>
+      <h2>What people ask first.</h2>
+      <p>The short answers. Every page on this site has a markdown twin, and agents can start at <a class="lnk" href="/llms.txt">llms.txt</a>.</p>
+    </div>
+    <ul class="caps two">
+      <li class="cap reveal" style="--c: var(--blue)"><h3>What is AidenHQ?</h3><p>AidenHQ is an open-source, self-hosted workspace where a team of AI agents runs work end to end: it plans, builds and ships, follows up with people, and maintains the internal apps it builds. You talk to Aiden, the chief of staff, on the web, Telegram or Slack. Aiden hands work to specialist agents and brings you only the decisions.</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>How do I install it?</h3><p>Paste one line into Claude Code, Codex or another coding assistant: &ldquo;Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md&rdquo;. Or run <code>curl -fsSL https://get.aidenhq.ai | sh</code> on the server yourself. The install ends with a one-time setup link: open it, create your password and authenticator, and add your model key.</p><p style="margin-top:10px"><a class="lnk" href="/start/">Get started</a></p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>What do I need?</h3><p>A Linux server with Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13: at least 2 cores, 6 GB of memory and 60 GB of disk (4 cores, 8 GB and 100 GB recommended), reachable over SSH with a key. A Mac with macOS 13 or later, 12 GB of memory and 60 GB free also works. You also need an OpenRouter key for the AI models. Telegram, Slack and Google are optional.</p><p style="margin-top:10px"><a class="lnk" href="/install/">Install guide</a></p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>What does it cost to run?</h3><p>AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Each agent has spend caps per run, per task and per day, you can put a monthly limit on the key itself, and the Costs page shows where every cent goes.</p><p style="margin-top:10px"><a class="lnk" href="/safety/#costs">Spend limits</a></p></li>
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Where does my data live?</h3><p>On the server you run it on. The workspace has no open ports: you reach it over an SSH tunnel or your private network. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back.</p><p style="margin-top:10px"><a class="lnk" href="/safety/#private">Private by design</a></p></li>
+      <li class="cap reveal" style="--c: var(--pink)"><h3>Is it open source?</h3><p>Yes. The kernel is AGPL-3.0-only. The official modules, the app starter and the design system are MIT, so the apps your agents build carry no AGPL obligations.</p><p style="margin-top:10px"><a class="lnk" href="https://github.com/Aiden-HQ/AidenHQ">Source on GitHub</a></p></li>
+    </ul>
   </div>
 </section>
 

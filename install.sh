@@ -656,7 +656,7 @@ EOF
 finish() {
   if [ "$DRY" = 1 ]; then
     printf '\n%sDry run done.%s A real run ends with:\n' "$Y" "$N"; SETUP_URL="https://<board-host>:8446/setup?token=<one-time-token>"
-    [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 $SVC@<this-host>"
+    [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 -L 3120:127.0.0.1:3120 -L 3130:127.0.0.1:3130 $SVC@<this-host>"
   fi
   # Inside a Mac's VM (the macOS path below): the Mac prints the way in and the 100% line, once. The link goes to a file
   # the Mac reads back (0600: it is a one-time sign-in).
@@ -708,7 +708,8 @@ uninstall() {
 # ------------------------------------------------------------------------------------------------ macOS: a Linux VM
 # AidenHQ's gates need Linux (bwrap user namespaces, pasta, gVisor, the gocryptfs vault, systemd, AppArmor), so on a Mac
 # this script makes an Ubuntu 24.04 VM with Lima (Apple's Virtualization.framework) and runs its own Linux path inside
-# it, unchanged. Only the board's browser port (3121) is forwarded, to this Mac's localhost. Never uses sudo.
+# it, unchanged. Only the browser ports are forwarded, to this Mac's localhost: the board (3121), the admin listener
+# (3120: sign-in) and the gate (3130: the owner's apps at <app>.localhost:3130). Never uses sudo.
 LIMA_VERSION=2.3.0 LIMA_MIN=2.0.0   # v2.3.0 published 2026-11-06; an existing limactl at LIMA_MIN or newer is used
 LIMA_SHA256_arm64=b7af444bd8f91d3c307477e562f2cf3bd7595d62b9429185e4fa841563578cfc
 LIMA_SHA256_x86_64=d58bc7d6b8158d638720d8c8fdb17eb58527dfead6a29a5b60f48a35ee4a65a6
@@ -758,7 +759,9 @@ mac_size() {
   [ -n "$(vm_state)" ] && return 0
   [ "$MFREE_GB" -ge "$MIN_DISK_GB" ] || refuse "$MFREE_GB GB free on this Mac; the VM's disk grows to ~$MIN_DISK_GB GB as the images land: free some space"
   [ "$MFREE_GB" -ge "$MIN_DISK_GB" ] && [ "$MFREE_GB" -lt "$VM_DISK" ] && warn "$MFREE_GB GB free: enough to start, but the VM's disk can grow to $VM_DISK GB"
-  if nc -z 127.0.0.1 3121 >/dev/null 2>&1; then refuse "port 3121 on this Mac is taken (lsof -nP -iTCP:3121): the board is forwarded there"; fi
+  for p in 3121 3120 3130; do
+    if nc -z 127.0.0.1 "$p" >/dev/null 2>&1; then refuse "port $p on this Mac is taken (lsof -nP -iTCP:$p): AidenHQ's VM forwards it there"; fi
+  done
   :
 }
 
@@ -793,9 +796,14 @@ mounts: []
 containerd:
   system: false
   user: false
-# The board's browser listener only, to this Mac's localhost; every other guest port stays in the VM.
+# The browser listeners only (the board, the admin listener, the gate's app doors), to this Mac's localhost, each on its
+# own port (an app door's origin includes it); every other guest port stays in the VM.
 portForwards:
 - guestPort: 3121
+  hostIP: 127.0.0.1
+- guestPort: 3120
+  hostIP: 127.0.0.1
+- guestPort: 3130
   hostIP: 127.0.0.1
 - guestIP: 127.0.0.1
   guestPortRange: [1, 65535]
@@ -942,7 +950,7 @@ mac_finish() {
   if [ -n "$SETUP_URL" ]; then
     printf '  Open this link in a browser on this Mac (one use, 72 hours):\n\n    %s%s%s\n\n' "$B" "$SETUP_URL" "$N"
     case "$SETUP_URL" in
-      http://127.0.0.1:3121/*) printf '  The VM'"'"'s board port (3121) is forwarded to this Mac'"'"'s localhost; nothing else in the VM is.\n' ;;
+      http://127.0.0.1:3121/*) printf '  The VM'"'"'s browser ports (3121, 3120, 3130) are forwarded to this Mac'"'"'s localhost; nothing else in the VM is.\n' ;;
       *) printf '  This Mac (and any device you use) must be on the same tailnet as the VM.\n' ;;
     esac
   else printf '  The setup link is in the log: %s\n' "$LOG"; fi

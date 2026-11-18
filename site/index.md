@@ -81,6 +81,32 @@ feeds one shared warehouse for context. [Integrations](https://aidenhq.ai/integr
 - **Distros that fit you:** a lean kernel, modules on top, and tested bundles such as a founder's office or an
   engineering team. [Modules and distros](https://aidenhq.ai/modules/index.md)
 
+## Questions
+
+### What is AidenHQ?
+
+AidenHQ is an open-source, self-hosted workspace where a team of AI agents runs work end to end: it plans, builds and ships, follows up with people, and maintains the internal apps it builds. You talk to Aiden, the chief of staff, on the web, Telegram or Slack. Aiden hands work to specialist agents and brings you only the decisions.
+
+### How do I install it?
+
+Paste one line into Claude Code, Codex or another coding assistant: “Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md”. Or run `curl -fsSL https://get.aidenhq.ai | sh` on the server yourself. The install ends with a one-time setup link: open it, create your password and authenticator, and add your model key. [Get started](https://aidenhq.ai/start/index.md)
+
+### What do I need?
+
+A Linux server with Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13: at least 2 cores, 6 GB of memory and 60 GB of disk (4 cores, 8 GB and 100 GB recommended), reachable over SSH with a key. A Mac with macOS 13 or later, 12 GB of memory and 60 GB free also works. You also need an OpenRouter key for the AI models. Telegram, Slack and Google are optional. [Install guide](https://aidenhq.ai/install/index.md)
+
+### What does it cost to run?
+
+AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Each agent has spend caps per run, per task and per day, you can put a monthly limit on the key itself, and the Costs page shows where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
+
+### Where does my data live?
+
+On the server you run it on. The workspace has no open ports: you reach it over an SSH tunnel or your private network. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back. [Private by design](https://aidenhq.ai/safety/index.md#private)
+
+### Is it open source?
+
+Yes. The kernel is AGPL-3.0-only. The official modules, the app starter and the design system are MIT, so the apps your agents build carry no AGPL obligations. [Source on GitHub](https://github.com/Aiden-HQ/AidenHQ)
+
 ## Get started
 
 Requirements, the three ways to install and what happens next: [Install guide](https://aidenhq.ai/install/index.md).

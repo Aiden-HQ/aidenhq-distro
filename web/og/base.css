@@ -1,0 +1,34 @@
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1200px; height: 630px; overflow: hidden; }
+body { position: relative; background: #F6F7FB; color: #0B1426; font-family: "Schibsted Grotesk", sans-serif; -webkit-font-smoothing: antialiased; }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(#E0E5EF 1px, transparent 1px), linear-gradient(90deg, #E0E5EF 1px, transparent 1px); background-size: 48px 48px; opacity: .45; -webkit-mask-image: linear-gradient(100deg, #000 10%, transparent 65%); }
+.mesh { position: absolute; inset: 0; filter: blur(70px); opacity: .6; }
+.mesh i { position: absolute; border-radius: 50%; }
+.m1 { width: 560px; height: 420px; left: 640px; top: -120px; background: rgba(43, 80, 255, .55); }
+.m2 { width: 420px; height: 360px; left: 880px; top: 200px; background: rgba(224, 69, 123, .45); }
+.m3 { width: 380px; height: 300px; left: 620px; top: 380px; background: rgba(11, 156, 139, .4); }
+.m4 { width: 360px; height: 260px; left: -80px; top: -120px; background: rgba(117, 83, 242, .25); }
+.in { position: absolute; inset: 64px 72px; display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: 16px; font-weight: 700; font-size: 34px; letter-spacing: -.02em; }
+.brand svg { width: 52px; height: 52px; }
+.kicker { margin-top: auto; display: inline-flex; align-self: flex-start; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid #CCD3E1; border-radius: 8px; background: #fff; font-size: 21px; font-weight: 500; color: #435069; }
+.kicker b { width: 10px; height: 10px; border-radius: 3px; background: #0B9C8B; }
+h1 { margin-top: 22px; font-size: 92px; line-height: .98; letter-spacing: -.045em; font-weight: 800; max-width: 15ch; }
+.grad { background: linear-gradient(95deg, #2B50FF 0%, #7553F2 45%, #E0457B 100%); -webkit-background-clip: text; color: transparent; }
+p.sub { margin-top: 24px; font-size: 29px; line-height: 1.35; color: #435069; max-width: 30ch; }
+.foot { margin-top: 34px; display: flex; align-items: center; gap: 18px; }
+.cmd { display: inline-flex; align-items: center; gap: 14px; padding: 15px 22px; border-radius: 8px; background: #0D1830; color: #DCE5F3; font: 500 23px "IBM Plex Mono", monospace; }
+.cmd span { color: #33E0C8; }
+.url { font-weight: 600; font-size: 24px; color: #2B50FF; }
+.steps { position: absolute; right: 72px; top: 150px; width: 400px; display: grid; gap: 14px; }
+.step { display: flex; align-items: center; gap: 16px; padding: 18px 20px; background: #fff; border: 1px solid #E0E5EF; border-left: 4px solid var(--c); border-radius: 10px; box-shadow: 0 18px 40px -22px rgba(24, 40, 96, .35); font-size: 25px; font-weight: 650; }
+.step i { font-style: normal; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: color-mix(in srgb, var(--c) 15%, transparent); color: color-mix(in srgb, var(--c) 80%, #0B1426); font-size: 19px; }
+.in { inset: 60px 72px 64px; }
+.kicker { margin-top: auto; }
+.panel { position: absolute; right: 64px; top: 128px; width: 430px; padding: 18px; background: rgba(255,255,255,.92); border: 1px solid #E0E5EF; border-radius: 12px; box-shadow: 0 30px 60px -28px rgba(24, 40, 96, .45); }
+.ph { display: flex; justify-content: space-between; font-size: 19px; font-weight: 700; margin: 2px 4px 12px; }
+.ph small { font-weight: 500; color: #5D6A82; font-size: 16px; }
+.ag { display: flex; align-items: center; gap: 14px; padding: 12px; border: 1px solid #E0E5EF; border-radius: 9px; margin-top: 10px; background: #fff; }
+.ag i { font-style: normal; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: var(--c); color: #fff; font-size: 15px; font-weight: 700; }
+.ag b { display: block; font-size: 19px; } .ag span { display: block; font-size: 15.5px; color: #5D6A82; }
+.ag em { margin-left: auto; font-style: normal; font-size: 14px; font-weight: 650; padding: 3px 9px; border-radius: 6px; background: color-mix(in srgb, var(--t) 14%, transparent); color: color-mix(in srgb, var(--t) 80%, #0B1426); }
