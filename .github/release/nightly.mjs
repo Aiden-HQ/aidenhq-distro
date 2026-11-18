@@ -81,8 +81,10 @@ async function ci(get, sha, waitMin) {
 }
 
 /** `get` is the GitHub API reader (api above); a test or a fixture dry run passes its own. */
-export async function decide({ now = new Date(), waitMin = 0, get = api } = {}) {
-  const head = (await get(`repos/${KERNEL}/commits/main`)).sha;
+export async function decide({ now = new Date(), waitMin = 0, get = api, kernel = "" } = {}) {
+  // A hand-run cut may name the product commit (it must be on main); otherwise main's head.
+  const head = kernel || (await get(`repos/${KERNEL}/commits/main`)).sha;
+  if (kernel && (await get(`repos/${KERNEL}/compare/${kernel}...main`)).behind_by) throw new Error(`${kernel} isn't on ${KERNEL} main`);
   // The newest published release (a tag whose run failed is deleted; a draft isn't one).
   const published = (await get(`repos/${DISTRO}/releases?per_page=100`)).filter((r) => !r.draft && NAME.test(r.tag_name)).map((r) => r.tag_name);
   const last = published.sort(compare).at(-1);
@@ -101,8 +103,10 @@ export async function decide({ now = new Date(), waitMin = 0, get = api } = {}) 
   const name = await nameFor(now, tags, async (n) => !!(await get(`repos/${DISTRO}/contents/releases/${n}.json?ref=main`, { allow404: true })));
   // A day's second cut (four parts) needs a kernel that accepts it: an older one's ops/setup.sh refuses the name on a fresh install.
   if (name.split(".").length === 4) {
-    const src = await get(`repos/${KERNEL}/contents/kernel/src/loader/release.ts?ref=${head}`);
-    const re = /const NAME = \/(.+)\/;/.exec(Buffer.from(src.content, "base64").toString("utf8"))?.[1];
+    // The kernel's release-name rule; the loader moved to scripts/compiler (#510).
+    let src;
+    for (const f of ["scripts/compiler/release.ts", "kernel/src/loader/release.ts"]) if ((src = await get(`repos/${KERNEL}/contents/${f}?ref=${head}`, { allow404: true }))) break;
+    const re = src && /const NAME = \/(.+)\/;/.exec(Buffer.from(src.content, "base64").toString("utf8"))?.[1];
     if (!re || !new RegExp(re).test(name)) return { go: false, why: `${name} is a day's second cut, and the kernel at ${head.slice(0, 12)} doesn't accept four-part names yet`, ...base };
   }
   const release = { release: name, kernel: head, kernel_repo: KERNEL, notes: notes([...pc.commits].reverse(), flagsOf(pc.files ?? [])) };
@@ -111,7 +115,7 @@ export async function decide({ now = new Date(), waitMin = 0, get = api } = {}) 
 
 if (import.meta.main) {
   const out = process.argv[2];
-  const d = await decide({ waitMin: Number(process.env.NIGHTLY_CI_WAIT_MIN ?? 0) });
+  const d = await decide({ waitMin: Number(process.env.NIGHTLY_CI_WAIT_MIN ?? 0), kernel: process.env.NIGHTLY_KERNEL ?? "" });
   console.log(`${d.go ? `cut ${d.name}` : "skip"}: ${d.why} (since ${d.last}; main ${d.head})`);
   if (d.go) console.log(JSON.stringify(d.release, null, 2));
   if (out && d.go) writeFileSync(out, `${JSON.stringify(d.release, null, 2)}\n`);
