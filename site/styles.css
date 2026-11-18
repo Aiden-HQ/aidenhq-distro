@@ -176,7 +176,7 @@ h1 .grad { display: inline-block; padding-bottom: .06em; text-wrap: balance; }
 .cmd pre::-webkit-scrollbar { display: none; }
 .cmd code { display: block; font-size: 15px; white-space: nowrap; padding: 9px 0; }
 .install-row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; }
-.install-row .cmd { flex: 1 1 400px; max-width: 520px; }
+.install-row .cmd { flex: 0 1 auto; max-width: 100%; }
 .agent-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 14px; border-radius: var(--r);
   border: 1px solid color-mix(in srgb, var(--violet) 45%, var(--line-2)); background: color-mix(in srgb, var(--violet) 8%, var(--surface));
