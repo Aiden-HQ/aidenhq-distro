@@ -192,8 +192,10 @@ up, and by hand. One run at a time, from main only:
    upgrade test no longer starts from it. Anything else opens one issue and rejects nothing, so the candidate is tried
    again at the next run: a failure before the upgrade (the baseline's install, first run or chat, or the runner), the
    instance's updater rate-limited by GitHub for 25 minutes, a step or the job cut short by its timeout, a cancelled run,
-   or promotion failing after a passing test (GitHub API calls there wait out rate limits first). A candidate that keeps
-   failing this way is rejected by hand.
+   or promotion failing after a passing test (GitHub API calls there wait out rate limits first). A run that reached the
+   candidate (its updater prepared it) but ended without a verdict (it hung, a step timed out, its checks never wrote)
+   adds a `graduation: incomplete <run url>` line to its notes; at the third such line it is rejected as never
+   completed, so one release can't hold back every later cut.
 
 Operating it:
 

@@ -67,8 +67,9 @@ jobs:
     timeout-minutes: 360
     permissions: {}
     outputs:
-      # "candidate" once the upgrade starts: a failure before it is the baseline's or the runner's, never the candidate's.
-      reached: ${{ steps.reached.outputs.phase }}
+      # "candidate" once the instance's updater prepared the candidate (its move began): a failure before that is the
+      # baseline's, the runner's or a rate limit's, never the candidate's.
+      reached: ${{ steps.result.outputs.reached }}
       # passed, failed (a check ran and said no) or incomplete; empty when the job was cut short before its result.
       verdict: ${{ steps.result.outputs.verdict }}
     env:
@@ -104,8 +105,6 @@ jobs:
         env:
           GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: node .github/release/graduate-scenario.mjs baseline
-      - id: reached
-        run: echo "phase=candidate" >> "$GITHUB_OUTPUT"
       - name: d. Upgrade to the candidate with the installed updater
         id: upgrade
         timeout-minutes: 125

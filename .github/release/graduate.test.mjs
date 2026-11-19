@@ -1,7 +1,7 @@
 // graduate.mjs on fixture release lists: which cut is tested, what result is accepted, when promotion goes ahead.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CHECKS, checkIdentity, decide, identityOf, markRejected, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
+import { CHECKS, checkIdentity, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
 const rel = (tag, { pre = true, draft = false, body = "", id = 1 } = {}) => ({
@@ -26,12 +26,27 @@ test("only the candidate's own failed checks reject it; the baseline, rate limit
   const c = (test, reached, verdict, promote = "skipped") => onFailure({ test, reached, verdict, promote });
   assert.equal(c("failure", "candidate", "failed"), "mark");
   assert.equal(c("failure", "", "failed"), "issue", "a baseline check failed before the upgrade");
-  assert.equal(c("failure", "candidate", "incomplete"), "issue", "a rate limit or a step cut short: a check never said no");
-  assert.equal(c("failure", "candidate", ""), "issue", "the job timed out before the verdict");
+  assert.equal(c("failure", "candidate", "incomplete"), "incomplete", "reached the candidate, a check never said no: counted");
+  assert.equal(c("failure", "candidate", ""), "incomplete");
+  assert.equal(c("failure", "", "incomplete"), "issue", "a rate limit before the candidate was prepared: not counted");
   assert.equal(c("cancelled", "candidate", ""), "issue");
   assert.equal(c("success", "candidate", "passed", "failure"), "issue", "promotion failing never rejects");
   assert.equal(c("success", "candidate", "passed", "success"), "none");
   assert.equal(c("skipped", "", "", "skipped"), "none");
+});
+
+test("a candidate that never completes is rejected at its third incomplete run, once per run", () => {
+  const r = (n) => `https://github.com/a/b/actions/runs/${n}`;
+  let n = noteIncomplete("Install: x", r(1));
+  assert.deepEqual([n.count, n.rejected, rejected(n.body)], [1, false, false]);
+  n = noteIncomplete(n.body, r(1));
+  assert.equal(n.count, 1, "a re-run of the same run's reject job counts once");
+  n = noteIncomplete(n.body, r(2));
+  assert.deepEqual([n.count, n.rejected], [2, false]);
+  n = noteIncomplete(n.body, r(3));
+  assert.deepEqual([n.count, n.rejected, rejected(n.body)], [3, true, true]);
+  assert.match(n.body, /graduation: failed .*runs\/3 \(never completed in 3 runs\)/);
+  assert.equal(pick([{ id: 1, tag_name: "2026.11.20", draft: false, prerelease: true, body: n.body }, { id: 2, tag_name: "2026.11.21", draft: false, prerelease: true, body: "" }], "2026.11.19").tag_name, "2026.11.21", "select moves on");
 });
 
 test("a rate limit waits as GitHub asks; any other 403 is a refusal", () => {

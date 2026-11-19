@@ -4,8 +4,9 @@
 //   node .github/release/graduate.mjs promote <result.json>   (IDENTITY, RUN_ID) graduate it: not a pre-release, latest
 //   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, BASELINE, TEST_RESULT, REACHED, VERDICT,
 //                                                   PROMOTE_RESULT) mark it rejected and open one issue when its own checks
-//                                                   failed; anything else (the baseline, the runner, a rate limit, a timeout
-//                                                   or cancel, promotion) only an issue: it stays pending (onFailure)
+//                                                   failed, or after its 3rd run that reached it without a verdict; anything
+//                                                   else (the baseline, the runner, a rate limit before the candidate ran,
+//                                                   a cancel, promotion) only an issue: it stays pending (onFailure)
 //   node .github/release/graduate.mjs rejected      the rejected releases' names, space-separated (release.yml's upgrade test)
 // A cut is published as a pre-release (release.yml). The baseline is GitHub's latest release: the newest graduated one, what
 // get.aidenhq.ai serves. The candidate is the OLDEST pre-release newer than the baseline that isn't marked rejected (a line
@@ -22,6 +23,9 @@ const SHA = /^[0-9a-f]{40}$/;
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
 /** The rejected mark: one line in the release's body. Delete the line to have the release tested again. */
 export const MARK = "graduation: failed";
+/** A run that reached the candidate but ended without a verdict: one line each; at INCOMPLETE_LIMIT of them it is rejected. */
+export const INCOMPLETE = "graduation: incomplete";
+export const INCOMPLETE_LIMIT = 3;
 export const rejected = (body) => new RegExp(`^${MARK}\\b`, "m").test(String(body ?? ""));
 /** The variable the baseline's updater must know (kernel/src/updates.ts) to prepare a named pre-release. */
 export const CANDIDATE_ENV = "AIDENHQ_UPDATE_CANDIDATE";
@@ -105,7 +109,22 @@ export function decide({ release, tagSha, latest, id }) {
 export function onFailure({ test, reached, verdict, promote }) {
   if (test === "success") return promote === "success" || promote === "skipped" ? "none" : "issue";
   if (test === "failure" && reached === "candidate" && verdict === "failed") return "mark";
+  // Reached the candidate and failed without a verdict (it hung, a step timed out, its checks never wrote): counted, so a
+  // candidate that never completes can't hold every later cut back (noteIncomplete).
+  if (test === "failure" && reached === "candidate") return "incomplete";
   return test === "skipped" ? "none" : "issue";
+}
+
+/**
+ * The body with this run's `graduation: incomplete <run>` line (once per run), and whether that makes INCOMPLETE_LIMIT of
+ * them: then it also carries the rejected mark (never completed), so select moves on to the next cut.
+ */
+export function noteIncomplete(body, run) {
+  let b = String(body ?? "");
+  if (!b.split("\n").includes(`${INCOMPLETE} ${run}`)) b = `${b.trimEnd()}\n\n${INCOMPLETE} ${run}\n`;
+  const n = b.split("\n").filter((l) => l.startsWith(`${INCOMPLETE} `)).length;
+  const reject = n >= INCOMPLETE_LIMIT;
+  return { body: reject ? markRejected(b, `${run} (never completed in ${n} runs)`) : b, count: n, rejected: reject };
 }
 
 /** The body with the rejected mark (unchanged when it has one). */
@@ -225,7 +244,18 @@ async function reject() {
   const release = await api(`repos/${DISTRO}/releases/${id.release_id}`);
   if (release.tag_name !== id.tag) throw new Error(`release ${id.release_id} isn't ${id.tag}`);
   if (!release.prerelease) { summary(`${id.tag} is graduated already: not marked`); return; }
-  if (!rejected(release.body)) await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { body: markRejected(release.body, run) } });
+  let marked = rejected(release.body);
+  if (what === "incomplete" && !marked) {
+    const n = noteIncomplete(release.body, run);
+    await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { body: n.body } });
+    if (!n.rejected) {
+      await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag}'s upgrade began but the run ended without a verdict (it hung, a step timed out, or its checks never wrote): ${n.count} of ${INCOMPLETE_LIMIT} such runs. It stays pending and is tested again at the next run; at ${INCOMPLETE_LIMIT} it is rejected.\n\nRun: ${run}`);
+      summary(`**${id.tag} incomplete** (${n.count}/${INCOMPLETE_LIMIT}); ${run}`);
+      return;
+    }
+    marked = true; // its body above carries the rejected mark already
+  }
+  if (!marked) await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { body: markRejected(release.body, run) } });
   await issue(`Release ${id.tag} failed graduation`, `${id.tag} didn't pass graduation, so it stays a pre-release: no install updates to it and get.aidenhq.ai keeps serving the latest graduated release. The next cut is tested from the same baseline.\n\nRun: ${run}\n\nTo test it again (an infrastructure failure), delete the \`${MARK}\` line from the release's notes; the next graduate run picks it up.`);
   summary(`**${id.tag} rejected**: marked in its notes; ${run}`);
 }

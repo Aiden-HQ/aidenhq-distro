@@ -125,7 +125,7 @@ upgrade() {
   for i in $(seq 1 13); do
     out=$(in_co 'AIDENHQ_UPDATE_CANDIDATE="$1" node --disable-warning=ExperimentalWarning kernel/src/updates.ts check "$1" graduate' "$TAG" 2>&1) || true
     log "check $i: $out"
-    grep -q "^release $TAG prepared" <<<"$out" && break
+    grep -q "^release $TAG prepared" <<<"$out" && { touch "$GRAD_DIR/reached-candidate"; break; }
     if [ "$i" = 13 ]; then
       grep -qE 'answered (403|429)' <<<"$out" && die "GitHub's API rate-limited the instance's updater for 25 minutes (infrastructure, not $TAG): $out"
       rec upgraded false "the updater didn't prepare $TAG: $out"; exit 1
@@ -198,7 +198,9 @@ result() {
   local verdict
   verdict=$(jq -r --slurpfile c "$f" 'if .passed then "passed" elif ($c[0].checks | to_entries | any(.value == false)) then "failed" else "incomplete" end' "$GRAD_DIR/result.json")
   echo "verdict: $verdict"
-  [ -z "${GITHUB_OUTPUT:-}" ] || echo "verdict=$verdict" >>"$GITHUB_OUTPUT"
+  # Whether the candidate's move began (the updater prepared it): only then can a failure be the candidate's.
+  local reached=''; [ ! -f "$GRAD_DIR/reached-candidate" ] || reached=candidate
+  [ -z "${GITHUB_OUTPUT:-}" ] || printf 'verdict=%s\nreached=%s\n' "$verdict" "$reached" >>"$GITHUB_OUTPUT"
   jq -r '.checks | to_entries[] | "| \(.key) | \(if .value then "ok" else "FAIL" end) |"' "$GRAD_DIR/result.json" \
     | { printf '| check | |\n|---|---|\n'; cat; echo; echo "Verdict: $verdict"; } >>"${GITHUB_STEP_SUMMARY:-/dev/null}"
 }
