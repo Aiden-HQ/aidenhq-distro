@@ -1,0 +1,181 @@
+# Release graduation (README "Release graduation"). release.yml publishes every cut as a pre-release: installs' updaters
+# skip it and get.aidenhq.ai keeps serving GitHub's "latest". This workflow graduates one: a fresh test instance on a free
+# GitHub-hosted runner installs the current latest (the baseline) with its own published installer, goes through a new owner's
+# first run, upgrades to the candidate with its own installed updater (kernel/src/updates.ts, AIDENHQ_UPDATE_CANDIDATE) and
+# passes smoke checks. Only then is the candidate made a full release and latest, which installs update to and the site serves.
+#   select   (contents: read) the candidate: the OLDEST pre-release newer than latest without the rejected mark
+#            (`graduation: failed <run>` in its notes); exact tag, tag commit, kernel, release id and asset digests. Nothing to
+#            do: the run ends there. A baseline whose updater can't prepare a named pre-release fails here (the bootstrap).
+#   test     (no token, no permissions) steps a-e on ubuntu-24.04: disk, baseline install, baseline scenario, upgrade, smoke.
+#            The only job that runs a release's code; it hands promote one small result.json.
+#   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
+#            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
+#            to move latest back; a re-run of a graduated release does nothing.
+#   reject   (contents: write, issues: write) when test or promote failed: the rejected mark and one issue. A rejected
+#            release stays a pre-release; the next candidate is tested from the same baseline.
+# Triggers: a release.yml run that passed on a tag, every 6 hours (catches up on anything missed), and by hand. Only from
+# main; one run at a time and none cancelled (select picks the work, so a dropped queued run loses nothing). No
+# pull_request_target: a fork's code never meets the secret. The secret GRADUATE_OPENROUTER_KEY (a spend-capped OpenRouter
+# key) is the model key of the test instance, the only secret here; the test job runs the candidate's code with it.
+name: graduate
+on:
+  workflow_run:
+    workflows: [release]
+    types: [completed]
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: graduate
+  cancel-in-progress: false
+jobs:
+  select:
+    if: >-
+      github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run'
+      || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, '20')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      found: ${{ steps.pick.outputs.found }}
+      tag: ${{ steps.pick.outputs.tag }}
+      tag_sha: ${{ steps.pick.outputs.tag_sha }}
+      kernel: ${{ steps.pick.outputs.kernel }}
+      baseline: ${{ steps.pick.outputs.baseline }}
+      baseline_install_digest: ${{ steps.pick.outputs.baseline_install_digest }}
+      candidate_file_digest: ${{ steps.pick.outputs.candidate_file_digest }}
+      identity: ${{ steps.pick.outputs.identity }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - id: pick
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/release/graduate.mjs select
+
+  test:
+    needs: select
+    if: needs.select.outputs.found == 'true'
+    runs-on: ubuntu-24.04
+    # Install ~25 min; each model-dependent step has its own bound (chats 2 x 12 min, apps 50 min, the update record 90 min).
+    timeout-minutes: 330
+    permissions: {}
+    outputs:
+      # "candidate" once the upgrade starts: a failure before it is the baseline's or the runner's, never the candidate's.
+      reached: ${{ steps.reached.outputs.phase }}
+    env:
+      TAG: ${{ needs.select.outputs.tag }}
+      TAG_SHA: ${{ needs.select.outputs.tag_sha }}
+      KERNEL: ${{ needs.select.outputs.kernel }}
+      BASELINE: ${{ needs.select.outputs.baseline }}
+      BASELINE_INSTALL_DIGEST: ${{ needs.select.outputs.baseline_install_digest }}
+      CANDIDATE_FILE_DIGEST: ${{ needs.select.outputs.candidate_file_digest }}
+      IDENTITY: ${{ needs.select.outputs.identity }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - name: Scratch for the run (account, authenticator key, cookies; never uploaded)
+        run: |
+          mkdir -m 0700 "$RUNNER_TEMP/grad"
+          echo "GRAD_DIR=$RUNNER_TEMP/grad" >> "$GITHUB_ENV"
+          echo "Graduating $TAG (kernel ${KERNEL:0:12}) from $BASELINE" >> "$GITHUB_STEP_SUMMARY"
+      - name: a. Service user and disk
+        run: bash .github/release/graduate-instance.sh prepare
+      - name: b. Install the baseline with its own installer
+        env:
+          OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
+        run: bash .github/release/graduate-instance.sh install
+      - name: c. Baseline scenario (first run, a chat, a hello app)
+        env:
+          GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
+        run: node .github/release/graduate-scenario.mjs baseline
+      - id: reached
+        run: echo "phase=candidate" >> "$GITHUB_OUTPUT"
+      - name: d. Upgrade to the candidate with the installed updater
+        run: bash .github/release/graduate-instance.sh upgrade
+      - name: e. Smoke checks (owner's side)
+        run: node .github/release/graduate-scenario.mjs smoke
+      - name: e. Smoke checks (host's side)
+        if: ${{ !cancelled() }}
+        run: bash .github/release/graduate-instance.sh host-checks
+      - name: Result
+        if: ${{ !cancelled() }}
+        run: bash .github/release/graduate-instance.sh result
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: graduate-result
+          path: ${{ env.GRAD_DIR }}/result.json
+          retention-days: 30
+      - name: Logs (secrets redacted)
+        if: failure()
+        env:
+          GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
+        run: bash .github/release/graduate-instance.sh logs "$RUNNER_TEMP/grad-logs"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: graduate-logs
+          path: ${{ runner.temp }}/grad-logs
+          retention-days: 7
+
+  promote:
+    needs: [select, test]
+    if: needs.test.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: graduate-result
+          path: ${{ runner.temp }}/result
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          IDENTITY: ${{ needs.select.outputs.identity }}
+          BASELINE: ${{ needs.select.outputs.baseline }}
+          RUN_ID: ${{ github.run_id }}
+        run: node .github/release/graduate.mjs promote "$RUNNER_TEMP/result/result.json"
+
+  # A failed (or timed-out) test or promotion rejects the candidate; a cancelled run doesn't (the schedule picks it up again).
+  # A test that failed before the upgrade started (the baseline's install or first run, the runner) only opens an issue: the
+  # candidate stays pending and is tried again.
+  reject:
+    needs: [select, test, promote]
+    if: ${{ always() && needs.select.outputs.found == 'true' && (needs.test.result == 'failure' || needs.promote.result == 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          IDENTITY: ${{ needs.select.outputs.identity }}
+          BASELINE: ${{ needs.select.outputs.baseline }}
+          REACHED: ${{ needs.test.result == 'failure' && needs.test.outputs.reached || 'candidate' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/release/graduate.mjs reject

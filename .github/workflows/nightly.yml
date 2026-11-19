@@ -1,8 +1,8 @@
 # The nightly release (README "Nightly releases"). Each evening, when product main moved since the newest published release
 # and its CI passed: decide (.github/release/nightly.mjs), build and push the images (release.yml's plan/images/collect,
 # called), write releases/<name>.json with them onto main, tag it and dispatch release.yml on the tag: install and test on a
-# fresh runner, then publish, which is what get.aidenhq.ai and the updaters serve. A failed test deletes the tag (release.yml
-# `alert`), so only a passing release is ever seen by installs.
+# fresh runner, then publish it as a pre-release. A failed test deletes the tag (release.yml `alert`). graduate.yml then
+# upgrades a test instance to it; only a release that graduates is what get.aidenhq.ai and the updaters serve.
 # 18:00 UTC: built and published (about 20 minutes) before installs update, 02:00-05:00 in their own timezone.
 # Hold the nightlies: `gh workflow disable nightly.yml -R Aiden-HQ/aidenhq-distro` (enable to resume).
 # No secrets: the built-in token commits the release file to main (the main ruleset only blocks deletion and force-push), pushes

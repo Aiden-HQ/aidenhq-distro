@@ -96,8 +96,8 @@ official modules (`modules/`). Beside it are the prebuilt `images` by digest, th
 match the one baked into the tagged `install.sh`. A manifest without a real sha is not cut yet and the installer refuses
 it. The 2026.11 to 2026.11.2 manifests are the older two-repo shape and stay as they were cut.
 
-After install, an instance updates itself to each new release (the product's `kernel/src/updates.ts`): one instance
-commit moves `product:` and `release:`. Running the installer again on an existing install does the same through setup,
+After install, an instance updates itself to each new graduated release (the product's `kernel/src/updates.ts`, below):
+one instance commit moves `product:` and `release:`. Running the installer again on an existing install does the same through setup,
 and drops the instance's obsolete `aidenhq` marketplace entry in that commit; other marketplaces stay.
 
 ### Nightly releases
@@ -123,9 +123,11 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
    A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
    `release.yml` run on the tag, whether a push or a dispatch.
-4. **Test and publish.** The tag run is the same as for a hand cut: install and test on a fresh runner, then publish.
-   Installs' updaters pick up the release that night, between 02:00 and 05:00 in their own timezone. get.aidenhq.ai
-   serves it within minutes (below).
+4. **Test and publish.** The tag run is the same as for a hand cut: install and test on a fresh runner, then publish it
+   as a pre-release. Nothing takes it yet.
+5. **Graduate.** [`graduate.yml`](.github/workflows/graduate.yml) upgrades a test instance to it (below). Once it
+   graduates, installs' updaters pick it up that night, between 02:00 and 05:00 in their own timezone, and get.aidenhq.ai
+   serves it within minutes.
 
 A tag run that doesn't publish deletes its tag and any draft release, then opens an issue, so nothing untested is ever
 offered. A failed nightly before the tag only opens an issue. A failed release leaves its file on main, and its name is
@@ -145,7 +147,72 @@ used up: the next cut that day takes the next `.N`.
 
   The tag run then tests and publishes it.
 
-No setup: the workflows use only the built-in `GITHUB_TOKEN`.
+The nightly and release workflows use only the built-in `GITHUB_TOKEN`; graduation also needs one secret (below).
+
+### Release graduation
+
+Every cut is published as a GitHub pre-release. Installs' updaters skip pre-releases (they take only published releases
+that are not pre-releases, read from the Releases API) and get.aidenhq.ai serves GitHub's latest, which a pre-release never
+is. A cut becomes a full release, and latest, only when it graduates: a fresh AidenHQ on a free GitHub-hosted runner moves
+to it the way an owner's install would, and still works.
+
+[`graduate.yml`](.github/workflows/graduate.yml) runs after each release run that passed on a tag, every 6 hours to catch
+up, and by hand. One run at a time, from main only:
+
+1. **Select** ([`.github/release/graduate.mjs`](.github/release/graduate.mjs) `select`). The baseline is the current
+   latest. The candidate is the oldest pre-release newer than it without the rejected mark, so cuts graduate in order and
+   each is tested from the release before it. No candidate: the run ends.
+2. **Test** (ubuntu-24.04, no token, [`graduate-instance.sh`](.github/release/graduate-instance.sh) and
+   [`graduate-scenario.mjs`](.github/release/graduate-scenario.mjs)):
+   1. The service user (uid 1000) and the disk: the runner's free space is measured and printed; preinstalled
+      toolchains are removed, and Docker's data and the service user's home move to `/mnt`, only when the installer's
+      60 GB minimum isn't met otherwise. The installer's own check is never lowered.
+   2. The baseline's own published `install.sh` (its digest checked), non-interactive, `--no-tailscale`, the model key
+      from the secret `GRADUATE_OPENROUTER_KEY` in its environment (it goes to setup's root-only config file).
+   3. A new owner, over HTTP on the runner's loopback: the account, the authenticator, the model key, the welcome with
+      every flow skipped, a chat with Aiden that must get a reply, then "a tiny page that says hello". Whether the hello
+      app went live is recorded, not required: the candidate may be the release that fixes it.
+   4. The upgrade, by the baseline's own installed updater:
+      `AIDENHQ_UPDATE_CANDIDATE=<tag> node kernel/src/updates.ts check <tag> graduate`. The kernel files it as a
+      `kernel.apply`, which the AI reviewer decides (auto-updates are on for a new install); the run waits for the
+      record to end (90 minutes) and the apply generation to be good.
+   5. Smoke checks, each time-bounded: the instance pins the candidate, the checkout is its kernel and every AidenHQ
+      image running is one of its digests; the last generation is good; every agent is ready (none `error`,
+      `verifying` or `pending_approval`, none gone since the baseline); a new chat gets a fresh reply; the hello app (when
+      the baseline had one) is still healthy and answers; a second tiny app deploys; `scripts/verify-security.sh` exits 0.
+
+   It hands promote a small `result.json`; on a failure it uploads its logs with the model key and setup token redacted.
+3. **Promote** (`graduate.mjs promote`, `contents: write`, never runs a release's code). The result must name exactly the
+   selected release and baseline with every check passed; through the API, this run's test job succeeded and the
+   release's tag commit and asset digests are still the ones selected. Then the release is made a full release and
+   latest. It refuses to move latest back to an older release; a re-run on a graduated release does nothing.
+4. **Reject** (a failed or timed-out test or promotion; not a cancelled run). The line `graduation: failed <run url>` is
+   added to the release's notes and one issue is opened. A rejected release stays a pre-release for good; the next
+   candidate is tested from the same baseline, and release.yml's upgrade test no longer starts from it. A test that
+   failed before the upgrade started (the baseline's install, first run or chat, or the runner) rejects nothing: it opens
+   one issue and the candidate is tried again at the next run.
+
+Operating it:
+
+- **See what it would do:** `GITHUB_TOKEN=$(gh auth token) node .github/release/graduate.mjs select` (read-only).
+- **Retry a rejected release** (e.g. a runner failure): delete the `graduation: failed` line from its notes
+  (`gh release edit <tag> -R Aiden-HQ/aidenhq-distro --notes-file <file>`), then
+  `gh workflow run graduate.yml -R Aiden-HQ/aidenhq-distro`.
+- **Reject one by hand:** add the line `graduation: failed <reason or link>` to its notes.
+- **Graduate one by hand** (the bootstrap, below, or an emergency fix): check it yourself, then
+  `gh release edit <tag> -R Aiden-HQ/aidenhq-distro --prerelease=false --latest`. Never graduate a release older than
+  the current latest.
+- **The secret:** `GRADUATE_OPENROUTER_KEY`, an OpenRouter key with a low spend limit. The test runs the candidate's
+  code with it, so it must be a key whose leak costs at most its limit.
+- **The bootstrap:** a baseline whose updater predates graduation (no `AIDENHQ_UPDATE_CANDIDATE` in its
+  `kernel/src/updates.ts`) can't be upgraded this way, and select fails with "baseline ... predates graduation;
+  graduate one release by hand". Graduate by hand the first release that has it; from then on graduation runs itself.
+  Releases published before graduation as full releases but newer than latest (select warns about them) count as
+  graduated for updaters that have the filter: make them pre-releases (`gh release edit <tag> --prerelease`) to have
+  them tested, or leave them.
+
+An install whose updater predates the graduated filter ignores the pre-release flag and takes a cut as soon as its
+release run passes. The gate holds for an install once it runs a release with the filter.
 
 ### get.aidenhq.ai
 
@@ -154,13 +221,13 @@ caches that file for five minutes and keeps the last good copy, which it serves 
 nothing on the site, and the site needs no deploy for it. Pages and styles are still deployed by hand when they change
 (`sh web/build.sh && npx -y wrangler@4.160.0 deploy`).
 
-What it serves is exactly the asset GitHub published for the latest release:
+What it serves is exactly the asset GitHub published for the latest graduated release:
 
 - GitHub's "latest" is the newest release that is neither a draft nor a prerelease.
 - `release.yml` keeps a release a draft until its install-and-test has passed and its uploaded assets match what was
   tested and baked. If a release fails, it deletes the draft and the tag.
-- `release.yml` marks a release latest only when no published release has a newer name. A re-run of an older tag never
-  moves the site back.
+- `release.yml` publishes every release as a pre-release, never latest. Only `graduate.yml` makes a release latest, after
+  its test instance passed, and it never moves latest back to an older release.
 - The Worker serves only a cut installer: one with a release name, its release file's sha256 and the distro commit
   baked in. The installer then refuses any release file whose sha256 differs from the baked one.
 
