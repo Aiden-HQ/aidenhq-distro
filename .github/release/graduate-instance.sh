@@ -68,6 +68,15 @@ prepare() {
   # The service user as the installer makes it (ensure_user), made first so its uid is 1000: the stack runs as it (PUID) and
   # the pinned Paperclip image writes its own files as 1000 when it starts (distro #49). The installer finds it and keeps it.
   if ! id "$SVC" >/dev/null 2>&1; then
+    # GitHub's ubuntu-24.04 image keeps its build user (packer) at uid and gid 1000: on a hosted runner only, move it aside
+    # (it runs nothing) so the service user gets 1000, as on a fresh server.
+    local other
+    other=$(getent passwd 1000 | cut -d: -f1 || true)
+    if [ -n "$other" ] && [ "${GITHUB_ACTIONS:-}" = true ] && ! pgrep -u 1000 >/dev/null; then
+      sudo usermod -u 1990 "$other"
+      ! getent group 1000 >/dev/null || sudo groupmod -g 1990 "$(getent group 1000 | cut -d: -f1)"
+      log "moved $other off uid 1000 (to 1990)"
+    fi
     if getent passwd 1000 >/dev/null; then
       echo "::warning::uid 1000 is $(getent passwd 1000 | cut -d: -f1) on this runner: $SVC gets another uid (Paperclip's image expects 1000)"
       sudo useradd -m -s /bin/bash "$SVC"
