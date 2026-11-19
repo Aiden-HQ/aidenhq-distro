@@ -64,11 +64,13 @@ jobs:
     if: needs.select.outputs.found == 'true'
     runs-on: ubuntu-24.04
     # Every step has its own bound (a step timeout is a failure; the scripts' own waits are shorter still), within the job's.
-    timeout-minutes: 350
+    timeout-minutes: 360
     permissions: {}
     outputs:
       # "candidate" once the upgrade starts: a failure before it is the baseline's or the runner's, never the candidate's.
       reached: ${{ steps.reached.outputs.phase }}
+      # passed, failed (a check ran and said no) or incomplete; empty when the job was cut short before its result.
+      verdict: ${{ steps.result.outputs.verdict }}
     env:
       TAG: ${{ needs.select.outputs.tag }}
       TAG_SHA: ${{ needs.select.outputs.tag_sha }}
@@ -90,7 +92,7 @@ jobs:
           echo "GRAD_DIR=$RUNNER_TEMP/grad" >> "$GITHUB_ENV"
           echo "Graduating $TAG (kernel ${KERNEL:0:12}) from $BASELINE" >> "$GITHUB_STEP_SUMMARY"
       - name: a. Service user and disk
-        timeout-minutes: 15
+        timeout-minutes: 10
         run: bash .github/release/graduate-instance.sh prepare
       - name: b. Install the baseline with its own installer
         timeout-minutes: 45
@@ -105,18 +107,26 @@ jobs:
       - id: reached
         run: echo "phase=candidate" >> "$GITHUB_OUTPUT"
       - name: d. Upgrade to the candidate with the installed updater
-        timeout-minutes: 105
+        id: upgrade
+        timeout-minutes: 125
         run: bash .github/release/graduate-instance.sh upgrade
       - name: e. Smoke checks (owner's side)
         timeout-minutes: 80
         run: node .github/release/graduate-scenario.mjs smoke
+      # Only after an upgrade that finished: a host check after a cut-short upgrade would "fail" what was never tested.
       - name: e. Smoke checks (host's side)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.upgrade.outcome == 'success' }}
         timeout-minutes: 15
         run: bash .github/release/graduate-instance.sh host-checks
       - name: Result
+        id: result
         if: ${{ !cancelled() }}
         run: bash .github/release/graduate-instance.sh result
+      - name: Passed
+        if: ${{ !cancelled() }}
+        env:
+          VERDICT: ${{ steps.result.outputs.verdict }}
+        run: '[ "$VERDICT" = passed ] || { echo "::error::verdict: ${VERDICT:-none}"; exit 1; }'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: graduate-result
@@ -161,12 +171,13 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: node .github/release/graduate.mjs promote "$RUNNER_TEMP/result/result.json"
 
-  # A failed (or timed-out) test or promotion rejects the candidate; a cancelled run doesn't (the schedule picks it up again).
-  # A test that failed before the upgrade started (the baseline's install or first run, the runner) only opens an issue: the
-  # candidate stays pending and is tried again.
+  # Only the candidate's own failed checks reject it (the test failed after the upgrade started, verdict "failed"). A failure
+  # before the upgrade (the baseline, the runner), an incomplete or missing verdict (a rate limit, a step or the job cut short
+  # by its timeout, which GitHub may report as failure or cancelled), a cancel, or promotion failing after a passing test only
+  # opens an issue: the candidate stays pending and is tried again (graduate.mjs onFailure).
   reject:
     needs: [select, test, promote]
-    if: ${{ always() && needs.select.outputs.found == 'true' && (needs.test.result == 'failure' || needs.promote.result == 'failure') }}
+    if: ${{ always() && needs.select.outputs.found == 'true' && (needs.test.result != 'success' || needs.promote.result != 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -185,6 +196,7 @@ jobs:
           BASELINE: ${{ needs.select.outputs.baseline }}
           TEST_RESULT: ${{ needs.test.result }}
           REACHED: ${{ needs.test.outputs.reached }}
+          VERDICT: ${{ needs.test.outputs.verdict }}
           PROMOTE_RESULT: ${{ needs.promote.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node .github/release/graduate.mjs reject

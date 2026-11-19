@@ -1,7 +1,7 @@
 // graduate.mjs on fixture release lists: which cut is tested, what result is accepted, when promotion goes ahead.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CHECKS, checkIdentity, decide, identityOf, markRejected, onFailure, pick, rejected, validateResult } from "./graduate.mjs";
+import { CHECKS, checkIdentity, decide, identityOf, markRejected, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
 const rel = (tag, { pre = true, draft = false, body = "", id = 1 } = {}) => ({
@@ -22,13 +22,24 @@ test("select: the oldest pending pre-release above latest; rejected, drafts, gra
   assert.throws(() => pick(list, undefined), /no graduated release/);
 });
 
-test("a failure rejects the candidate only once its code ran; before the upgrade it is an issue; a cancel is nothing", () => {
-  assert.equal(onFailure({ test: "failure", reached: "candidate", promote: "skipped" }), "mark");
-  assert.equal(onFailure({ test: "failure", reached: "", promote: "skipped" }), "issue");
-  assert.equal(onFailure({ test: "failure", reached: undefined, promote: "skipped" }), "issue");
-  assert.equal(onFailure({ test: "success", reached: "candidate", promote: "failure" }), "mark");
-  assert.equal(onFailure({ test: "success", reached: "candidate", promote: "success" }), "none");
-  assert.equal(onFailure({ test: "cancelled", reached: "candidate", promote: "skipped" }), "none");
+test("only the candidate's own failed checks reject it; the baseline, rate limits, timeouts, cancels and promotion only open an issue", () => {
+  const c = (test, reached, verdict, promote = "skipped") => onFailure({ test, reached, verdict, promote });
+  assert.equal(c("failure", "candidate", "failed"), "mark");
+  assert.equal(c("failure", "", "failed"), "issue", "a baseline check failed before the upgrade");
+  assert.equal(c("failure", "candidate", "incomplete"), "issue", "a rate limit or a step cut short: a check never said no");
+  assert.equal(c("failure", "candidate", ""), "issue", "the job timed out before the verdict");
+  assert.equal(c("cancelled", "candidate", ""), "issue");
+  assert.equal(c("success", "candidate", "passed", "failure"), "issue", "promotion failing never rejects");
+  assert.equal(c("success", "candidate", "passed", "success"), "none");
+  assert.equal(c("skipped", "", "", "skipped"), "none");
+});
+
+test("a rate limit waits as GitHub asks; any other 403 is a refusal", () => {
+  const h = (o) => new Headers(o);
+  assert.equal(rateLimitWait(429, h({ "retry-after": "30" })), 30_000);
+  assert.equal(rateLimitWait(403, h({ "x-ratelimit-remaining": "0", "x-ratelimit-reset": "1000" }), 900_000), 101_000);
+  assert.equal(rateLimitWait(403, h({})), null);
+  assert.equal(rateLimitWait(500, h({ "retry-after": "5" })), null);
 });
 
 test("the rejected mark is one line, added once", () => {

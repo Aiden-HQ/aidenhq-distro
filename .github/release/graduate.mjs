@@ -2,9 +2,10 @@
 // is the one asked for, and moving the release to graduated (or marking it rejected). GitHub's REST API with GITHUB_TOKEN.
 //   node .github/release/graduate.mjs select        the candidate and its baseline (a dry run without $GITHUB_OUTPUT)
 //   node .github/release/graduate.mjs promote <result.json>   (IDENTITY, RUN_ID) graduate it: not a pre-release, latest
-//   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, BASELINE, TEST_RESULT, REACHED, PROMOTE_RESULT)
-//                                                   mark it rejected and open one issue; when the test failed before the
-//                                                   upgrade, only the issue: the baseline or the runner failed (onFailure)
+//   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, BASELINE, TEST_RESULT, REACHED, VERDICT,
+//                                                   PROMOTE_RESULT) mark it rejected and open one issue when its own checks
+//                                                   failed; anything else (the baseline, the runner, a rate limit, a timeout
+//                                                   or cancel, promotion) only an issue: it stays pending (onFailure)
 //   node .github/release/graduate.mjs rejected      the rejected releases' names, space-separated (release.yml's upgrade test)
 // A cut is published as a pre-release (release.yml). The baseline is GitHub's latest release: the newest graduated one, what
 // get.aidenhq.ai serves. The candidate is the OLDEST pre-release newer than the baseline that isn't marked rejected (a line
@@ -95,10 +96,17 @@ export function decide({ release, tagSha, latest, id }) {
 }
 
 /**
- * What a failed run does to its candidate: "mark" it rejected when its code ran (the upgrade started, or the test passed and
- * promotion failed), else only an "issue": a test that failed before the upgrade is the baseline's or the runner's failure.
+ * What a run that didn't graduate its candidate does to it. "mark" (rejected) only when the candidate's own checks failed: the
+ * test failed after the upgrade started and its result's verdict is "failed" (a check ran and said no). Anything else is an
+ * "issue" and the candidate stays pending for the next run: a failure before the upgrade (the baseline, the runner), a
+ * verdict that is "incomplete" or missing (a rate limit, a step or job cut short by its timeout, a cancel), or promotion
+ * failing after a passing test. "none" when nothing failed.
  */
-export const onFailure = ({ test, reached, promote }) => (test === "success" ? (promote === "failure" ? "mark" : "none") : test === "failure" && reached === "candidate" ? "mark" : test === "failure" ? "issue" : "none");
+export function onFailure({ test, reached, verdict, promote }) {
+  if (test === "success") return promote === "success" || promote === "skipped" ? "none" : "issue";
+  if (test === "failure" && reached === "candidate" && verdict === "failed") return "mark";
+  return test === "skipped" ? "none" : "issue";
+}
 
 /** The body with the rejected mark (unchanged when it has one). */
 export const markRejected = (body, run) => (rejected(body) ? String(body) : `${String(body ?? "").trimEnd()}\n\n${MARK} ${run}\n`);
@@ -106,15 +114,27 @@ export const markRejected = (body, run) => (rejected(body) ? String(body) : `${S
 // ------------------------------------------------------------------------------------------------ the API (the CLI below)
 
 const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || "";
+/** How long a rate-limited answer asks to wait (retry-after, or the limit's reset), in ms; null when it isn't a rate limit. */
+export function rateLimitWait(status, h, now = Date.now()) {
+  if (status !== 403 && status !== 429) return null;
+  const after = Number(h.get("retry-after")), reset = Number(h.get("x-ratelimit-reset"));
+  if (after > 0) return after * 1000;
+  if (h.get("x-ratelimit-remaining") === "0" && reset > 0) return Math.max(0, reset * 1000 - now) + 1000;
+  return status === 429 ? 60_000 : null; // a 403 without the limit's headers is a refusal, not a limit
+}
+
 async function api(path, { method = "GET", body, allow404 = false } = {}) {
-  for (let i = 0; ; i++) {
+  for (let i = 0, limited = 0; ; ) {
     const r = await fetch(`https://api.github.com/${path}`, {
       method, headers: { accept: "application/vnd.github+json", "user-agent": "aidenhq-graduate", ...(token ? { authorization: `Bearer ${token}` } : {}), ...(body ? { "content-type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(30_000),
-    }).catch((e) => ({ ok: false, status: 0, text: async () => String(e) }));
+    }).catch((e) => ({ ok: false, status: 0, headers: new Headers(), text: async () => String(e) }));
     if (allow404 && r.status === 404) return null;
     if (r.ok) return r.status === 204 ? null : r.json();
-    if (i < 3 && (r.status === 0 || r.status >= 500)) { await new Promise((ok) => setTimeout(ok, 5000 * (i + 1))); continue; }
+    // A rate limit: wait as GitHub asks, up to 15 minutes a time, 4 times; 5xx and network errors: 3 retries, backing off.
+    const wait = rateLimitWait(r.status, r.headers);
+    if (wait != null && limited++ < 4 && wait <= 15 * 60_000) { console.log(`rate-limited (${r.status}): waiting ${Math.ceil(wait / 1000)} s`); await new Promise((ok) => setTimeout(ok, wait)); continue; }
+    if (i < 3 && (r.status === 0 || r.status >= 500)) { await new Promise((ok) => setTimeout(ok, 5000 * ++i)); continue; }
     throw new Error(`${method} ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
   }
 }
@@ -190,12 +210,16 @@ async function reject() {
     const open = await api(`repos/${DISTRO}/issues?state=open&per_page=100`);
     if (!open.some((i) => i.title === title)) await api(`repos/${DISTRO}/issues`, { method: "POST", body: { title, body } });
   };
-  const what = onFailure({ test: process.env.TEST_RESULT, reached: process.env.REACHED, promote: process.env.PROMOTE_RESULT });
+  const e = process.env;
+  const what = onFailure({ test: e.TEST_RESULT, reached: e.REACHED, verdict: e.VERDICT, promote: e.PROMOTE_RESULT });
   if (what === "none") { summary("nothing failed that rejects or reports"); return; }
   if (what === "issue") {
-    const base = String(process.env.BASELINE ?? "").slice(0, 40);
-    await issue(`Graduation can't test from ${base}`, `The test failed before the upgrade to ${id.tag} started: the baseline ${base} didn't install or pass its first run and chat, or the runner failed. ${id.tag} stays pending and is tested again at the next run.\n\nRun: ${run}`);
-    summary(`**Couldn't test ${id.tag}**: the baseline or the runner failed before the upgrade; ${run}`);
+    const base = String(e.BASELINE ?? "").slice(0, 40);
+    const why = e.TEST_RESULT === "success" ? "its test passed, but promotion failed (the API, or the release changed since it was selected)"
+      : e.REACHED !== "candidate" ? `the baseline ${base} or the runner failed before the upgrade started`
+      : "the test didn't finish judging it (a rate limit, a step or the job cut short by its timeout, or a cancel)";
+    await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag} wasn't graduated or rejected: ${why}. It stays a pending pre-release and is tested again at the next run (every 6 hours, or run graduate by hand). If it keeps failing this way, reject it by hand (README "Release graduation").\n\nRun: ${run}`);
+    summary(`**${id.tag} not judged**: ${why}; ${run}`);
     return;
   }
   const release = await api(`repos/${DISTRO}/releases/${id.release_id}`);

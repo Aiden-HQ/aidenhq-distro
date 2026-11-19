@@ -186,11 +186,14 @@ up, and by hand. One run at a time, from main only:
    selected release and baseline with every check passed; through the API, this run's test job succeeded and the
    release's tag commit and asset digests are still the ones selected. Then the release is made a full release and
    latest. It refuses to move latest back to an older release; a re-run on a graduated release does nothing.
-4. **Reject** (a failed or timed-out test or promotion; not a cancelled run). The line `graduation: failed <run url>` is
-   added to the release's notes and one issue is opened. A rejected release stays a pre-release for good; the next
-   candidate is tested from the same baseline, and release.yml's upgrade test no longer starts from it. A test that
-   failed before the upgrade started (the baseline's install, first run or chat, or the runner) rejects nothing: it opens
-   one issue and the candidate is tried again at the next run.
+4. **Reject**, only for the candidate's own failure: the test failed after the upgrade started and one of its checks
+   ran and said no. The line `graduation: failed <run url>` is added to the release's notes and one issue is opened. A
+   rejected release stays a pre-release for good; the next candidate is tested from the same baseline, and release.yml's
+   upgrade test no longer starts from it. Anything else opens one issue and rejects nothing, so the candidate is tried
+   again at the next run: a failure before the upgrade (the baseline's install, first run or chat, or the runner), the
+   instance's updater rate-limited by GitHub for 25 minutes, a step or the job cut short by its timeout, a cancelled run,
+   or promotion failing after a passing test (GitHub API calls there wait out rate limits first). A candidate that keeps
+   failing this way is rejected by hand.
 
 Operating it:
 

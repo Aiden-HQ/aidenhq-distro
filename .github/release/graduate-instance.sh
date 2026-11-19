@@ -7,7 +7,7 @@
 #   bash graduate-instance.sh install                 BASELINE's install.sh (checked against BASELINE_INSTALL_DIGEST)
 #   bash graduate-instance.sh upgrade                 TAG through the instance's own updater (AIDENHQ_UPDATE_CANDIDATE)
 #   bash graduate-instance.sh host-checks             running release, kernel and images; generation; verify-security.sh
-#   bash graduate-instance.sh result                  result.json from checks.json and IDENTITY
+#   bash graduate-instance.sh result                  result.json from checks.json and IDENTITY, and its verdict
 #   bash graduate-instance.sh logs <dir>              what a failure needs, secrets redacted
 # Each check's outcome goes to $GRAD_DIR/checks.json (the result is built from it). Every wait is bounded.
 set -euo pipefail
@@ -117,15 +117,20 @@ upgrade() {
   local data
   data=$(in_co 'node -e "console.log(require(\"node:path\").resolve(process.env.AIDENHQ_DATA_DIR || \"data\"))"')
   # The instance's own updater, asked for exactly this pre-release: verified and prepared as any release, then filed by the
-  # kernel as a kernel.apply that the AI reviewer decides (auto-updates are on for a new install). Retried: GitHub's API
-  # (unauthenticated from a shared runner address) may answer 403 for a while.
+  # kernel as a kernel.apply that the AI reviewer decides (auto-updates are on for a new install). Retried for 25 minutes:
+  # GitHub's API, unauthenticated from a shared runner address, may be rate-limited (403/429) until its hourly reset. A check
+  # still rate-limited at the end is the infrastructure's failure, never the candidate's: no check is recorded, so the result
+  # is incomplete and the candidate stays pending (graduate.mjs onFailure).
   local out='' i
-  for i in 1 2 3 4 5 6; do
+  for i in $(seq 1 13); do
     out=$(in_co 'AIDENHQ_UPDATE_CANDIDATE="$1" node --disable-warning=ExperimentalWarning kernel/src/updates.ts check "$1" graduate' "$TAG" 2>&1) || true
     log "check $i: $out"
     grep -q "^release $TAG prepared" <<<"$out" && break
-    [ "$i" = 6 ] && { rec upgraded false "the updater didn't prepare $TAG: $out"; exit 1; }
-    sleep 60
+    if [ "$i" = 13 ]; then
+      grep -qE 'answered (403|429)' <<<"$out" && die "GitHub's API rate-limited the instance's updater for 25 minutes (infrastructure, not $TAG): $out"
+      rec upgraded false "the updater didn't prepare $TAG: $out"; exit 1
+    fi
+    sleep 120
   done
   # The kernel files it within 5 minutes and follows its record to the end: installed, or failed with why (75 minutes). A
   # record waiting on the owner (a release that adds module authority is the owner's tap whatever auto_update says) can't
@@ -188,9 +193,14 @@ result() {
     | { release: $id.tag, release_id: $id.release_id, tag_sha: $id.tag_sha, kernel: $id.kernel, baseline: $base,
         passed: ($checks | all), checks: $checks, notes: ($c[0].notes | map(.[0:300]) | .[-20:]) }' >"$GRAD_DIR/result.json"
   jq . "$GRAD_DIR/result.json"
+  # The verdict: passed; failed (a check ran and said no: the candidate's own failure, graduate.mjs onFailure rejects it); or
+  # incomplete (checks missing and none said no: a rate limit, a step cut short by its timeout; the candidate stays pending).
+  local verdict
+  verdict=$(jq -r --slurpfile c "$f" 'if .passed then "passed" elif ($c[0].checks | to_entries | any(.value == false)) then "failed" else "incomplete" end' "$GRAD_DIR/result.json")
+  echo "verdict: $verdict"
+  [ -z "${GITHUB_OUTPUT:-}" ] || echo "verdict=$verdict" >>"$GITHUB_OUTPUT"
   jq -r '.checks | to_entries[] | "| \(.key) | \(if .value then "ok" else "FAIL" end) |"' "$GRAD_DIR/result.json" \
-    | { printf '| check | |\n|---|---|\n'; cat; } >>"${GITHUB_STEP_SUMMARY:-/dev/null}"
-  [ "$(jq -r .passed "$GRAD_DIR/result.json")" = true ]
+    | { printf '| check | |\n|---|---|\n'; cat; echo; echo "Verdict: $verdict"; } >>"${GITHUB_STEP_SUMMARY:-/dev/null}"
 }
 
 logs() {
