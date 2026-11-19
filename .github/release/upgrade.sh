@@ -33,9 +33,10 @@ for p in scripts kernel; do [ -d "$new/$p/node_modules" ] || npm ci --ignore-scr
 mkdir -p "$work"
 export AIDENHQ_SOURCES_DIR="$work/sources" AIDENHQ_STATE_DIR="$work/state" AIDENHQ_DATA_DIR="$work/data"
 
-# The baseline: the repository's latest (non-prerelease) release, read unauthenticated (the repository is public).
-R=$(curl -fsS --retry 3 --retry-all-errors "https://api.github.com/repos/Aiden-HQ/aidenhq-distro/releases/latest" | jq -er .tag_name) \
-  && [[ "$R" =~ $NAME ]] || { echo "::error::couldn't read the latest release"; exit 1; }
+# The baseline: the repository's latest (non-prerelease) release. Read from github.com's releases/latest redirect, not the
+# REST API: this job has no token, and the API's unauthenticated limit is shared by every job on a runner's IP (403s).
+R=$(curl -fsS -o /dev/null -w '%{redirect_url}' --retry 3 --retry-all-errors "https://github.com/Aiden-HQ/aidenhq-distro/releases/latest") \
+  && R=${R##*/tag/} && [[ "$R" =~ $NAME ]] || { echo "::error::couldn't read the latest release"; exit 1; }
 
 json() { local s="${1//\\/\\\\}"; printf '"%s"' "${s//\"/\\\"}"; }   # ops/setup.sh's own
 # The instance.yaml release $1 (distro commit $2, kernel $3) writes on a default install, from its own ops/setup.sh.
