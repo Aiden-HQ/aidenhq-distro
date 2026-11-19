@@ -130,6 +130,9 @@ export function noteIncomplete(body, run) {
   return { body: reject ? markRejected(b, `${run} (never completed in ${n} runs)`) : b, count: n, rejected: reject };
 }
 
+/** The open issues graduation itself opened for a cut it couldn't judge (infrastructure failure, incomplete): closed once a release graduates. A rejected cut's own issue is not one. */
+export const closable = (issues) => issues.filter((i) => !i.pull_request && /^github-actions(\[bot\])?$/.test(i.user?.login ?? "") && /^Graduation of \S+ didn't finish$/.test(i.title));
+
 /** The body with the rejected mark (unchanged when it has one). */
 export const markRejected = (body, run) => (rejected(body) ? String(body) : `${String(body ?? "").trimEnd()}\n\n${MARK} ${run}\n`);
 
@@ -240,6 +243,10 @@ async function promote(file) {
   await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { prerelease: false, make_latest: "true" } });
   const now = await api(`repos/${DISTRO}/releases/latest`);
   if (now.tag_name !== id.tag) throw new Error(`after promotion GitHub's latest is ${now.tag_name}, not ${id.tag}`);
+  for (const i of closable(await api(`repos/${DISTRO}/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100`))) {
+    await api(`repos/${DISTRO}/issues/${i.number}/comments`, { method: "POST", body: { body: `${id.tag} graduated: ${process.env.RUN_URL}` } });
+    await api(`repos/${DISTRO}/issues/${i.number}`, { method: "PATCH", body: { state: "closed", state_reason: "completed" } });
+  }
   summary(`**Graduated ${id.tag}** from ${result.baseline}: it is the latest release; installs and get.aidenhq.ai take it.`);
 }
 

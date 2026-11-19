@@ -11,7 +11,7 @@
 #            The only job that runs a release's code; it hands promote one small result.json, with each phase's seconds.
 #   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
 #            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
-#            to move latest back; a re-run of a graduated release does nothing.
+#            to move latest back; a re-run of a graduated release does nothing. It closes the open "didn't finish" issues.
 #   reject   (contents: write, issues: write) when test or promote failed: the rejected mark and one issue. A rejected
 #            release stays a pre-release; the next candidate is tested from the same baseline.
 # Triggers: release.yml dispatches it when its publish succeeds (its `graduate` job; not workflow_run, which never fires for
@@ -150,6 +150,7 @@ jobs:
     permissions:
       contents: write
       actions: read
+      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -166,6 +167,7 @@ jobs:
           IDENTITY: ${{ needs.select.outputs.identity }}
           BASELINE: ${{ needs.select.outputs.baseline }}
           RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node .github/release/graduate.mjs promote "$RUNNER_TEMP/result/result.json"
 
   # Only the candidate's own failed checks reject it (the test failed after the upgrade started, verdict "failed"). A failure
