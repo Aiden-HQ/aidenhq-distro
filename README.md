@@ -156,8 +156,8 @@ that are not pre-releases, read from the Releases API) and get.aidenhq.ai serves
 is. A cut becomes a full release, and latest, only when it graduates: a fresh AidenHQ on a free GitHub-hosted runner moves
 to it the way an owner's install would, and still works.
 
-[`graduate.yml`](.github/workflows/graduate.yml) runs after each release run that passed on a tag, every 6 hours to catch
-up, and by hand. One run at a time, from main only:
+[`graduate.yml`](.github/workflows/graduate.yml) is dispatched by `release.yml` once it publishes a cut (a `workflow_run` trigger never fires for a
+release the nightly started with `GITHUB_TOKEN`), and runs every 6 hours to catch up and by hand. One run at a time, from main only:
 
 1. **Select** ([`.github/release/graduate.mjs`](.github/release/graduate.mjs) `select`). The baseline is the current
    latest. The candidate is the oldest pre-release newer than it without the rejected mark, so cuts graduate in order and

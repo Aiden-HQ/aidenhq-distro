@@ -349,6 +349,21 @@ jobs:
           api -X PATCH "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id" -d '{"draft": false, "prerelease": true, "make_latest": "false"}' >/dev/null
           echo "published $TAG as a pre-release: graduate.yml graduates it"
 
+  # A published cut starts its graduation: events caused by GITHUB_TOKEN start no workflow except workflow_dispatch, so a
+  # workflow_run trigger on graduate.yml never fires for a release the nightly started. No checkout, no candidate code: main's
+  # graduate.yml is dispatched by name. graduate's select picks its own candidate, so it takes no inputs; a double start queues.
+  graduate:
+    needs: publish
+    if: ${{ needs.publish.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run graduate.yml --ref main --repo "$GITHUB_REPOSITORY"
+
   # A tag run that didn't publish leaves no tag (and no draft release), so no install, updater or get.aidenhq.ai ever sees it.
   alert:
     needs: [test, plan, verify, publish]
