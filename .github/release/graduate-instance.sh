@@ -62,6 +62,9 @@ candidate_file() {
 }
 
 prepare() {
+  # The baseline's installer and host setup may predate the retry setting: a mirror's transient error (a 503) retries
+  # instead of failing the install. The same file the product's host setup writes.
+  echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-aidenhq-retries >/dev/null
   # The service user as the installer makes it (ensure_user), made first so its uid is 1000: the stack runs as it (PUID) and
   # the pinned Paperclip image writes its own files as 1000 when it starts (distro #49). The installer finds it and keeps it.
   if ! id "$SVC" >/dev/null 2>&1; then

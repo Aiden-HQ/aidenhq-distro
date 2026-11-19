@@ -144,7 +144,7 @@ run() {
   "$@" >>"$LOG" 2>&1
 }
 as_root() { if [ -n "$SUDO" ]; then run "$SUDO" "$@"; else run "$@"; fi; }
-apt_get() { as_root env DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=300 -y -q "$@"; }
+apt_get() { as_root env DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=300 -o Acquire::Retries=5 -y -q "$@"; }
 # as_svc CMD...: as the service user (root invocations drop to it so every file in its home is its own).
 as_svc() {
   if [ "$(id -un)" = "$SVC" ]; then run "$@"
