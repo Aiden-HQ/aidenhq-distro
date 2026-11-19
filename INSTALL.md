@@ -164,8 +164,8 @@ A release is cut by pushing its tag (`2026.11.18`, a day's second cut `2026.11.1
 
 It has no `marketplace` or `modules` entries: third-party modules are the instance's own marketplaces in
 `instance.yaml`, never part of a release. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch
-and verify), runs the release suites on it, checks that every older release's default install (since 2026.11.18) upgrades to it
-(`.github/release/upgrade.sh`: the new kernel's pin step, then the apply's staged compile), writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
+and verify), runs the release suites on it, checks that the last graduated release's default install upgrades to it
+(`.github/release/upgrade.sh`: that release's own updater's pin, then the new product's staged compile), writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
 publishes both as the release's assets (a draft until they are checked) as a GitHub pre-release. Never to a branch.
 
 A pre-release is not offered to anyone yet. `.github/workflows/graduate.yml` graduates it: a fresh install of the current
