@@ -189,6 +189,16 @@ install_baseline() {
   [ "$rc" = 0 ] || { rec baseline_installed false "the installer exited $rc"; exit 1; }
   sed -n 's/^AIDENHQ_SETUP_URL=//p' "$GRAD_DIR/install.log" | tail -1 >"$GRAD_DIR/setup-url"
   [ -s "$GRAD_DIR/setup-url" ] || { rec baseline_installed false "no AIDENHQ_SETUP_URL line"; exit 1; }
+  # The installer recreates Paperclip and the board just before it prints the link, and returns without waiting for them
+  # (setup.sh up to at least 2026.11.19.9). An owner opens the link minutes later, this test within a second: in runs
+  # 44622279180 and 44624263587 the board's first call met a Paperclip 3 seconds old ("fetch failed"). Both healthy first.
+  local st='' hend=$((SECONDS + 5 * 60))
+  until [ "$st" = healthy ]; do
+    st=$(in_co 'docker compose ps -q paperclip board | xargs -r docker inspect -f "{{.State.Health.Status}}"' 2>/dev/null | sort -u | tr '\n' ' ' | sed 's/ $//')
+    [ "$st" = healthy ] && break
+    [ "$SECONDS" -lt "$hend" ] || { rec baseline_installed false "Paperclip and the board weren't healthy 5 minutes after the install (${st:-no containers})"; exit 1; }
+    sleep 2
+  done
   if sudo grep -Eq "^release: \{ *name: \"?${BASELINE//./\\.}\"?" "$INST/instance.yaml"; then rec baseline_installed true "$BASELINE"
   else rec baseline_installed false "instance.yaml doesn't pin $BASELINE"; exit 1; fi
 }
@@ -356,7 +366,9 @@ logs() {
     sudo cat "$CO/data/updates/state.json" >"$out/updates-state.json" 2>/dev/null || true
     sudo sh -c "cat '$STATE/generations.jsonl'; ls -t '$STATE'/apply-*.log 2>/dev/null | head -3 | xargs -r tail -n 400" >"$out/generations.log" 2>&1 || true
     sudo docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' >"$out/containers.txt" 2>&1 || true
-    sudo docker logs --tail 300 "$(sudo docker ps -aq --filter name=apps-mcp | head -1)" >"$out/apps-mcp.log" 2>&1 || true
+    for s in paperclip board apps-mcp; do
+      sudo docker logs --tail 300 "$(sudo docker ps -aq --filter "label=com.docker.compose.service=$s" | head -1)" >"$out/$s.log" 2>&1 || true
+    done
   fi
   df -h >"$out/df.txt" 2>&1 || true
   # The model key and the setup token, wherever they landed; the session (account, authenticator) is never copied.
