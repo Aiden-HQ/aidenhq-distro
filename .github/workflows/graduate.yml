@@ -67,7 +67,8 @@ jobs:
       # "candidate" once the instance's updater prepared the candidate (its move began): a failure before that is the
       # baseline's, the runner's or a rate limit's, never the candidate's.
       reached: ${{ steps.result.outputs.reached }}
-      # passed, failed (a check ran and said no) or incomplete; empty when the job was cut short before its result.
+      # passed, failed (a check ran and said no), harness (the test hit its own limit) or incomplete; empty when the job was
+      # cut short before its result.
       verdict: ${{ steps.result.outputs.verdict }}
     env:
       TAG: ${{ needs.select.outputs.tag }}

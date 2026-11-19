@@ -32,6 +32,7 @@ test("only the candidate's own failed checks reject it; the baseline, rate limit
   assert.equal(c("failure", "", "failed"), "issue", "a baseline check failed before the upgrade");
   assert.equal(c("failure", "candidate", "incomplete"), "incomplete", "reached the candidate, a check never said no: counted");
   assert.equal(c("failure", "candidate", ""), "incomplete");
+  assert.equal(c("failure", "candidate", "harness"), "issue", "the test's own limit (an owner's tap it doesn't make): neither marked nor counted");
   assert.equal(c("failure", "", "incomplete"), "issue", "a rate limit before the candidate was prepared: not counted");
   assert.equal(c("cancelled", "candidate", ""), "issue");
   assert.equal(c("success", "candidate", "passed", "failure"), "issue", "promotion failing never rejects");

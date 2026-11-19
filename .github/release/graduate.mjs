@@ -112,6 +112,8 @@ export function decide({ release, tagSha, latest, id }) {
 export function onFailure({ test, reached, verdict, promote }) {
   if (test === "success") return promote === "success" || promote === "skipped" ? "none" : "issue";
   if (test === "failure" && reached === "candidate" && verdict === "failed") return "mark";
+  // The test hit its own limit (verdict "harness": e.g. the update waits on an owner's tap it doesn't make): not the candidate's.
+  if (verdict === "harness") return "issue";
   // Reached the candidate and failed without a verdict (it hung, a step timed out, its checks never wrote): counted, so a
   // candidate that never completes can't hold every later cut back (noteIncomplete).
   if (test === "failure" && reached === "candidate") return "incomplete";
@@ -264,6 +266,7 @@ async function reject() {
   if (what === "issue") {
     const base = String(e.BASELINE ?? "").slice(0, 40);
     const why = e.TEST_RESULT === "success" ? "its test passed, but promotion failed (the API, or the release changed since it was selected)"
+      : e.VERDICT === "harness" ? "the test hit a limit of its own (the job log says which, e.g. the update waiting on an owner's tap the test doesn't make)"
       : e.REACHED !== "candidate" ? `the baseline ${base} or the runner failed before the upgrade started`
       : "the test didn't finish judging it (a rate limit, a step or the job cut short by its timeout, or a cancel)";
     await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag} wasn't graduated or rejected: ${why}. It stays a pending pre-release and is tested again at the next run (every 6 hours, or run graduate by hand). If it keeps failing this way, reject it by hand (README "Release graduation").\n\nRun: ${run}`);

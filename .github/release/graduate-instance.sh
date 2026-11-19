@@ -33,6 +33,14 @@ rec() { # name true|false [note]: its own file, as graduate-checks.mjs writeChec
   jq -nc --argjson ok "$([ "$2" = true ] && echo true || echo false)" --arg note "${3:-}" '{ok: $ok, note: ($note | gsub("[\r\n]+"; " ") | .[0:280])}' >"$GRAD_DIR/checks/$1.json"
   log "$([ "$2" = true ] && echo 'ok  ' || echo FAIL) $1${3:+: $3}"
 }
+# What this test can't do (e.g. an owner's tap): a note only, never a decided check, and the `harness` mark, so the verdict
+# is "harness" and the candidate stays pending without counting toward its rejection (graduate.mjs onFailure); exits.
+harness() { # name note
+  mkdir -p "$GRAD_DIR/checks"
+  jq -nc --arg note "harness: $2" '{ok: null, note: ($note | gsub("[\r\n]+"; " ") | .[0:280])}' >"$GRAD_DIR/checks/$1.json"
+  touch "$GRAD_DIR/harness"
+  die "the test can't judge $TAG: $2"
+}
 timing() { # phase seconds
   mkdir -p "$GRAD_DIR/timings"; echo "$2" >"$GRAD_DIR/timings/$1.json"; echo "timing: $1 $2s"
 }
@@ -219,7 +227,19 @@ fixture() {
       fi
       git add apps.yaml && git "${id[@]}" commit -q -m "apps: add $name (graduation fixture)" && git push -q origin HEAD:main
     fi' _ "$CO" "$bare" "$INST" "$FIXTURE" "$FIXTURE_PORT" || { jq -n --arg n "registering it failed" '{ok: false, note: $n}' >"$GRAD_DIR/fixture.json"; exit 1; }
-  log "$FIXTURE registered; deploying"
+  # apps-mcp reads apps.yaml from its own clone of the instance (/data/registry), synced at start, inside its own registry
+  # edits (app_create) and before each reconcile tick (every 2 minutes): an entry pushed here reaches it at its next tick.
+  # Until its own listing has the app, a deploy says "unknown app".
+  local listed='' lend=$((SECONDS + 6 * 60))
+  until [ "$SECONDS" -ge "$lend" ]; do
+    listed=$(in_co 'docker compose exec -T apps-mcp node -e "fetch(\"http://127.0.0.1:8090/internal/status\").then((r) => r.json()).then((a) => console.log(a.map((x) => x.name).join(\" \")))"' 2>/dev/null || true)
+    grep -qw -- "$FIXTURE" <<<"$listed" && break
+    sleep 10
+  done
+  if ! grep -qw -- "$FIXTURE" <<<"$listed"; then
+    jq -n --arg app "$FIXTURE" '{ok: false, app: $app, note: "harness: apps-mcp did not list it within 6 minutes of its registration"}' >"$GRAD_DIR/fixture.json"; exit 1
+  fi
+  log "$FIXTURE registered and listed by apps-mcp; deploying"
   # The platform's reconcile pass may have started its first deploy already ("deploy in progress"): wait it out, then deploy
   # (the build is cached by then).
   local end=$((SECONDS + 15 * 60))
@@ -263,8 +283,9 @@ upgrade() {
   done
   timing upgrade_prepare $((SECONDS - t)); t=$SECONDS
   # The kernel files it at its next updates pass (every 5 minutes) and follows its record to the end: installed, or failed
-  # with why (75 minutes). A record waiting on the owner (a release that adds module authority is the owner's tap whatever
-  # auto_update says) can't end here: it fails at once, and such a release is graduated by hand.
+  # with why (75 minutes), through the AI reviewer or panel ("review"). A record that ends up waiting on the owner (Tier 2 on
+  # its merits, e.g. new module authority under a baseline that keeps it the owner's) needs a tap this test doesn't make:
+  # the run stops there as the harness's limit, never the candidate's failure.
   local st='{}' rec_state='' shown=0 end=$((SECONDS + 75 * 60)) filed=''
   while [ "$SECONDS" -lt "$end" ]; do
     st=$(sudo cat "$data/updates/state.json" 2>/dev/null || echo '{}')
@@ -273,7 +294,7 @@ upgrade() {
       filed=1; timing upgrade_filed $((SECONDS - t)); t=$SECONDS
     fi
     rec_state=$(record_state "$data" "$(jq -r '.flight.record // ""' <<<"$st")")
-    if [ "${rec_state%% *}" = owner ]; then rec upgraded false "the update waits for the owner's approval (${rec_state#* }): graduate it by hand after checking it"; exit 1; fi
+    [ "${rec_state%% *}" != owner ] || harness upgraded "the update's record $(jq -r '.flight.record' <<<"$st") waits on the owner's approval (rule ${rec_state#* }) after the AI review; the baseline $BASELINE makes this move the owner's"
     if [ $((SECONDS - shown)) -ge 120 ]; then log "waiting: $(jq -c '{ready: (.ready.release // null), flight: (.flight | if . then {release, record} else null end), error}' <<<"$st") record: ${rec_state:-none}"; shown=$SECONDS; fi
     sleep 5
   done

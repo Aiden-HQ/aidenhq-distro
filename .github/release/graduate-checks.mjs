@@ -109,12 +109,14 @@ if (import.meta.main && process.argv[2] === "result") {
   const { result, verdict } = buildResult(dir, JSON.parse(process.env.IDENTITY ?? ""), process.env.BASELINE);
   writeFileSync(join(dir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
   console.log(JSON.stringify(result, null, 2));
-  console.log(`verdict: ${verdict}`);
+  // A harness limit (graduate-instance.sh harness: something this test can't do) with nothing that said no: "harness".
+  const v = verdict === "incomplete" && existsSync(join(dir, "harness")) ? "harness" : verdict;
+  console.log(`verdict: ${v}`);
   // Whether the candidate's move began (the updater prepared it): only then can a failure be the candidate's.
   const reached = existsSync(join(dir, "reached-candidate")) ? "candidate" : "";
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${verdict}\nreached=${reached}\n`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${v}\nreached=${reached}\n`);
   const table = [
-    "| check | |", "|---|---|", ...Object.entries(result.checks).map(([k, v]) => `| ${k} | ${v ? "ok" : "FAIL"} |`), "", `Verdict: ${verdict}`, "",
+    "| check | |", "|---|---|", ...Object.entries(result.checks).map(([k, v]) => `| ${k} | ${v ? "ok" : "FAIL"} |`), "", `Verdict: ${v}`, "",
     "| phase | seconds |", "|---|---|", ...Object.entries(result.timings).map(([k, v]) => `| ${k} | ${v} |`), "",
   ].join("\n");
   console.log(table);
