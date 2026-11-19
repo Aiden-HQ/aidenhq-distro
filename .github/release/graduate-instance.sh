@@ -369,8 +369,9 @@ logs() {
     for s in paperclip board apps-mcp; do
       sudo docker logs --tail 300 "$(sudo docker ps -aq --filter "label=com.docker.compose.service=$s" | head -1)" >"$out/$s.log" 2>&1 || true
     done
-    # The kernel's jobs (state, exit, final message, the tail of each engine log) and the model ledger (every call's
-    # status: a refused key or a spend cap shows here), from kernel.db, read-only.
+    # The kernel's jobs (state, exit, final message, the tail of each engine log), the model ledger (every call's status:
+    # a refused key or a spend cap shows here) and the write records (an update's authority lines and the reviewer's note),
+    # from kernel.db, read-only.
     sudo node -e '
       const { DatabaseSync } = require("node:sqlite"), fs = require("node:fs");
       const db = new DatabaseSync(process.argv[1], { readOnly: true }), q = (s) => { try { return db.prepare(s).all(); } catch (e) { return [{ error: e.message }]; } };
@@ -379,6 +380,9 @@ logs() {
         console.log(JSON.stringify({ ...j, final: String(j.final ?? "").slice(0, 600) }) + (tail ? `\n--- ${j.log} (tail)\n${tail}\n---` : ""));
       }
       console.log("=== model calls"); for (const c of q("SELECT at, agent_id, kind, component, model, input, output, cost_usd, ms, status FROM calls ORDER BY at")) console.log(JSON.stringify(c));
+      // Every write record (the kernel.apply of an update among them): args (authority lines), tier, rule, the card the
+      // reviewer read, its verdict and note.
+      console.log("=== records"); for (const r of q("SELECT id, kind, state, tier, panel, rule, review_code, args, card, review, outcome, decided_by FROM records ORDER BY created_at")) console.log(JSON.stringify(r));
     ' "$(data_dir)/kernel/kernel.db" >"$out/kernel-jobs.log" 2>&1 || true
   fi
   df -h >"$out/df.txt" 2>&1 || true
