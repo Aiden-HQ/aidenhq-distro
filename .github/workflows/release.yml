@@ -362,7 +362,11 @@ jobs:
     steps:
       - env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run graduate.yml --ref main --repo "$GITHUB_REPOSITORY"
+        # curl, as elsewhere in this file (the token on stdin, never in argv).
+        run: |
+          printf 'Authorization: Bearer %s\n' "$GH_TOKEN" | curl -fsS --retry 3 -X POST -H @- \
+            -H "Accept: application/vnd.github+json" -d '{"ref":"main"}' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/graduate.yml/dispatches"
 
   # A published cut closes the failure issues before it (the `alert` job's "Release <name> failed" and the nightly's "Nightly
   # release <name> failed", opened by github-actions). A job of its own: closing never fails the publish. No checkout, no candidate
