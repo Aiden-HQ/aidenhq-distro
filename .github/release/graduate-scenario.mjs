@@ -179,11 +179,15 @@ async function chatReply(label) {
     const since = Date.now();
     const id = await newChat(`Hi Aiden, this is an automated check (${label}, attempt ${attempt}). Please reply with one short sentence saying you are here.`);
     log(`chat ${id} sent (${label}, attempt ${attempt})`);
+    // "failed" only once it holds for a minute: the board (up to at least 2026.11.19.9) shows a run that has ended but
+    // whose reply the kernel posts a few seconds later as "ended without a reply" (run 44633157665 polled in that gap).
+    let failedSince = 0;
     for (const until = since + 10 * MIN; Date.now() < until; await sleep(5000)) {
       const n = await chatNow(id, since).catch((e) => ({ state: `unreadable: ${e.message}`, handedOut: [], approvals: [] }));
       if (n.reply) return { ok: true, note: `${id} replied` };
       last = `${id}: ${describe(n)}`;
-      if (n.state === "failed") break;
+      failedSince = n.state === "failed" ? failedSince || Date.now() : 0;
+      if (failedSince && Date.now() - failedSince >= MIN) break;
     }
   }
   return { ok: false, note: `no reply: ${last}` };
