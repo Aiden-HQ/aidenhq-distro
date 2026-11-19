@@ -364,6 +364,30 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run graduate.yml --ref main --repo "$GITHUB_REPOSITORY"
 
+  # A published cut closes the failure issues before it (the `alert` job's "Release <name> failed" and the nightly's "Nightly
+  # release <name> failed", opened by github-actions). A job of its own: closing never fails the publish. No checkout, no candidate
+  # code. Rejected-candidate issues (graduate.yml) are not matched: a human sees those.
+  close-alerts:
+    needs: publish
+    if: ${{ needs.publish.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
+          R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY" run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          for n in $(api "$R/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100" | jq -r '.[] | select((.pull_request | not) and (.title | test("^(Nightly release|Release) [^ ]+ failed$"))) | .number'); do
+            api -X POST "$R/issues/$n/comments" -d "$(jq -n --arg b "A later cut, $TAG, published: $run." '{body: $b}')" >/dev/null
+            api -X PATCH "$R/issues/$n" -d '{"state": "closed", "state_reason": "completed"}' >/dev/null
+            echo "closed #$n"
+          done
+
   # A tag run that didn't publish leaves no tag (and no draft release), so no install, updater or get.aidenhq.ai ever sees it.
   alert:
     needs: [test, plan, verify, publish]

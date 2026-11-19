@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildResult, child, readChecks, runParallel, verdictOf, writeCheck } from "./graduate-checks.mjs";
-import { CHECKS, checkIdentity, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
+import { CHECKS, checkIdentity, closable, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
 const rel = (tag, { pre = true, draft = false, body = "", id = 1 } = {}) => ({
@@ -127,4 +127,14 @@ test("checks side by side: each decides in its own file, a hang is incomplete (n
     assert.throws(() => validateResult(result, checkIdentity(id), "2026.11.18.1"), /didn't pass/, "the shape promote reads; only its checks fail");
     assert.ok(Object.keys(result.timings).includes("check_a"));
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("a graduation closes the \"didn't finish\" issues github-actions opened, never a rejected cut's issue, a human's or a PR", () => {
+  const i = (title, login = "github-actions[bot]", extra = {}) => ({ number: 1, title, user: { login }, ...extra });
+  const got = closable([
+    i("Graduation of 2026.11.19.1 didn't finish"), i("Graduation of 2026.11.19.2 didn't finish", "github-actions"),
+    i("Release 2026.11.19.1 failed graduation"), i("Graduation of 2026.11.19.3 didn't finish", "someone"),
+    i("Graduation of 2026.11.19.4 didn't finish", "github-actions[bot]", { pull_request: {} }),
+  ]);
+  assert.deepEqual(got.map((x) => x.title), ["Graduation of 2026.11.19.1 didn't finish", "Graduation of 2026.11.19.2 didn't finish"]);
 });
