@@ -2,9 +2,9 @@
 // is the one asked for, and moving the release to graduated (or marking it rejected). GitHub's REST API with GITHUB_TOKEN.
 //   node .github/release/graduate.mjs select        the candidate and its baseline (a dry run without $GITHUB_OUTPUT)
 //   node .github/release/graduate.mjs promote <result.json>   (IDENTITY, RUN_ID) graduate it: not a pre-release, latest
-//   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, REACHED, BASELINE) mark it rejected and open one
-//                                                   issue; when the test failed before the upgrade (REACHED isn't
-//                                                   "candidate"), only the issue: the baseline or the runner failed
+//   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, BASELINE, TEST_RESULT, REACHED, PROMOTE_RESULT)
+//                                                   mark it rejected and open one issue; when the test failed before the
+//                                                   upgrade, only the issue: the baseline or the runner failed (onFailure)
 //   node .github/release/graduate.mjs rejected      the rejected releases' names, space-separated (release.yml's upgrade test)
 // A cut is published as a pre-release (release.yml). The baseline is GitHub's latest release: the newest graduated one, what
 // get.aidenhq.ai serves. The candidate is the OLDEST pre-release newer than the baseline that isn't marked rejected (a line
@@ -93,6 +93,12 @@ export function decide({ release, tagSha, latest, id }) {
   if (NAME.test(String(latest ?? "")) && compare(latest, id.tag) > 0) throw new Error(`${id.tag} is older than the current latest ${latest}: refused`);
   return "promote";
 }
+
+/**
+ * What a failed run does to its candidate: "mark" it rejected when its code ran (the upgrade started, or the test passed and
+ * promotion failed), else only an "issue": a test that failed before the upgrade is the baseline's or the runner's failure.
+ */
+export const onFailure = ({ test, reached, promote }) => (test === "success" ? (promote === "failure" ? "mark" : "none") : test === "failure" && reached === "candidate" ? "mark" : test === "failure" ? "issue" : "none");
 
 /** The body with the rejected mark (unchanged when it has one). */
 export const markRejected = (body, run) => (rejected(body) ? String(body) : `${String(body ?? "").trimEnd()}\n\n${MARK} ${run}\n`);
@@ -184,7 +190,9 @@ async function reject() {
     const open = await api(`repos/${DISTRO}/issues?state=open&per_page=100`);
     if (!open.some((i) => i.title === title)) await api(`repos/${DISTRO}/issues`, { method: "POST", body: { title, body } });
   };
-  if (process.env.REACHED !== "candidate") {
+  const what = onFailure({ test: process.env.TEST_RESULT, reached: process.env.REACHED, promote: process.env.PROMOTE_RESULT });
+  if (what === "none") { summary("nothing failed that rejects or reports"); return; }
+  if (what === "issue") {
     const base = String(process.env.BASELINE ?? "").slice(0, 40);
     await issue(`Graduation can't test from ${base}`, `The test failed before the upgrade to ${id.tag} started: the baseline ${base} didn't install or pass its first run and chat, or the runner failed. ${id.tag} stays pending and is tested again at the next run.\n\nRun: ${run}`);
     summary(`**Couldn't test ${id.tag}**: the baseline or the runner failed before the upgrade; ${run}`);

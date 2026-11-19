@@ -63,8 +63,8 @@ jobs:
     needs: select
     if: needs.select.outputs.found == 'true'
     runs-on: ubuntu-24.04
-    # Install ~25 min; each model-dependent step has its own bound (chats 2 x 12 min, apps 50 min, the update record 90 min).
-    timeout-minutes: 330
+    # Every step has its own bound (a step timeout is a failure; the scripts' own waits are shorter still), within the job's.
+    timeout-minutes: 350
     permissions: {}
     outputs:
       # "candidate" once the upgrade starts: a failure before it is the baseline's or the runner's, never the candidate's.
@@ -90,23 +90,29 @@ jobs:
           echo "GRAD_DIR=$RUNNER_TEMP/grad" >> "$GITHUB_ENV"
           echo "Graduating $TAG (kernel ${KERNEL:0:12}) from $BASELINE" >> "$GITHUB_STEP_SUMMARY"
       - name: a. Service user and disk
+        timeout-minutes: 15
         run: bash .github/release/graduate-instance.sh prepare
       - name: b. Install the baseline with its own installer
+        timeout-minutes: 45
         env:
           OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: bash .github/release/graduate-instance.sh install
       - name: c. Baseline scenario (first run, a chat, a hello app)
+        timeout-minutes: 60
         env:
           GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: node .github/release/graduate-scenario.mjs baseline
       - id: reached
         run: echo "phase=candidate" >> "$GITHUB_OUTPUT"
       - name: d. Upgrade to the candidate with the installed updater
+        timeout-minutes: 105
         run: bash .github/release/graduate-instance.sh upgrade
       - name: e. Smoke checks (owner's side)
+        timeout-minutes: 80
         run: node .github/release/graduate-scenario.mjs smoke
       - name: e. Smoke checks (host's side)
         if: ${{ !cancelled() }}
+        timeout-minutes: 15
         run: bash .github/release/graduate-instance.sh host-checks
       - name: Result
         if: ${{ !cancelled() }}
@@ -118,6 +124,7 @@ jobs:
           retention-days: 30
       - name: Logs (secrets redacted)
         if: failure()
+        timeout-minutes: 10
         env:
           GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: bash .github/release/graduate-instance.sh logs "$RUNNER_TEMP/grad-logs"
@@ -176,6 +183,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           IDENTITY: ${{ needs.select.outputs.identity }}
           BASELINE: ${{ needs.select.outputs.baseline }}
-          REACHED: ${{ needs.test.result == 'failure' && needs.test.outputs.reached || 'candidate' }}
+          TEST_RESULT: ${{ needs.test.result }}
+          REACHED: ${{ needs.test.outputs.reached }}
+          PROMOTE_RESULT: ${{ needs.promote.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node .github/release/graduate.mjs reject

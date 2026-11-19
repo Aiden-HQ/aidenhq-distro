@@ -168,14 +168,14 @@ async function chatNow(id, since) {
 }
 const describe = (n) => `state ${n.state}${n.reason ? ` (${n.reason})` : ""}; handed out: ${n.handedOut.map((k) => `${k.identifier} ${k.agent} ${k.state}`).join(", ") || "nothing"}; approvals: ${n.approvals.join(", ") || "none"}`;
 
-/** A scripted chat that must get a reply: two attempts, 12 minutes each. */
+/** A scripted chat that must get a reply: two attempts, 10 minutes each. */
 async function chatReply(label) {
   let last = "";
   for (let attempt = 1; attempt <= 2; attempt++) {
     const since = Date.now();
     const id = await newChat(`Hi Aiden, this is an automated check (${label}, attempt ${attempt}). Please reply with one short sentence saying you are here.`);
     log(`chat ${id} sent (${label}, attempt ${attempt})`);
-    for (const until = since + 12 * MIN; Date.now() < until; await sleep(15_000)) {
+    for (const until = since + 10 * MIN; Date.now() < until; await sleep(15_000)) {
       const n = await chatNow(id, since).catch((e) => ({ state: `unreadable: ${e.message}`, handedOut: [], approvals: [] }));
       if (n.reply) return { ok: true, note: `${id} replied` };
       last = `${id}: ${describe(n)}`;
@@ -185,14 +185,14 @@ async function chatReply(label) {
   return { ok: false, note: `no reply: ${last}` };
 }
 
-/** Ask for a tiny app and wait for a NEW app that is deployed and healthy (50 minutes; one nudge if Aiden asks something). */
-async function askForApp(what) {
+/** Ask for a tiny app and wait up to `minutes` for a NEW app that is deployed and healthy (one nudge if Aiden asks something). */
+async function askForApp(what, minutes) {
   const before = new Set(((await board("GET", "/api/apps")).json?.apps ?? []).map((a) => a.name));
   const since = Date.now();
   const id = await newChat(`Please make me a tiny web app: one page that says "${what}". Keep it as small as possible, deploy it, and tell me when it is live. Use your judgment for anything else; you don't need to ask me.`);
   log(`app chat ${id} sent: ${what}`);
   let nudged = false, last = "", shown = 0;
-  for (const until = since + 50 * MIN; Date.now() < until; await sleep(30_000)) {
+  for (const until = since + minutes * MIN; Date.now() < until; await sleep(30_000)) {
     const apps = (await board("GET", "/api/apps")).json?.apps ?? [];
     const app = apps.find((a) => !before.has(a.name) && a.state === "healthy");
     if (app) return { ok: true, app: app.name, url: app.url, note: `${app.name} healthy${app.url ? ` at ${app.url}` : ""} via ${id}` };
@@ -206,7 +206,7 @@ async function askForApp(what) {
       log(`${id} asked something: answered "go ahead" once`);
     }
   }
-  return { ok: false, note: `no new healthy app within 50 minutes: ${last}` };
+  return { ok: false, note: `no new healthy app within ${minutes} minutes: ${last}` };
 }
 
 /** The app is still deployed and healthy (the platform's own probe), and its address answers when it has one. */
@@ -234,7 +234,7 @@ async function baseline() {
   const c = await chatReply("baseline");
   record("baseline_chat", c.ok, c.note);
   // What the baseline achieves is recorded, not required: a candidate may be the release that fixes it.
-  const a = c.ok ? await askForApp("hello") : { ok: false, note: "skipped: Aiden didn't reply" };
+  const a = c.ok ? await askForApp("hello", 30) : { ok: false, note: "skipped: Aiden didn't reply" };
   log(`baseline hello app: ${a.note}`);
   writeJson("baseline.json", { agents: agents.filter((x) => !NOT_READY.includes(x.status)).map((x) => x.name), hello: a.ok ? a.app : null, hello_note: a.note });
   if (!c.ok) process.exitCode = 1;
@@ -253,7 +253,7 @@ async function smoke() {
   record("chat_reply", c.ok, c.note);
   const h = base.hello ? await serves(base.hello).catch((e) => ({ ok: false, note: e.message })) : { ok: true, note: `the baseline had no hello app (${base.hello_note})` };
   record("hello_app_serves", h.ok, h.note);
-  const s = c.ok ? await askForApp("goodbye").catch((e) => ({ ok: false, note: e.message })) : { ok: false, note: "skipped: Aiden didn't reply" };
+  const s = c.ok ? await askForApp("goodbye", 50).catch((e) => ({ ok: false, note: e.message })) : { ok: false, note: "skipped: Aiden didn't reply" };
   record("second_app_deploys", s.ok, s.note);
 }
 

@@ -1,7 +1,7 @@
 // graduate.mjs on fixture release lists: which cut is tested, what result is accepted, when promotion goes ahead.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CHECKS, checkIdentity, decide, identityOf, markRejected, pick, rejected, validateResult } from "./graduate.mjs";
+import { CHECKS, checkIdentity, decide, identityOf, markRejected, onFailure, pick, rejected, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
 const rel = (tag, { pre = true, draft = false, body = "", id = 1 } = {}) => ({
@@ -20,6 +20,15 @@ test("select: the oldest pending pre-release above latest; rejected, drafts, gra
   assert.equal(pick(list, "2026.11.20"), null);
   assert.equal(pick([rel("2026.11.19", { body: "graduation: failed https://x" })], "2026.11.18"), null);
   assert.throws(() => pick(list, undefined), /no graduated release/);
+});
+
+test("a failure rejects the candidate only once its code ran; before the upgrade it is an issue; a cancel is nothing", () => {
+  assert.equal(onFailure({ test: "failure", reached: "candidate", promote: "skipped" }), "mark");
+  assert.equal(onFailure({ test: "failure", reached: "", promote: "skipped" }), "issue");
+  assert.equal(onFailure({ test: "failure", reached: undefined, promote: "skipped" }), "issue");
+  assert.equal(onFailure({ test: "success", reached: "candidate", promote: "failure" }), "mark");
+  assert.equal(onFailure({ test: "success", reached: "candidate", promote: "success" }), "none");
+  assert.equal(onFailure({ test: "cancelled", reached: "candidate", promote: "skipped" }), "none");
 });
 
 test("the rejected mark is one line, added once", () => {

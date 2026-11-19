@@ -14,7 +14,7 @@ set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 : "${GRAD_DIR:?}"
 SVC=aidenhq SVC_HOME=/home/aidenhq
-CO=$SVC_HOME/aidenhq INST=$SVC_HOME/aidenhq-instance STATE=$SVC_HOME/.local/state/aidenhq
+CO=$SVC_HOME/aidenhq INST=$SVC_HOME/aidenhq-instance STATE=$SVC_HOME/.local/state/aidenhq   # ops/setup.sh's AIDENHQ_STATE_DIR
 NEED_GB=70   # the installer refuses below 60 GB free; the upgrade's images need room on top
 log() { printf '%s %s\n' "$(date -u +%H:%M:%S)" "$*"; }
 die() { echo "::error::$*"; exit 1; }
@@ -29,6 +29,13 @@ svc_uid() { id -u "$SVC"; }
 # As the service user, in its home, with its user systemd bus (setup enables lingering).
 as_svc() { local u; u=$(svc_uid); sudo -u "$SVC" -H env XDG_RUNTIME_DIR="/run/user/$u" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$u/bus" bash -c 'cd "$HOME" && "$@"' _ "$@"; }
 gb() { df -Pk "$1" | awk 'NR==2 { print int($4 / 1048576) }'; }
+# A command line in the checkout, as the service user, with the checkout's .env exported (what the kernel reads); "$1".. are args.
+in_co() { local c=$1; shift; as_svc bash -c 'cd ~/aidenhq && set -a && { [ ! -f .env ] || . ./.env; } && set +a && eval "$0"' "$c" "$@"; }
+# A kernel record's "state rule" (kernel.db, read-only), empty when there is none.
+record_state() {
+  [ -n "$2" ] || return 0
+  sudo node -e 'const { DatabaseSync } = require("node:sqlite"); const r = new DatabaseSync(process.argv[1], { readOnly: true }).prepare("SELECT state, rule FROM records WHERE id = ?").get(process.argv[2]); if (r) console.log(`${r.state} ${r.rule ?? ""}`)' "$1/kernel/kernel.db" "$2" 2>/dev/null || true
+}
 # The newest apply generation (ops/lib/generations.sh), as JSON ({} before any); good_on SHA: it is good on that product.
 last_gen() { local g; g=$(sudo tail -1 "$STATE/generations.jsonl" 2>/dev/null || true); { [ -n "$g" ] && jq -c . <<<"$g" 2>/dev/null; } || echo '{}'; }
 good_on() { [ "$(last_gen | jq -r '"\(.health) \(.product)"')" = "good $1" ]; }
@@ -106,26 +113,33 @@ upgrade() {
   # The bootstrap: a baseline whose updater can't prepare a named pre-release can't be upgraded this way (select checks it too).
   sudo grep -q AIDENHQ_UPDATE_CANDIDATE "$CO/kernel/src/updates.ts" \
     || { rec upgraded false "baseline predates graduation; graduate one release by hand"; die "baseline predates graduation; graduate one release by hand (README \"Release graduation\")"; }
+  # Where the kernel keeps its state: its checkout's .env over the defaults, as the kernel reads it (kernel/src/env.ts).
+  local data
+  data=$(in_co 'node -e "console.log(require(\"node:path\").resolve(process.env.AIDENHQ_DATA_DIR || \"data\"))"')
   # The instance's own updater, asked for exactly this pre-release: verified and prepared as any release, then filed by the
   # kernel as a kernel.apply that the AI reviewer decides (auto-updates are on for a new install). Retried: GitHub's API
   # (unauthenticated from a shared runner address) may answer 403 for a while.
   local out='' i
   for i in 1 2 3 4 5 6; do
-    out=$(as_svc env AIDENHQ_UPDATE_CANDIDATE="$TAG" bash -c 'cd ~/aidenhq && node --disable-warning=ExperimentalWarning kernel/src/updates.ts check "$1" graduate' _ "$TAG" 2>&1) || true
+    out=$(in_co 'AIDENHQ_UPDATE_CANDIDATE="$1" node --disable-warning=ExperimentalWarning kernel/src/updates.ts check "$1" graduate' "$TAG" 2>&1) || true
     log "check $i: $out"
     grep -q "^release $TAG prepared" <<<"$out" && break
     [ "$i" = 6 ] && { rec upgraded false "the updater didn't prepare $TAG: $out"; exit 1; }
     sleep 60
   done
-  # The kernel files it within 5 minutes and follows its record to the end: installed, or failed with why (90 minutes).
-  local st='{}' shown=0 end=$((SECONDS + 90 * 60))
+  # The kernel files it within 5 minutes and follows its record to the end: installed, or failed with why (75 minutes). A
+  # record waiting on the owner (a release that adds module authority is the owner's tap whatever auto_update says) can't
+  # end here: it fails at once, and such a release is graduated by hand.
+  local st='{}' rec_state='' shown=0 end=$((SECONDS + 75 * 60))
   while [ "$SECONDS" -lt "$end" ]; do
-    st=$(sudo cat "$CO/data/updates/state.json" 2>/dev/null || echo '{}')
-    if [ "$(jq -r '.last.release // ""' <<<"$st")" = "$TAG" ]; then break; fi
-    if [ $((SECONDS - shown)) -ge 300 ]; then log "waiting: $(jq -c '{ready: (.ready.release // null), flight: (.flight | if . then {release, record} else null end), error}' <<<"$st")"; shown=$SECONDS; fi
+    st=$(sudo cat "$data/updates/state.json" 2>/dev/null || echo '{}')
+    [ "$(jq -r '.last.release // ""' <<<"$st")" = "$TAG" ] && break
+    rec_state=$(record_state "$data" "$(jq -r '.flight.record // ""' <<<"$st")")
+    if [ "${rec_state%% *}" = owner ]; then rec upgraded false "the update waits for the owner's approval (${rec_state#* }): graduate it by hand after checking it"; exit 1; fi
+    if [ $((SECONDS - shown)) -ge 300 ]; then log "waiting: $(jq -c '{ready: (.ready.release // null), flight: (.flight | if . then {release, record} else null end), error}' <<<"$st") record: ${rec_state:-none}"; shown=$SECONDS; fi
     sleep 30
   done
-  if [ "$(jq -r '.last.release // ""' <<<"$st")" != "$TAG" ]; then rec upgraded false "the update record didn't end within 90 minutes: $(jq -c '{flight, error}' <<<"$st")"; exit 1; fi
+  if [ "$(jq -r '.last.release // ""' <<<"$st")" != "$TAG" ]; then rec upgraded false "the update record didn't end within 75 minutes (record: ${rec_state:-none}): $(jq -c '{flight, error}' <<<"$st")"; exit 1; fi
   [ "$(jq -r .last.outcome <<<"$st")" = installed ] || { rec upgraded false "$TAG didn't install: $(jq -r '.last.why // "?"' <<<"$st")"; exit 1; }
   # Its apply generation settled good on the candidate's kernel (20 minutes).
   local end2=$((SECONDS + 20 * 60))

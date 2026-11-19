@@ -175,7 +175,7 @@ up, and by hand. One run at a time, from main only:
    4. The upgrade, by the baseline's own installed updater:
       `AIDENHQ_UPDATE_CANDIDATE=<tag> node kernel/src/updates.ts check <tag> graduate`. The kernel files it as a
       `kernel.apply`, which the AI reviewer decides (auto-updates are on for a new install); the run waits for the
-      record to end (90 minutes) and the apply generation to be good.
+      record to end (75 minutes; a record waiting on the owner, e.g. a release adding module authority, fails at once: graduate such a release by hand) and the apply generation to be good.
    5. Smoke checks, each time-bounded: the instance pins the candidate, the checkout is its kernel and every AidenHQ
       image running is one of its digests; the last generation is good; every agent is ready (none `error`,
       `verifying` or `pending_approval`, none gone since the baseline); a new chat gets a fresh reply; the hello app (when
