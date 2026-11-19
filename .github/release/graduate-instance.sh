@@ -116,7 +116,7 @@ prepare() {
 # installer has already pulled, so it never takes disk before the installer's own disk check. It never records a check or
 # fails the run: anything it misses, the apply pulls.
 prepull_start() {
-  candidate_file >/dev/null
+  ( candidate_file >/dev/null ) || { log "no pre-pull: the candidate's release file didn't load (the apply pulls everything)"; return 0; }
   setsid nohup bash "$here/graduate-instance.sh" prepull >"$GRAD_DIR/prepull.log" 2>&1 </dev/null &
   log "pre-pulling $TAG's images in the background (prepull.log)"
 }
@@ -212,7 +212,8 @@ fixture() {
   # (the build is cached by then).
   local end=$((SECONDS + 15 * 60))
   while :; do
-    out=$(in_co 'bash ops/app-deploy.sh deploy "$1"' "$FIXTURE" 2>&1) || true
+    out=$(in_co 'bash ops/app-deploy.sh deploy "$1"' "$FIXTURE" 2>"$GRAD_DIR/fixture-deploy.err") || true
+    [ ! -s "$GRAD_DIR/fixture-deploy.err" ] || log "deploy stderr: $(tail -c 400 "$GRAD_DIR/fixture-deploy.err")"
     grep -q "deploy in progress" <<<"$out" && [ "$SECONDS" -lt "$end" ] || break
     sleep 5
   done
@@ -235,22 +236,18 @@ upgrade() {
   # kernel as a kernel.apply that the AI reviewer decides (auto-updates are on for a new install). GitHub's API,
   # unauthenticated from a shared runner address, may be rate-limited (403/429) until its hourly reset: retried for 25
   # minutes. A check still rate-limited at the end is the infrastructure's failure, never the candidate's: no check is
-  # recorded, so the result is incomplete and the candidate stays pending (graduate.mjs onFailure). Any other answer that
-  # isn't "prepared" is tried 3 times.
-  local out='' limited=0 other=0
+  # recorded, so the result is incomplete and the candidate stays pending (graduate.mjs onFailure). Any other answer is
+  # asked again every 30 seconds within the same 25 minutes (a GitHub hiccup).
+  local out='' end1=$((SECONDS + 25 * 60))
   while :; do
     out=$(in_co 'AIDENHQ_UPDATE_CANDIDATE="$1" node --disable-warning=ExperimentalWarning kernel/src/updates.ts check "$1" graduate' "$TAG" 2>&1) || true
     log "check: $out"
     grep -q "^release $TAG prepared" <<<"$out" && { touch "$GRAD_DIR/reached-candidate"; break; }
-    if grep -qE 'answered (403|429)' <<<"$out"; then
-      limited=$((limited + 1))
-      [ "$limited" -lt 13 ] || die "GitHub's API rate-limited the instance's updater for 25 minutes (infrastructure, not $TAG): $out"
-      sleep 120
-    else
-      other=$((other + 1))
-      [ "$other" -lt 3 ] || { rec upgraded false "the updater didn't prepare $TAG: $out"; exit 1; }
-      sleep 20
+    if [ "$SECONDS" -ge "$end1" ]; then
+      grep -qE 'answered (403|429)' <<<"$out" && die "GitHub's API rate-limited the instance's updater for 25 minutes (infrastructure, not $TAG): $out"
+      rec upgraded false "the updater didn't prepare $TAG: $out"; exit 1
     fi
+    if grep -qE 'answered (403|429)' <<<"$out"; then sleep 120; else sleep 30; fi
   done
   timing upgrade_prepare $((SECONDS - t)); t=$SECONDS
   # The kernel files it at its next updates pass (every 5 minutes) and follows its record to the end: installed, or failed
@@ -319,7 +316,8 @@ result() {
 logs() {
   local out=$1; mkdir -p "$out"
   cp "$GRAD_DIR"/{install.log,baseline.json,fixture.json,prepull.log} "$out/" 2>/dev/null || true
-  for d in checks timings; do [ ! -d "$GRAD_DIR/$d" ] || for f in "$GRAD_DIR/$d"/*.json; do cp "$f" "$out/$d-$(basename "$f")"; done; done
+  for d in checks timings; do [ ! -d "$GRAD_DIR/$d" ] || for f in "$GRAD_DIR/$d"/*.json; do cp "$f" "$out/$d-$(basename "$f")" || true; done; done
+  cp "$GRAD_DIR/fixture-deploy.err" "$out/" 2>/dev/null || true
   if id "$SVC" >/dev/null 2>&1; then
     for u in aidenhq-kernel aidenhq-runner aidenhq-computers; do as_svc journalctl --user -u "$u" --no-pager -n 3000 >"$out/$u.log" 2>&1 || true; done
     sudo cat "$CO/data/updates/state.json" >"$out/updates-state.json" 2>/dev/null || true

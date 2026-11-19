@@ -65,7 +65,7 @@ jobs:
     if: needs.select.outputs.found == 'true'
     runs-on: ubuntu-24.04
     # Every step has its own bound (a step timeout is a failure; the scripts' own waits are shorter still), within the job's.
-    timeout-minutes: 240
+    timeout-minutes: 300
     permissions: {}
     outputs:
       # "candidate" once the instance's updater prepared the candidate (its move began): a failure before that is the

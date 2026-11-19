@@ -178,7 +178,8 @@ up, and by hand. One run at a time, from main only:
       baseline's own app starter in a repository on the server (`local/grad-hello`), registered in the instance's
       `apps.yaml` as `app_create` does and deployed through the apps platform's host path (`ops/app-deploy.sh`: build,
       health, the post-deploy checks). Whether it went live is recorded, not required: the candidate may be the release
-      that fixes it.
+      that fixes it. When it didn't, the job log and summary say so, since the hello check after the upgrade then has
+      nothing to test.
    4. The upgrade, by the baseline's own installed updater:
       `AIDENHQ_UPDATE_CANDIDATE=<tag> node kernel/src/updates.ts check <tag> graduate`. The kernel files it as a
       `kernel.apply`, which the AI reviewer decides (auto-updates are on for a new install); the run waits for the

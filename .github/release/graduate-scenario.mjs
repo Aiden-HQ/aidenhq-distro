@@ -11,7 +11,7 @@
 // The model key comes from GRADUATE_OPENROUTER_KEY, for the first run's model step when it asks. Model-dependent steps
 // retry within fixed bounds; nothing waits unbounded.
 import { createHmac, randomBytes } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import https from "node:https";
 import { dirname, join } from "node:path";
@@ -223,9 +223,9 @@ const within = (ms, run) => new Promise((ok) => {
 
 async function baseline() {
   const t0 = Date.now();
-  // The hello app deploys beside the first run and the chat: it needs no owner, only the platform.
-  const fixture = within(20 * MIN, child("bash", [INSTANCE_SH, "fixture"])).then((ended) => ({ ...readJson("fixture.json", { ok: false, note: "no fixture.json" }), ended }));
   try { await firstRun(); record("baseline_first_run", true); } catch (e) { record("baseline_first_run", false, e.message); throw e; }
+  // The hello app deploys beside the chat: it needs no model, only the platform.
+  const fixture = within(20 * MIN, child("bash", [INSTANCE_SH, "fixture"])).then((ended) => ({ ...readJson("fixture.json", { ok: false, note: "no fixture.json" }), ended }));
   const agents = await roster();
   log(`agents: ${agents.map((a) => `${a.name} ${a.status}`).join(", ")}`);
   const c = await chatReply("baseline");
@@ -233,9 +233,17 @@ async function baseline() {
   const f = await fixture;
   // What the baseline achieves is recorded, not required: a candidate may be the release that fixes it. Judged by the same
   // probe as the smoke check after the upgrade, so a fault in this test shows here, before the candidate is reached.
-  const a = f.ok ? await serves(f.app) : { ok: false, note: f.ended ? f.note : "the fixture deploy didn't end within 20 minutes" };
+  // Whenever the deploy ended, the platform's own state decides (the deploy's answer is only its note).
+  const app = f.app ?? "grad-hello";
+  const a = f.ended ? await serves(app) : { ok: false, note: "the fixture deploy didn't end within 20 minutes" };
+  if (!a.ok) a.note = `${a.note}; deploy: ${f.note}`;
   log(`baseline hello app: ${a.note}`);
-  writeJson("baseline.json", { agents: agents.filter((x) => !NOT_READY.includes(x.status)).map((x) => x.name), hello: a.ok ? f.app : null, hello_note: a.note });
+  if (!a.ok) {
+    // Not required (the candidate may fix it), but loud: without it the hello check after the upgrade has nothing to test.
+    console.log(`::warning::the baseline has no hello app, so hello_app_serves can't test the upgrade: ${a.note.slice(0, 300)}`);
+    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `**No hello app on the baseline**: hello_app_serves passes without testing it. ${a.note.slice(0, 300)}\n`);
+  }
+  writeJson("baseline.json", { agents: agents.filter((x) => !NOT_READY.includes(x.status)).map((x) => x.name), hello: a.ok ? app : null, hello_note: a.note });
   writeTiming(DIR, "scenario", (Date.now() - t0) / 1000);
   if (!c.ok) process.exitCode = 1;
 }
