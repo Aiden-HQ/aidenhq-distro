@@ -20,6 +20,8 @@
 # Releases from before the one-repo layout (a release file with `marketplace` or `modules`, 2026.11.2 and older: the modules
 # came from a separate repo) are skipped: they upgrade once by hand (INSTALL.md). Runs without credentials: every
 # repository it reads is public. Old kernels are read from the new checkout's history (the installer's fetch takes main).
+# AIDENHQ_UPGRADE_SKIP: release names graduation rejected (graduate.yml), space-separated: no install runs them, so none is
+# tested as a starting point.
 set -euo pipefail
 here=$(cd "$(dirname "$0")/../.." && pwd)
 new=$(cd "$1" && pwd) rel=$2 relsha=$3 work=$4
@@ -63,6 +65,7 @@ EOF"
 
 failed='' tested=''
 for R in $older; do
+  case " ${AIDENHQ_UPGRADE_SKIP:-} " in *" $R "*) echo "upgrade from $R: skipped (graduation rejected it: no install runs it)"; continue ;; esac
   f=$(git -C "$here" show "$R:releases/$R.json" 2>/dev/null) || { echo "::warning::tag $R has no releases/$R.json: skipped"; continue; }
   if jq -e 'has("marketplace") or has("modules")' <<<"$f" >/dev/null; then
     echo "upgrade from $R: skipped (it predates the one-repo layout; such installs upgrade once by hand)"; continue

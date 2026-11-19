@@ -10,7 +10,7 @@ It checks the machine, asks for your email (the board's owner account), fetches 
 product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, and `AIDENHQ_SSH_TUNNEL=` with `--no-tailscale`, for scripts and agents). Along the way it prints `AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>` lines (the percent never goes down and reaches 100 just before the link; the weights are estimates in one table at the top of `install.sh`). Everything after
 that happens in your browser: your password and authenticator, your model key, your channels.
 
-`get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves the latest published release's `install.sh` (its release file's digest baked in) as `text/plain`: exactly the asset GitHub published once the release passed its install-and-test (README "get.aidenhq.ai"). To read the script before running it:
+`get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves the latest graduated release's `install.sh` (its release file's digest baked in) as `text/plain`: exactly the asset GitHub published once the release passed its install-and-test and then graduated (a test instance upgraded to it and passed its checks; README "get.aidenhq.ai", "Release graduation"). To read the script before running it:
 
 ```sh
 curl -fsSLo install.sh https://get.aidenhq.ai && less install.sh && sh install.sh
@@ -166,14 +166,22 @@ It has no `marketplace` or `modules` entries: third-party modules are the instan
 `instance.yaml`, never part of a release. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch
 and verify), runs the release suites on it, checks that every older release's default install (since 2026.11.18) upgrades to it
 (`.github/release/upgrade.sh`: the new kernel's pin step, then the apply's staged compile), writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
-publishes both as the release's assets (a draft until they are checked), then opens a PR pinning `get.aidenhq.ai` to that `install.sh` by tag and sha256; merging it deploys the site. Never
-to a branch.
+publishes both as the release's assets (a draft until they are checked) as a GitHub pre-release. Never to a branch.
+
+A pre-release is not offered to anyone yet. `.github/workflows/graduate.yml` graduates it: a fresh install of the current
+latest release on a GitHub-hosted runner goes through a new owner's first run, upgrades to it with its own installed updater
+and passes smoke checks (agents ready, a fresh chat reply, apps still served and a new one deployed, the security checks).
+Only then does it become a full release and GitHub's latest, which installs update to and `get.aidenhq.ai` serves. A release
+that fails stays a pre-release, marked `graduation: failed <run>` in its notes, and an issue is opened; delete that line to
+have it tested again. To graduate one by hand: `gh release edit <tag> -R Aiden-HQ/aidenhq-distro --prerelease=false --latest`
+(README "Release graduation").
 
 A release file may carry `notes`: up to 20 one-line strings saying what changed (and whether the release adds new
 authority to any module). Installs show them when the release is available, and in the message after it installs.
 
 Installs pick a new release up on their own (the product's `kernel/src/updates.ts`): they read the newest release tag
-over https from this repository, and install it only when its tag commit is on `main`, its product commit is on the
+over https from this repository that is a graduated release (published and not a pre-release, from GitHub's Releases API),
+and install it only when its tag commit is on `main`, its product commit is on the
 product's `main` and descends from what the install runs, and the published `<release>.json` asset equals the
 file at the tag with the `tested` stamp of a successful `release.yml` run on that commit. A tag without a published, tested
 release is never installed, and a newer broken one doesn't hide the newest valid one.

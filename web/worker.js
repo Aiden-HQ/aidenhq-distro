@@ -1,8 +1,9 @@
 // aidenhq.ai serves the site; get.aidenhq.ai serves the installer as plain text, so `curl -fsSL get.aidenhq.ai | sh` works.
 // On `/`, an agent that asks for markdown (Accept: text/markdown, or text/plain without text/html) gets /index.md.
-// The latest published release's install.sh. GitHub's "latest" is the newest non-draft, non-prerelease release; release.yml
-// publishes only after the release's install-and-test passed (a draft until then, deleted if it fails) and marks it latest only
-// when no published release has a newer name. So this serves exactly the installer GitHub published for that tested release.
+// The latest graduated release's install.sh. GitHub's "latest" is the newest non-draft, non-prerelease release; release.yml
+// publishes a release only after its install-and-test passed (a draft until then, deleted if it fails), as a pre-release, and
+// graduate.yml makes it a full release and latest only after a test instance upgraded to it and passed its smoke checks. So
+// this serves exactly the installer GitHub published for that graduated release.
 const LATEST = "https://github.com/Aiden-HQ/aidenhq-distro/releases/latest/download/install.sh";
 // Cache API keys: a fresh copy for a few minutes, and the last good one for when GitHub fails.
 const FRESH = "https://get.aidenhq.ai/.installer/fresh";

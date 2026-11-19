@@ -15,7 +15,9 @@
 # The nightly (nightly.yml) calls this workflow (workflow_call) for plan/images/collect with its release file as `manifest`,
 # then lands the file with the images on main, tags it and dispatches the tag run.
 # A tag run that doesn't publish deletes its tag and any draft release, and opens an issue (`alert`), so installs never see an
-# untested release. get.aidenhq.ai serves the latest published release's install.sh (web/worker.js): publishing is going live.
+# untested release. Publishing makes a pre-release, never "latest": installs' updaters skip it and get.aidenhq.ai (GitHub's
+# latest, web/worker.js) keeps serving the graduated release. graduate.yml upgrades a test instance to it and only then makes
+# it a full release and latest (README "Release graduation").
 # Isolation: the test job's suites step is the only one that runs fetched code, and it has no token; publish is a separate
 # job (needs: test), so it lands on a fresh runner that never ran the suites.
 name: release
@@ -74,6 +76,17 @@ jobs:
             and (has("marketplace") or has("modules") | not)
             and ((.notes // []) | type == "array" and length <= 20 and all(.[]; type == "string" and length <= 300))' "$f" >/dev/null \
             || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), or its notes aren't up to 20 lines of text"; exit 1; }
+      # Releases graduation rejected (graduate.yml: the mark in their notes) stay pre-releases that no install runs, so nothing
+      # upgrades from them: the upgrade test skips them. Read here, first, with the token in this step only: no step holding a
+      # token runs after fetched code has run.
+      - name: Releases graduation rejected
+        id: rejected
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          tags=$(node .github/release/graduate.mjs rejected)
+          echo "rejected by graduation: ${tags:-none}"
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
       # The only step that sees the read token: install.sh's fetch and verify, which runs nothing it fetched.
       - name: Fetch and verify the set (install.sh's own checks)
         env:
@@ -92,6 +105,8 @@ jobs:
       # The upgrade test (.github/release/upgrade.sh): each older release's default install (as its own setup writes it) is pinned to
       # this one by that older release's own updater, as a real update does, and must pass this kernel's staged compile. Fetched code, no token.
       - name: Every older release's install upgrades to it
+        env:
+          AIDENHQ_UPGRADE_SKIP: ${{ steps.rejected.outputs.tags }}
         run: env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT bash .github/release/upgrade.sh "$RUNNER_TEMP/set/kernel" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"
 
   # The images a release builds, from its own product checkout (scripts/release-images.mjs list, over its kernel and modules/): the fetched set, as a tarball for the
@@ -342,14 +357,10 @@ jobs:
               | curl -fsSL -H @- "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/assets/$aid" -o "check/$name"
           done
           cmp check/install.sh dist/install.sh && cmp "check/$TAG.json" "dist/$TAG.json"
-          # Drafted until here: only a release whose assets passed the checks above is ever published.
-          # It becomes "latest" (what get.aidenhq.ai serves) only when no published release has a newer name: a draft or a deleted
-          # failed release never is, and a re-run of an older tag doesn't move the site back.
-          newest=$( { api "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases?per_page=100" | jq -r '.[] | select(.draft | not) | select(.prerelease | not) | .tag_name'; echo "$TAG"; } \
-            | grep -E '^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)
-          latest=false; [ "$newest" != "$TAG" ] || latest=true
-          api -X PATCH "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id" -d "$(jq -n --arg l "$latest" '{draft: false, prerelease: false, make_latest: $l}')" >/dev/null
-          echo "published $TAG (latest: $latest)"
+          # Drafted until here: only a release whose assets passed the checks above is ever published. Published as a
+          # pre-release and never latest: it reaches installs and get.aidenhq.ai only when graduate.yml graduates it.
+          api -X PATCH "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/$id" -d '{"draft": false, "prerelease": true, "make_latest": "false"}' >/dev/null
+          echo "published $TAG as a pre-release: graduate.yml graduates it"
 
   # A tag run that didn't publish leaves no tag (and no draft release), so no install, updater or get.aidenhq.ai ever sees it.
   alert:
