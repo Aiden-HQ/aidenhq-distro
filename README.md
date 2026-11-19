@@ -162,26 +162,41 @@ up, and by hand. One run at a time, from main only:
 1. **Select** ([`.github/release/graduate.mjs`](.github/release/graduate.mjs) `select`). The baseline is the current
    latest. The candidate is the oldest pre-release newer than it without the rejected mark, so cuts graduate in order and
    each is tested from the release before it. No candidate: the run ends.
-2. **Test** (ubuntu-24.04, no token, [`graduate-instance.sh`](.github/release/graduate-instance.sh) and
-   [`graduate-scenario.mjs`](.github/release/graduate-scenario.mjs)):
+2. **Test** (ubuntu-24.04, no token, [`graduate-instance.sh`](.github/release/graduate-instance.sh),
+   [`graduate-scenario.mjs`](.github/release/graduate-scenario.mjs) and
+   [`graduate-checks.mjs`](.github/release/graduate-checks.mjs)), about 15-20 minutes:
    1. The service user (uid 1000) and the disk: the runner's free space is measured and printed; preinstalled
       toolchains are removed, and Docker's data and the service user's home move to `/mnt`, only when the installer's
       60 GB minimum isn't met otherwise. The installer's own check is never lowered.
    2. The baseline's own published `install.sh` (its digest checked), non-interactive, `--no-tailscale`, the model key
-      from the secret `GRADUATE_OPENROUTER_KEY` in its environment (it goes to setup's root-only config file).
+      from the secret `GRADUATE_OPENROUTER_KEY` in its environment (it goes to setup's root-only config file). Beside it,
+      in the background, the candidate's images (its release file, digest checked) of every repository the baseline has
+      pulled, so the upgrade's apply mostly restarts. That pull starts only once the installer has pulled a repository
+      (never before its disk check), never records a check, and anything it misses the apply pulls itself.
    3. A new owner, over HTTP on the runner's loopback: the account, the authenticator, the model key, the welcome with
-      every flow skipped, a chat with Aiden that must get a reply, then "a tiny page that says hello". Whether the hello
-      app went live is recorded, not required: the candidate may be the release that fixes it.
+      every flow skipped, and a chat with Aiden that must get a reply. Beside them, without a model, the hello app: the
+      baseline's own app starter in a repository on the server (`local/grad-hello`), registered in the instance's
+      `apps.yaml` as `app_create` does and deployed through the apps platform's host path (`ops/app-deploy.sh`: build,
+      health, the post-deploy checks). Whether it went live is recorded, not required: the candidate may be the release
+      that fixes it. When it didn't, the job log and summary say so, since the hello check after the upgrade then has
+      nothing to test.
    4. The upgrade, by the baseline's own installed updater:
       `AIDENHQ_UPDATE_CANDIDATE=<tag> node kernel/src/updates.ts check <tag> graduate`. The kernel files it as a
       `kernel.apply`, which the AI reviewer decides (auto-updates are on for a new install); the run waits for the
       record to end (75 minutes; a record waiting on the owner, e.g. a release adding module authority, fails at once: graduate such a release by hand) and the apply generation to be good.
-   5. Smoke checks, each time-bounded: the instance pins the candidate, the checkout is its kernel and every AidenHQ
-      image running is one of its digests; the last generation is good; every agent is ready (none `error`,
-      `verifying` or `pending_approval`, none gone since the baseline); a new chat gets a fresh reply; the hello app (when
-      the baseline had one) is still healthy and answers; a second tiny app deploys; `scripts/verify-security.sh` exits 0.
+   5. Smoke checks, side by side, each within its own bound: the instance pins the candidate, the checkout is its kernel
+      and every AidenHQ image running is one of its digests; the last generation is good; every agent is ready (none
+      `error`, `verifying` or `pending_approval`, none gone since the baseline); a new chat gets a fresh reply; the hello
+      app (when the baseline had one) is still healthy and answers; `scripts/verify-security.sh` exits 0. A check that
+      says no fails the candidate; one cut off at its bound stays missing (incomplete, below).
 
-   It hands promote a small `result.json`; on a failure it uploads its logs with the model key and setup token redacted.
+   It hands promote a small `result.json` (the checks, notes and each phase's seconds; the job log prints `timing:
+   <phase> <s>s` lines and the summary a table); on a failure it uploads its logs with the model key and setup token
+   redacted. Expected: install 8-12 minutes, scenario 3-5, upgrade 4-8 (0-5 of it the kernel's next updates pass, which
+   files the prepared release), smoke 1-3.
+
+   Aiden building an app end to end (a model-built app through an Engineer) is not part of this per-release gate: it is
+   slow and varies run to run. It belongs in a separate, less frequent check (not built yet).
 3. **Promote** (`graduate.mjs promote`, `contents: write`, never runs a release's code). The result must name exactly the
    selected release and baseline with every check passed; through the API, this run's test job succeeded and the
    release's tag commit and asset digests are still the ones selected. Then the release is made a full release and
@@ -200,6 +215,25 @@ up, and by hand. One run at a time, from main only:
 Operating it:
 
 - **See what it would do:** `GITHUB_TOKEN=$(gh auth token) node .github/release/graduate.mjs select` (read-only).
+- **Run it by hand on a VM** (the same scripts, outside GitHub; nothing is promoted or rejected). A fresh Ubuntu 24.04
+  VM (it creates the `aidenhq` user, installs AidenHQ and changes the host: never one you use), 8 GB RAM or more, 70 GB
+  free, a sudoer with passwordless sudo, and `git`, `curl`, `jq` and Node 24 on the PATH. On a cloud image whose uid
+  1000 is taken (`ubuntu`), the service user gets another uid and the script warns. Then:
+
+  ```sh
+  git clone https://github.com/Aiden-HQ/aidenhq-distro && cd aidenhq-distro
+  # TAG, TAG_SHA, KERNEL, BASELINE and the digests select would name: candidate and baseline named, or omitted for
+  # select's own pick (the oldest pending pre-release, from latest). GITHUB_TOKEN is optional (rate limits).
+  eval "$(node .github/release/graduate.mjs env <candidate> <baseline>)"   # e.g. 2026.11.20 2026.11.19.2
+  export OPENROUTER_KEY=sk-or-...        # a spend-capped key, as GRADUATE_OPENROUTER_KEY
+  export GRAD_DIR=$HOME/graduate-run     # the default; the run's account, authenticator key and results (0700)
+  bash .github/release/graduate-instance.sh run
+  ```
+
+  `run` does what the test job does, in order (prepare, prepull-start, install, `graduate-scenario.mjs baseline`,
+  upgrade, `graduate-scenario.mjs smoke`), then `result`: `$GRAD_DIR/result.json` and the verdict, exit 0 only when it
+  passed. Each phase also runs alone with the same env (`bash .github/release/graduate-instance.sh <phase>`, `node
+  .github/release/graduate-scenario.mjs baseline|smoke`), e.g. to rerun the smoke checks after a fix.
 - **Retry a rejected release** (e.g. a runner failure): delete the `graduation: failed` line from its notes
   (`gh release edit <tag> -R Aiden-HQ/aidenhq-distro --notes-file <file>`), then
   `gh workflow run graduate.yml -R Aiden-HQ/aidenhq-distro`.

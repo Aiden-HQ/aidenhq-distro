@@ -33,7 +33,7 @@ jobs:
           "$sc" install.sh installer/test.sh .github/release/test-set.sh .github/release/upgrade.sh .github/release/graduate-instance.sh
       - run: sh installer/test.sh
       - run: if command -v dash >/dev/null; then dash installer/test.sh; else echo "no dash on this runner"; fi
-      - run: node --check .github/release/suites.mjs && node --check .github/release/graduate-scenario.mjs
+      - run: node --check .github/release/suites.mjs && node --check .github/release/graduate-scenario.mjs && node --check .github/release/graduate-checks.mjs
       - run: node --test .github/release/graduate.test.mjs
       # release.yml runs on these runners too: the tools it needs are here.
       - name: Release tools on this runner
