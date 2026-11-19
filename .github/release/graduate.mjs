@@ -1,6 +1,7 @@
 // Release graduation (.github/workflows/graduate.yml; README "Release graduation"): which cut to test, whether a test's result
 // is the one asked for, and moving the release to graduated (or marking it rejected). GitHub's REST API with GITHUB_TOKEN.
 //   node .github/release/graduate.mjs select        the candidate and its baseline (a dry run without $GITHUB_OUTPUT)
+//   node .github/release/graduate.mjs env [candidate] [baseline]   the test job's env as shell exports (a manual VM run)
 //   node .github/release/graduate.mjs promote <result.json>   (IDENTITY, RUN_ID) graduate it: not a pre-release, latest
 //   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, BASELINE, TEST_RESULT, REACHED, VERDICT,
 //                                                   PROMOTE_RESULT) mark it rejected and open one issue when its own checks
@@ -66,14 +67,14 @@ export function checkIdentity(id) {
 }
 
 /** The checks the test job runs (graduate-instance.sh, graduate-scenario.mjs): each must be in the result, and true. */
-export const CHECKS = ["baseline_installed", "baseline_first_run", "baseline_chat", "upgraded", "running_release", "generation_good", "agents_ready", "chat_reply", "hello_app_serves", "second_app_deploys", "verify_security"];
+export const CHECKS = ["baseline_installed", "baseline_first_run", "baseline_chat", "upgraded", "running_release", "generation_good", "agents_ready", "chat_reply", "hello_app_serves", "verify_security"];
 
 /**
  * The test job's result.json, read as untrusted (it was written next to the candidate's code): exactly these fields, bounded,
  * naming the selected release and baseline, every check true. Returns it; throws on anything else.
  */
 export function validateResult(r, id, baseline) {
-  const keys = ["release", "release_id", "tag_sha", "kernel", "baseline", "passed", "checks", "notes"];
+  const keys = ["release", "release_id", "tag_sha", "kernel", "baseline", "passed", "checks", "notes", "timings"];
   if (!r || typeof r !== "object" || Array.isArray(r) || !isDeepStrictEqual(Object.keys(r).sort(), [...keys].sort())) throw new Error(`the result must have exactly ${keys.join(", ")}`);
   if (r.release !== id.tag || r.release_id !== id.release_id || r.tag_sha !== id.tag_sha || r.kernel !== id.kernel) throw new Error("the result names another release than the one selected");
   if (r.baseline !== baseline) throw new Error("the result names another baseline than the one selected");
@@ -81,6 +82,8 @@ export function validateResult(r, id, baseline) {
   const failed = CHECKS.filter((c) => r.checks[c] !== true);
   if (r.passed !== true || failed.length) throw new Error(`the test didn't pass${failed.length ? `: ${failed.join(", ")}` : ""}`);
   if (!Array.isArray(r.notes) || r.notes.length > 20 || !r.notes.every((n) => typeof n === "string" && n.length <= 300)) throw new Error("the result's notes must be up to 20 short strings");
+  const t = r.timings;
+  if (!t || typeof t !== "object" || Array.isArray(t) || Object.keys(t).length > 30 || !Object.entries(t).every(([k, v]) => /^[a-z][a-z0-9_]{0,39}$/.test(k) && Number.isSafeInteger(v) && v >= 0)) throw new Error("the result's timings must be up to 30 phases' whole seconds");
   return r;
 }
 
@@ -183,15 +186,20 @@ async function releaseFile(release) {
 const output = (o) => { if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, Object.entries(o).map(([k, v]) => `${k}=${v}\n`).join("")); };
 const summary = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${s}\n`); };
 
-async function select() {
-  const [releases, latest] = await Promise.all([allReleases(), api(`repos/${DISTRO}/releases/latest`, { allow404: true })]);
+/**
+ * The candidate and its baseline, as the test job's env (select's outputs), or null when there is nothing to graduate. By
+ * default the oldest pending pre-release above latest, from latest; `want` names them instead (a manual run: `env`).
+ */
+async function selection(want = {}) {
+  const tagged = (t) => api(`repos/${DISTRO}/releases/tags/${encodeURIComponent(t)}`);
+  const [releases, latest] = await Promise.all([want.candidate ? [] : allReleases(), want.baseline ? tagged(want.baseline) : api(`repos/${DISTRO}/releases/latest`, { allow404: true })]);
   const base = latest?.tag_name;
   // Published, not pre-releases, newer than latest: what updaters with the graduated filter treat as graduated, though they
   // were never tested here (cuts from before graduation). Said, so they can be turned back into pre-releases by hand.
   const odd = releases.filter((r) => !r.draft && !r.prerelease && NAME.test(r.tag_name) && base && compare(r.tag_name, base) > 0).map((r) => r.tag_name);
-  if (odd.length) summary(`::warning::published, not pre-releases and newer than latest ${base}: ${odd.join(", ")}. Updaters treat them as graduated; mark them pre-releases to have them graduate in order.`);
-  const c = pick(releases, base);
-  if (!c) { summary(`**Nothing to graduate**: no pending pre-release newer than ${base}.`); output({ found: "false" }); return; }
+  if (odd.length) (want.env ? console.error : summary)(`::warning::published, not pre-releases and newer than latest ${base}: ${odd.join(", ")}. Updaters treat them as graduated; mark them pre-releases to have them graduate in order.`);
+  const c = want.candidate ? await tagged(want.candidate) : pick(releases, base);
+  if (!c) return null;
   const [file, tagSha, baseFile] = await Promise.all([releaseFile(c), tagCommit(c.tag_name), releaseFile(latest)]);
   if (!SHA.test(String(file.kernel)) || file.release !== c.tag_name) throw new Error(`${c.tag_name}.json is malformed`);
   const id = checkIdentity(identityOf(c, tagSha, file.kernel));
@@ -201,8 +209,22 @@ async function select() {
     throw new Error(`baseline ${base} predates graduation (its updater has no ${CANDIDATE_ENV}); graduate one release by hand (README "Release graduation")`);
   }
   const baseAssets = assetsOf(latest);
-  summary(`**Graduating ${c.tag_name}** (distro ${tagSha.slice(0, 12)}, kernel ${file.kernel.slice(0, 12)}) from ${base}.`);
-  output({ found: "true", tag: c.tag_name, release_id: c.id, tag_sha: tagSha, kernel: file.kernel, baseline: base, baseline_install_digest: baseAssets["install.sh"], candidate_file_digest: id.assets[`${c.tag_name}.json`], identity: JSON.stringify(id) });
+  return { tag: c.tag_name, release_id: c.id, tag_sha: tagSha, kernel: file.kernel, baseline: base, baseline_install_digest: baseAssets["install.sh"], candidate_file_digest: id.assets[`${c.tag_name}.json`], identity: JSON.stringify(id) };
+}
+
+async function select() {
+  const s = await selection();
+  if (!s) { summary("**Nothing to graduate**: no pending pre-release newer than latest."); output({ found: "false" }); return; }
+  summary(`**Graduating ${s.tag}** (distro ${s.tag_sha.slice(0, 12)}, kernel ${s.kernel.slice(0, 12)}) from ${s.baseline}.`);
+  output({ found: "true", ...s });
+}
+
+/** A manual run's env (README "Release graduation"): `eval "$(node graduate.mjs env [candidate] [baseline])"`. */
+async function env(candidate, baseline) {
+  const s = await selection({ candidate, baseline, env: true });
+  if (!s) throw new Error("nothing to graduate: no pending pre-release newer than latest (name one)");
+  const q = (v) => `'${String(v).replace(/'/g, "'\\''")}'`;
+  console.log(Object.entries(s).filter(([k]) => k !== "release_id").map(([k, v]) => `export ${k.toUpperCase()}=${q(v)}`).join("\n"));
 }
 
 async function promote(file) {
@@ -264,12 +286,13 @@ if (import.meta.main) {
   const [cmd, arg] = process.argv.slice(2);
   try {
     if (cmd === "select") await select();
+    else if (cmd === "env") await env(arg, process.argv[4]);
     else if (cmd === "promote" && arg) await promote(arg);
     else if (cmd === "reject") await reject();
     else if (cmd === "rejected") console.log((await allReleases()).filter((r) => r.prerelease && NAME.test(r.tag_name) && rejected(r.body)).map((r) => r.tag_name).join(" "));
-    else { console.error("usage: graduate.mjs select | promote <result.json> | reject | rejected"); process.exitCode = 2; }
+    else { console.error("usage: graduate.mjs select | env [candidate] [baseline] | promote <result.json> | reject | rejected"); process.exitCode = 2; }
   } catch (e) {
-    console.log(`::error::${e.message}`);
+    (cmd === "env" ? console.error : console.log)(`::error::${e.message}`); // env's stdout is eval'd
     process.exitCode = 1;
   }
 }

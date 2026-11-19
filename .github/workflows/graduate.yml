@@ -6,8 +6,9 @@
 #   select   (contents: read) the candidate: the OLDEST pre-release newer than latest without the rejected mark
 #            (`graduation: failed <run>` in its notes); exact tag, tag commit, kernel, release id and asset digests. Nothing to
 #            do: the run ends there. A baseline whose updater can't prepare a named pre-release fails here (the bootstrap).
-#   test     (no token, no permissions) steps a-e on ubuntu-24.04: disk, baseline install, baseline scenario, upgrade, smoke.
-#            The only job that runs a release's code; it hands promote one small result.json.
+#   test     (no token, no permissions) steps a-e on ubuntu-24.04: disk, baseline install (the candidate's images pre-pulled
+#            beside it), baseline scenario (first run, a chat, the prebuilt hello app), upgrade, smoke checks side by side.
+#            The only job that runs a release's code; it hands promote one small result.json, with each phase's seconds.
 #   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
 #            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
 #            to move latest back; a re-run of a graduated release does nothing.
@@ -64,7 +65,7 @@ jobs:
     if: needs.select.outputs.found == 'true'
     runs-on: ubuntu-24.04
     # Every step has its own bound (a step timeout is a failure; the scripts' own waits are shorter still), within the job's.
-    timeout-minutes: 360
+    timeout-minutes: 240
     permissions: {}
     outputs:
       # "candidate" once the instance's updater prepared the candidate (its move began): a failure before that is the
@@ -95,13 +96,17 @@ jobs:
       - name: a. Service user and disk
         timeout-minutes: 10
         run: bash .github/release/graduate-instance.sh prepare
+      # In the background until the install has ended and its images are pulled (prepull.log); never a check.
+      - name: a. Pre-pull the candidate's images the baseline runs
+        timeout-minutes: 5
+        run: bash .github/release/graduate-instance.sh prepull-start
       - name: b. Install the baseline with its own installer
         timeout-minutes: 45
         env:
           OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: bash .github/release/graduate-instance.sh install
-      - name: c. Baseline scenario (first run, a chat, a hello app)
-        timeout-minutes: 60
+      - name: c. Baseline scenario (first run, a chat, the prebuilt hello app beside them)
+        timeout-minutes: 35
         env:
           GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: node .github/release/graduate-scenario.mjs baseline
@@ -109,14 +114,11 @@ jobs:
         id: upgrade
         timeout-minutes: 125
         run: bash .github/release/graduate-instance.sh upgrade
-      - name: e. Smoke checks (owner's side)
-        timeout-minutes: 80
+      # Only after an upgrade that finished (a check after a cut-short upgrade would "fail" what was never tested): the release
+      # and generation, every agent, a fresh reply, the hello app and verify-security.sh, side by side, each within its bound.
+      - name: e. Smoke checks
+        timeout-minutes: 30
         run: node .github/release/graduate-scenario.mjs smoke
-      # Only after an upgrade that finished: a host check after a cut-short upgrade would "fail" what was never tested.
-      - name: e. Smoke checks (host's side)
-        if: ${{ !cancelled() && steps.upgrade.outcome == 'success' }}
-        timeout-minutes: 15
-        run: bash .github/release/graduate-instance.sh host-checks
       - name: Result
         id: result
         if: ${{ !cancelled() }}

@@ -1,6 +1,10 @@
 // graduate.mjs on fixture release lists: which cut is tested, what result is accepted, when promotion goes ahead.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildResult, child, readChecks, runParallel, verdictOf, writeCheck } from "./graduate-checks.mjs";
 import { CHECKS, checkIdentity, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
@@ -67,7 +71,7 @@ test("the rejected mark is one line, added once", () => {
 
 test("the test's result is accepted only when it names the selected release and baseline, has exactly the checks, all true", () => {
   const id = checkIdentity(identityOf(rel("2026.11.19", { id: 7 }), SHA, K));
-  const good = { release: "2026.11.19", release_id: 7, tag_sha: SHA, kernel: K, baseline: "2026.11.18.1", passed: true, checks: Object.fromEntries(CHECKS.map((c) => [c, true])), notes: ["hello app: grad-hello"] };
+  const good = { release: "2026.11.19", release_id: 7, tag_sha: SHA, kernel: K, baseline: "2026.11.18.1", passed: true, checks: Object.fromEntries(CHECKS.map((c) => [c, true])), notes: ["hello app: grad-hello"], timings: { install: 540, upgrade: 300 } };
   assert.equal(validateResult(good, id, "2026.11.18.1"), good);
   assert.throws(() => validateResult({ ...good, release: "2026.11.20" }, id, "2026.11.18.1"), /another release/);
   assert.throws(() => validateResult({ ...good, kernel: "3".repeat(40) }, id, "2026.11.18.1"), /another release/);
@@ -77,6 +81,10 @@ test("the test's result is accepted only when it names the selected release and 
   assert.throws(() => validateResult({ ...good, passed: "true" }, id, "2026.11.18.1"), /didn't pass/);
   assert.throws(() => validateResult({ ...good, injected: 1 }, id, "2026.11.18.1"), /exactly/);
   assert.throws(() => validateResult({ ...good, notes: ["x".repeat(301)] }, id, "2026.11.18.1"), /notes/);
+  assert.throws(() => validateResult({ ...good, timings: { install: -1 } }, id, "2026.11.18.1"), /timings/);
+  assert.throws(() => validateResult({ ...good, timings: { "x y": 1 } }, id, "2026.11.18.1"), /timings/);
+  const { timings: _, ...untimed } = good;
+  assert.throws(() => validateResult(untimed, id, "2026.11.18.1"), /exactly/);
   assert.throws(() => checkIdentity({ ...id, tag_sha: "short" }), /malformed/);
 });
 
@@ -90,4 +98,33 @@ test("promote: only the selected, unchanged release, never behind latest; a re-r
   assert.throws(() => decide({ release: r, tagSha: SHA, latest: "2026.11.20", id }), /older than the current latest 2026\.11\.20/);
   assert.throws(() => decide({ release: { ...r, body: "graduation: failed https://x" }, tagSha: SHA, latest: "2026.11.18.1", id }), /rejected/);
   assert.throws(() => decide({ release: { ...r, id: 8 }, tagSha: SHA, latest: "2026.11.18.1", id }), /isn't the published/);
+});
+
+test("checks side by side: each decides in its own file, a hang is incomplete (never failed), a throw is a no", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "grad-"));
+  try {
+    const hang = () => new Promise(() => {});
+    await runParallel(dir, [
+      { names: ["a"], ms: 1000, run: async () => [{ name: "a", ok: true, note: "fine" }] },
+      { names: ["b", "c"], ms: 1000, run: async () => { writeCheck(dir, "b", true); } }, // a child writes its own; c never
+      { names: ["d"], ms: 50, run: hang },
+      { names: ["f"], ms: 100, run: child("sleep", ["30"]) }, // killed at its bound
+    ]);
+    const c = readChecks(dir);
+    assert.deepEqual(c.checks, { a: true, b: true });
+    assert.ok(c.notes.some((n) => /^c: ended without a result/.test(n)) && c.notes.some((n) => /^d: didn't finish within/.test(n)) && c.notes.some((n) => /^f: didn't finish/.test(n)));
+    assert.equal(verdictOf(c.checks, ["a", "b", "c", "d"]), "incomplete", "nothing said no: the candidate stays pending");
+    await runParallel(dir, [{ names: ["d", "e"], ms: 1000, run: async () => { throw new Error("refused"); } }]);
+    assert.deepEqual(readChecks(dir).checks, { a: true, b: true, d: false, e: false });
+    assert.equal(verdictOf(readChecks(dir).checks, ["a", "b", "c", "d", "e"]), "failed");
+    writeCheck(dir, "a", null, "late note");
+    assert.equal(readChecks(dir).checks.a, true, "a note never undoes a decided check");
+    const all = Object.fromEntries(CHECKS.map((n) => [n, true]));
+    assert.equal(verdictOf(all), "passed");
+    const id = identityOf(rel("2026.11.19", { id: 7 }), SHA, K);
+    const { result, verdict } = buildResult(dir, id, "2026.11.18.1");
+    assert.equal(verdict, "failed");
+    assert.throws(() => validateResult(result, checkIdentity(id), "2026.11.18.1"), /didn't pass/, "the shape promote reads; only its checks fail");
+    assert.ok(Object.keys(result.timings).includes("check_a"));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
