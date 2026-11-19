@@ -58,6 +58,7 @@ jobs:
       contents: write
       packages: write
       issues: write
+      actions: write
     uses: ./.github/workflows/release.yml
     with:
       release: ${{ needs.decide.outputs.name }}
