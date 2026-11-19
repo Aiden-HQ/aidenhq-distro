@@ -89,8 +89,8 @@ jobs:
           env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT sh .github/release/test-set.sh suites "$RUNNER_TEMP/set"
           jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
           echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
-      # The upgrade test (.github/release/upgrade.sh): each older release's default install (as its own setup writes it) moves
-      # to this one through this kernel's pin step and must pass the apply's staged compile. Fetched code, no token.
+      # The upgrade test (.github/release/upgrade.sh): each older release's default install (as its own setup writes it) is pinned to
+      # this one by that older release's own updater, as a real update does, and must pass this kernel's staged compile. Fetched code, no token.
       - name: Every older release's install upgrades to it
         run: env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT bash .github/release/upgrade.sh "$RUNNER_TEMP/set/kernel" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"
 

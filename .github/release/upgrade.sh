@@ -6,10 +6,17 @@
 # For each older release tag in this distro checkout (tags are what the updater reads; a release whose run failed has none):
 #   1. the instance.yaml that release's own ops/setup.sh writes for a default install from the installer (its heredoc, its
 #      modules/marketplace.json bundle and default MODULES, its release: pin), committed in a local instance repo like setup's;
-#   2. the new product's pin step, `node kernel/src/updates.ts pin` (the installer run again and the updater move the pin
-#      the same way): the one commit that moves product: and release: and migrates what the instance lists;
-#   3. what the apply validates before anything restarts: the release resolves (scripts/compiler/release.ts) and the
-#      staged compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.mjs) passes.
+#   2. the pin commit, made as a real update makes it: by the INSTALLED release's own updater (its kernel/src/updates.ts
+#      pinText, the function both its updater and its installer-rerun pin step call: one commit moving product: and release:),
+#      never by the new kernel's, which migrates what the instance lists (modules renamed or replaced) and so would hide a
+#      break a real update meets. The old kernel is that release's kernel sha, read from this checkout's history with the
+#      deps its updater needs (yaml) installed; pinText is called as the updater's verify calls it (and resolveRelease,
+#      from the old tree, checks the result);
+#   3. what the apply of the NEW checkout validates before anything restarts (ops/apply-config-work.sh validate): the staged
+#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.mjs) passes and the release resolves (scripts/compiler/release.ts).
+# Whatever the new kernel's own pin step (`updates.ts pin`) would add for old installs (its module migration) is not
+# credited: only an old updater's pin counts, as it is the one that runs on a real server. An old release's updater
+# can't be run as the CLI `pin` (it demands the checkout be the new kernel), so its pinText is called directly.
 # Releases from before the one-repo layout (a release file with `marketplace` or `modules`, 2026.11.2 and older: the modules
 # came from a separate repo) are skipped: they upgrade once by hand (INSTALL.md). Runs without credentials: every
 # repository it reads is public. Old kernels are read from the new checkout's history (the installer's fetch takes main).
@@ -22,9 +29,6 @@ for v in AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN GH_TOKEN GIT_CONFIG_COUNT; do
   [ -z "${!v:-}" ] || { echo "refusing: $v is set; the upgrade test runs without credentials" >&2; exit 1; }
 done
 kernel=$(git -C "$new" rev-parse HEAD)
-if ! command grep -qs 'cmd === "pin"' "$new/kernel/src/updates.ts"; then
-  echo "::error::$rel's kernel has no pin step (kernel/src/updates.ts pin): an install can't upgrade to it"; exit 1
-fi
 for p in scripts kernel; do [ -d "$new/$p/node_modules" ] || npm ci --ignore-scripts --no-audit --no-fund --prefix "$new/$p" >/dev/null; done
 mkdir -p "$work"
 export AIDENHQ_SOURCES_DIR="$work/sources" AIDENHQ_STATE_DIR="$work/state" AIDENHQ_DATA_DIR="$work/data"
@@ -77,17 +81,24 @@ for R in $older; do
   if [ "$ok" = 1 ]; then
     echo "$R's default instance.yaml:"; sed 's/^/  /' "$u/instance/instance.yaml"
     export AIDENHQ_INSTANCE_DIR="$u/instance"
-    if ! out=$(cd "$new" && node kernel/src/updates.ts pin "$rel" "$relsha" 2>&1); then
-      echo "$out"; echo "::error::upgrade from $R: the pin step failed"; ok=0
+    old="$u/product"; mkdir -p "$old"
+    if ! { git -C "$new" archive "$RK" kernel scripts | tar -x -C "$old" \
+        && for p in scripts kernel; do npm ci --ignore-scripts --no-audit --no-fund --prefix "$old/$p" >/dev/null; done \
+        && git -C "$here" show "$relsha:releases/$rel.json" >"$u/new-release.json"; }; then
+      echo "::error::upgrade from $R: couldn't set up $R's kernel (${RK:0:12}) in $old"; ok=0
+    elif ! out=$(cp "$here/.github/release/pin-as-installed.ts" "$old/kernel/src/pin-as-installed.ts" \
+        && cd "$old" && node kernel/src/pin-as-installed.ts "$u/instance/instance.yaml" "$u/new-release.json" "$rel" "$relsha" 2>&1); then
+      echo "$out"; echo "::error::upgrade from $R: $R's updater refused to pin $rel"; ok=0
     else
       echo "$out"
-      git -C "$u/instance" pull -q --ff-only origin main
-      # A pin step that left the instance as it was proves nothing: it must now run this release's kernel.
+      git -C "$u/instance" -c user.name=updater -c user.email=updater@aidenhq.invalid commit -q -am "update: AidenHQ $rel (the updater, from $R)" \
+        && git -C "$u/instance" push -q origin HEAD:main && git -C "$u/instance" pull -q --ff-only origin main
+      # A pin that left the instance as it was proves nothing.
       if [ "$(sed -n 's/^product: *//p' "$u/instance/instance.yaml")" != "$kernel" ]; then
-        echo "::error::upgrade from $R: the pin step didn't move product: to $kernel"; ok=0
-      elif ! (cd "$new" && { [ ! -f scripts/compiler/release.ts ] || node scripts/compiler/release.ts "$u/instance/instance.yaml"; } \
-          && AIDENHQ_COMPILE_STAGE=1 node scripts/compile.mjs); then
-        echo "::error::upgrade from $R: the staged compile of the upgraded instance failed (above)"; ok=0
+        echo "::error::upgrade from $R: the pin didn't move product: to $kernel"; ok=0
+      elif ! (cd "$new" && AIDENHQ_COMPILE_STAGE=1 node scripts/compile.mjs \
+          && { [ ! -f scripts/compiler/release.ts ] || node scripts/compiler/release.ts "$u/instance/instance.yaml"; }); then
+        echo "::error::upgrade from $R: the new product's staged compile of the pinned instance failed (above)"; ok=0
       fi
       rm -rf "$new/config.next" "$new/compose.modules.next.yaml"
     fi
