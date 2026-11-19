@@ -9,7 +9,9 @@ import { followed, pinText } from "./updates.ts";
 const [inst, relFile, name, sha] = process.argv.slice(2) as [string, string, string, string];
 const text = readFileSync(inst, "utf8");
 const file = JSON.parse(readFileSync(relFile, "utf8"));
-if (!followed(YAML.parse(text))) throw new Error("the old updater doesn't see this instance as following a release");
+// followed() is called as that release's updater calls it: on instance.yaml's text since 2026.11.19.2 (it reads the pin owner
+// from the text), on the parsed instance before. The other shape reads as "not following", so whichever answers is the one.
+if (!(followed(text) ?? followed(YAML.parse(text)))) throw new Error("the old updater doesn't see this instance as following a release");
 const next = pinText(text, file, name, sha);
 resolveRelease(file, YAML.parse(next));
 writeFileSync(inst, next);
