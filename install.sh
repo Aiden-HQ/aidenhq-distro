@@ -764,8 +764,9 @@ UBUNTU_SHA256_arm64=50e24e1fb79e89116e939d90aa7738f7af48c442fa1bc2510131e0b39c50
 UBUNTU_SHA256_amd64=04e8f2461a16a44e78a370284471f29616cdd9baf1893df25807b71f985b6c94
 VM=aidenhq VM_AGENT=ai.aidenhq.vm
 
-ver_ge() { awk -v a="$1" -v b="$2" 'BEGIN { split(a, x, "."); split(b, y, ".")
-  for (i = 1; i <= 3; i++) { if (x[i] + 0 > y[i] + 0) exit 0; if (x[i] + 0 < y[i] + 0) exit 1 } exit 0 }'; }
+# Every part counts: 2026.11.20 < 2026.11.20.2 (a day's second cut), as the kernel's compareRelease orders them.
+ver_ge() { awk -v a="$1" -v b="$2" 'BEGIN { n = split(a, x, "."); m = split(b, y, "."); if (m > n) n = m
+  for (i = 1; i <= n; i++) { if (x[i] + 0 > y[i] + 0) exit 0; if (x[i] + 0 < y[i] + 0) exit 1 } exit 0 }'; }
 vm_state() { [ -x "${LIMACTL:-}" ] && "$LIMACTL" list --format '{{.Status}}' "$VM" 2>/dev/null || :; }   # '' = no VM
 vm_sh() { "$LIMACTL" shell --workdir / "$VM" "$@"; }
 

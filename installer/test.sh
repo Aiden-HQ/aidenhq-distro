@@ -115,6 +115,7 @@ expect "an upgrade from 2026.11.2 to 2026.11.3 goes on, with the instance's owne
 expect "an upgrade says the aidenhq marketplace entry goes with setup's pin, and leaves instance.yaml as it is" pass \
   "$(up 2026.11.3 'grep -q "aidenhq marketplace entry goes with that pin" "$LOG" && cmp -s "$INST_YAML" '"'$work/up.before'"'')"
 expect "the same release again is a repair" pass "$(up 2026.11.2)"
+expect "a day's second cut (2026.11.2 to 2026.11.2.1) is an upgrade, not a downgrade" pass "$(up 2026.11.2.1)"
 expect "an older release than the instance runs is refused" stop "$(up 2026.11.1)"
 expect "a fresh server has no existing install" pass "SVC_HOME='$work/none' DRY=0 REL=2026.11.3; existing_install; check_upgrade; [ -z \"\$INST_YAML\" ]"
 
