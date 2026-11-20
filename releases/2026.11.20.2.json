@@ -1,0 +1,21 @@
+{
+  "kernel": "bc02a89b414276badd98fe883af30071ef3f3ed5",
+  "kernel_repo": "Aiden-HQ/AidenHQ",
+  "notes": [
+    "Installs of 2026.11.20 upgrade by running the installer again: curl -fsSL https://get.aidenhq.ai | sh (as the same user, on the server). Later releases update themselves again.",
+    "Every task shows one state the kernel works out from what happened (working, waiting on whom, idle and why, done): on the board, in the task tools and in Telegram /status and /waiting",
+    "Agents act instead of setting a status: task_block, task_cancel, task_delegate wait, task_comment reopen; a question to the owner is an open wait that their reply ends",
+    "No task sits idle unexplained after an agent is retired: its open tasks move to its successor's backlog with one triage task",
+    "Grading holds, CI and merge-queue waits show as waiting, not idle; a chat run that ends without a reply shows as failed",
+    "Under auto-updates, an official release is AI-reviewed for malice only, reading every authority line whole; no owner tap for its new authority",
+    "One apply queue: callers wait their turn; apply rebuilds, restarts and snapshots only what a change touches",
+    "Public HTTPS by default off a tailnet; --exposure switches mode",
+    "The fleet merges and closes on maintained repos; pr-watch owns Dependabot PRs",
+    "Fleet Steward detects unstarted delegations, merge deadlocks, ping-pong, duplicates and stale owner cards",
+    "Self-hosted Primer: editor polish, automatic checkpoints, suggesting; agents work on Primer documents directly",
+    "Board schedules are Paperclip routines",
+    "All product code is TypeScript"
+  ],
+  "release": "2026.11.20.2",
+  "upgrade_from_previous": "manual"
+}
