@@ -84,7 +84,9 @@ jobs:
           api() { { [ -z "$GH_TOKEN" ] || printf 'Authorization: Bearer %s\n' "$GH_TOKEN"; echo 'Accept: application/vnd.github+json'; } | curl -fsS -H @- "$@"; }
           repo=$(jq -er '.kernel_repo // "Aiden-HQ/AidenHQ"' "releases/$TAG.json") sha=$(jq -er .kernel "releases/$TAG.json")
           st=$(api "$GITHUB_API_URL/repos/$repo/compare/$sha...main" | jq -r .status)
-          case "$st" in identical|behind) ;; *) echo "::error::kernel $sha isn't on $repo's main ($st)"; exit 1 ;; esac
+          # compare base...head reports head relative to base: with base=sha, "ahead" (main is ahead of the sha) or "identical"
+          # means the sha is on main; "behind" or "diverged" means it isn't.
+          case "$st" in identical|ahead) ;; *) echo "::error::kernel $sha isn't on $repo's main ($st)"; exit 1 ;; esac
           ci=$(api "$GITHUB_API_URL/repos/$repo/commits/$sha/check-runs?check_name=ci-required&per_page=20" \
             | jq -r '.check_runs | sort_by(.started_at) | last | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end')
           [ "$ci" = success ] || { echo "::error::$repo's ci-required on $sha is $ci, not success"; exit 1; }
