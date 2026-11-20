@@ -123,7 +123,7 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
    A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
    `release.yml` run on the tag, whether a push or a dispatch.
-4. **Test and publish.** The tag run is the same as for a hand cut: install and test on a fresh runner, then publish it
+4. **Check and publish.** The tag run is the same as for a hand cut: fetch, verify and check it on a fresh runner, then publish it
    as a pre-release. Nothing takes it yet.
 5. **Graduate.** [`graduate.yml`](.github/workflows/graduate.yml) upgrades a test instance to it (below). Once it
    graduates, installs' updaters pick it up that night, between 02:00 and 05:00 in their own timezone, and get.aidenhq.ai
@@ -145,10 +145,13 @@ used up: the next cut that day takes the next `.N`.
   3. Merge the `images.json` artifact into the file and land it on main.
   4. Push the tag `<name>` on that commit, or run `release` on the tag.
 
-  The tag run then tests and publishes it. When the last release's updater can't land this one (its AI reviewer would
-  reject it for something only a newer kernel fixes), the owner may set `"upgrade_from_previous": "manual"` in the file,
-  with a first note telling installs to run the installer again (INSTALL.md "Releases"): the release check skips that
-  review and graduation upgrades its test instance by running the candidate's installer again.
+  The tag run then checks and publishes it: the kernel sha must be on product main with its `ci-required` check green
+  there (product CI already ran every suite on it), the set fetches and verifies, the last release's install must still
+  upgrade to it (staged compile), and every image digest must be there for amd64 and arm64. The last release's AI
+  reviewer judges the update too, but only advisorily: a rejection prints a warning and doesn't block publish. When the
+  last release's updater can't land this one, the owner may set `"upgrade_from_previous": "manual"` in the file, with
+  a first note telling installs to run the installer again (INSTALL.md "Releases"): the review is skipped up front and
+  graduation upgrades its test instance by running the candidate's installer again.
 
 The nightly and release workflows use the built-in `GITHUB_TOKEN`, plus one secret: graduation's model key (below), which
 the tag run's `review` job also uses so the last release's own AI reviewer judges the update.
