@@ -9,7 +9,7 @@
 //   OPENROUTER_API_KEY=… node kernel/src/review-as-installed.ts <instance bare repo> <instance repo> <branch> <sha> <from release> <release> <distro sha> <records db>
 // Exits 0 only when the record was approved; 1 for anything else (rejected, waiting on the owner, refused at filing).
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import YAML from "yaml";
 import { configDir, repo } from "./env.ts";
@@ -24,7 +24,10 @@ import { checksFile } from "./checks.ts";
 import { KERNEL } from "./updates.ts";
 import { LOCAL_KINDS } from "../../modules/codehost-local/src/host.ts";
 import { localApply } from "../../modules/codehost-local/src/apply.ts";
-import { openRouterAsk, review } from "../../modules/ai-reviewer/service/src/review.mjs";
+
+// The reviewer's own module: review.ts, or review.mjs in releases from before the product's .ts rename.
+const reviewDir = join(repo, "modules/ai-reviewer/service/src");
+const { openRouterAsk, review } = await import(join(reviewDir, existsSync(join(reviewDir, "review.ts")) ? "review.ts" : "review.mjs"));
 
 const [bare, instanceRepo, branch, sha, from, release, relsha, db] = process.argv.slice(2) as [string, string, string, string, string, string, string, string];
 const key = process.env.OPENROUTER_API_KEY?.trim();

@@ -126,7 +126,7 @@ jobs:
           git clone -q --no-checkout "https://github.com/$repo.git" "$RUNNER_TEMP/product"
           bash .github/release/upgrade.sh review "$RUNNER_TEMP/product" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"
 
-  # The images a release builds, from its own product checkout (scripts/release-images.mjs list, over its kernel and modules/): the fetched set, as a tarball for the
+  # The images a release builds, from its own product checkout (scripts/release-images.{ts,mjs} list, over its kernel and modules/): the fetched set, as a tarball for the
   # build legs, and their chains (a computer image builds FROM its parent, so a chain builds in order in one leg). A tag
   # run whose file has no `images` stops here (go=false): there is nothing to check.
   plan:
@@ -179,10 +179,11 @@ jobs:
         if: steps.has.outputs.go == 'true'
         run: |
           set="$RUNNER_TEMP/set"
-          [ -f "$set/kernel/scripts/release-images.mjs" ] || { echo "::error::$REL's kernel predates prebuilt images (no scripts/release-images.mjs)"; exit 1; }
+          . .github/release/kpath.sh
+          lister=$(kpath "$set/kernel" scripts/release-images.mjs) || { echo "::error::$REL's kernel predates prebuilt images (no scripts/release-images.ts or .mjs)"; exit 1; }
           [ -f "$set/kernel/modules/marketplace.json" ] || { echo "::error::$REL's product has no modules/ (the official modules ship inside it)"; exit 1; }
           npm ci --ignore-scripts --no-audit --no-fund --prefix "$set/kernel/scripts"
-          chains=$(env -u AIDENHQ_GITHUB_TOKEN node "$set/kernel/scripts/release-images.mjs" list "$set/kernel" "$set/kernel/modules" \
+          chains=$(env -u AIDENHQ_GITHUB_TOKEN node "$lister" list "$set/kernel" "$set/kernel/modules" \
             | jq -c --arg p "$set/kernel/" 'map(map(.context |= ltrimstr($p)))')
           echo "$chains" | jq -e 'length > 0' >/dev/null
           # Build inputs come from the fetched kernel: a name is a plain image name, a context a relative path inside the kernel.

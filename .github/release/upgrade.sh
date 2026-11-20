@@ -17,7 +17,7 @@
 #      deps its updater needs (yaml) installed; pinText is called as the updater's verify calls it (and resolveRelease,
 #      from the old tree, checks the result);
 #   3. what the apply of the NEW checkout validates before anything restarts (ops/apply-config-work.sh validate): the staged
-#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.mjs) passes and the release resolves (scripts/compiler/release.ts);
+#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.{ts,mjs}) passes and the release resolves (scripts/compiler/release.ts);
 #   4. the review an install runs before it lands the pin (review-as-installed.ts, in the old release's own product checkout
 #      at its exact kernel sha, checked clean first; its config compiled for that instance): the pin commit, on release/<name> as the updater's prepare commits it, filed
 #      as the kernel.apply that release's kernel files for it and judged by that release's own AI reviewer on the model,
@@ -32,6 +32,7 @@
 # skipped. Old kernels are read from the new checkout's history (the installer's fetch takes main).
 set -euo pipefail
 here=$(cd "$(dirname "$0")/../.." && pwd)
+. "$here/.github/release/kpath.sh"
 mode=$1 new=$(cd "$2" && pwd) rel=$3 relsha=$4 work=$5
 NAME='^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$'
 [[ "$mode" =~ ^(compile|review)$ ]] && [[ "$rel" =~ $NAME ]] && [[ "$relsha" =~ ^[0-9a-f]{40}$ ]] || { echo "usage: upgrade.sh compile|review <product checkout> <release> <distro sha> <work dir>" >&2; exit 2; }
@@ -107,7 +108,7 @@ if [ "$ok" = 1 ]; then
   if ! { git init -q --bare -b main "$u/product.git" && git -C "$new" push -q "$u/product.git" "$kernel:refs/heads/main" \
       && git clone -q "$u/product.git" "$old" && git -C "$old" checkout -q --detach "$RK" \
       && for p in scripts kernel; do npm ci --ignore-scripts --no-audit --no-fund --prefix "$old/$p" >/dev/null; done \
-      && { [ "$mode" = compile ] || (cd "$old" && node scripts/compile.mjs >"$u/compile.log" 2>&1); } \
+      && { [ "$mode" = compile ] || (cd "$old" && node "$(kpath "$old" scripts/compile.mjs)" >"$u/compile.log" 2>&1); } \
       && git -C "$here" show "$relsha:releases/$rel.json" >"$u/new-release.json"; }; then
     tail -20 "$u/compile.log" 2>/dev/null || true; echo "::error::upgrade from $R: couldn't set up $R's product (${RK:0:12}) in $old"; ok=0
   elif ! out=$(git -C "$u/instance" checkout -q -b "release/$rel" && cp "$here/.github/release/pin-as-installed.ts" "$old/kernel/src/pin-as-installed.ts" \
@@ -123,7 +124,7 @@ if [ "$ok" = 1 ]; then
     if [ "$(sed -n 's/^product: *//p' "$u/instance/instance.yaml")" != "$kernel" ]; then
       echo "::error::upgrade from $R: the pin didn't move product: to $kernel"; ok=0
     elif [ "$mode" = compile ]; then
-      if ! (cd "$new" && AIDENHQ_COMPILE_STAGE=1 node scripts/compile.mjs \
+      if ! (cd "$new" && AIDENHQ_COMPILE_STAGE=1 node "$(kpath "$new" scripts/compile.mjs)" \
           && { [ ! -f scripts/compiler/release.ts ] || node scripts/compiler/release.ts "$u/instance/instance.yaml"; }); then
         echo "::error::upgrade from $R: the new product's staged compile of the pinned instance failed (above)"; ok=0
       fi
