@@ -364,13 +364,22 @@ release_check() {
   [ "$head" = "$KERNEL" ] || why+="the checkout is at ${head:0:12}; "
   as_svc systemctl --user is-active --quiet aidenhq-kernel || why+="the kernel unit isn't active; "
   f=$(candidate_file)
-  local want running n=0 img
+  local want ids id digests repo n=0
   want=$(jq -r '.images // {} | .[]' "$f" | sort -u)
-  running=$(sudo docker ps --format '{{.Image}}' | sort -u)
+  # By the image each container runs, through its registry digests: docker ps's image column shows whatever name the
+  # engine prefers (a bare name, a short id), never reliably the digest the container was created from.
+  ids=$(sudo docker ps -q | xargs -r sudo docker inspect -f '{{.Image}}' | sort -u)
   if [ -n "$want" ]; then
-    while IFS= read -r img; do
-      case "$img" in ghcr.io/aiden-hq/*) grep -qxF "$img" <<<"$want" && n=$((n + 1)) || why+="running $img isn't one of $TAG's images; " ;; esac
-    done <<<"$running"
+    while IFS= read -r id; do
+      [ -n "$id" ] || continue
+      digests=$(sudo docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "$id")
+      repo=$(sudo docker image inspect -f '{{range .RepoTags}}{{println .}}{{end}}' "$id" | sed 's/:[^:/]*$//' | head -1)
+      [ -n "$repo" ] || { repo=${digests%%$'\n'*}; repo=${repo%%@*}; }
+      case "$repo" in
+        ghcr.io/aiden-hq/*)
+          if grep -qxFf <(printf '%s\n' "$want") <<<"$digests"; then n=$((n + 1)); else why+="running $repo (${id:7:12}) isn't one of $TAG's images; "; fi ;;
+      esac
+    done <<<"$ids"
     [ "$n" -gt 0 ] || why+="no container runs one of $TAG's images; "
   fi
   if [ -z "$why" ]; then rec running_release true "$TAG, kernel ${KERNEL:0:12}, $n running images by digest"; else rec running_release false "$why"; fi
