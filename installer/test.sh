@@ -328,6 +328,10 @@ expect "the VM's run gets the flags and owner in argv, the secrets only over std
     && calls | grep -qx -- --no-tailscale && calls | grep -qx AIDENHQ_OWNER_EMAIL=a@example.com && calls | grep -qx AIDENHQ_MAC_VM=1 \
     && [ "$SETUP_URL" = "http://localhost:3120/setup?token=t" ] && AWAKE=0 LIMACTL=limactl UPGRADED="" && mac_finish | grep -q "forwarded to this Mac" \
     && ! mac_finish | grep -q tailnet')"
+expect "the VM's run gets only the mode asked for: none on a plain rerun, --exposure tailscale when asked" pass "$(mac 'export STUB_STATE=Running
+  mac_detect; AIDENHQ_INSTALLER_FILE="$work/mac/inst.sh" AIDENHQ_OWNER_EMAIL=a@example.com NO_TS=0 EXPOSURE=""; mac_inner
+  ! calls | grep -qx -- --no-tailscale && ! calls | grep -qx -- --exposure && : >"$STUB_DIR/calls" 2>/dev/null; EXPOSURE=tailscale; mac_inner
+  calls | grep -qx -- --exposure && calls | grep -qx tailscale')"
 expect "a secret with a newline is refused before anything reaches the VM" pass "$(mac 'export STUB_STATE=Running
   mac_detect; AIDENHQ_INSTALLER_FILE="$work/mac/inst.sh" OPENROUTER_KEY="$(printf "k\nTS_AUTHKEY=x")"; (mac_inner) && exit 1; ! ls "$STUB_DIR"/stdin.* 2>/dev/null')"
 expect "uninstall with no terminal and no confirmation deletes nothing" pass "$(mac 'export STUB_STATE=Running; mac_detect; (mac_uninstall) && exit 1
