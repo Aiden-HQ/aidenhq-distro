@@ -12,7 +12,11 @@
 #   --dir <path>        AIDENHQ_DIR              product checkout (default: ~<user>/aidenhq)
 #   --non-interactive   AIDENHQ_NON_INTERACTIVE=1  never wait on a terminal (implied when there is none)
 #   --dry-run           AIDENHQ_DRY_RUN=1        detect and plan only
-#   --no-tailscale      AIDENHQ_NO_TAILSCALE=1   skip Tailscale
+#   --exposure <mode>   AIDENHQ_EXPOSURE         how you reach the board: public (HTTPS on the server's public IP, password
+#                                                and authenticator), tailscale (your tailnet) or local (an SSH tunnel).
+#                                                Default: tailscale on a tailnet, else public, else (behind NAT) local; on a
+#                                                Mac, local. Run again with another mode to switch.
+#   --no-tailscale      AIDENHQ_NO_TAILSCALE=1   the same as --exposure local
 #   --uninstall         AIDENHQ_UNINSTALL=1      stop and remove services; keeps data, vault and packages
 #   --verbose           AIDENHQ_VERBOSE=1        stream every command's output, not just the steps
 # Other inputs: AIDENHQ_OWNER_EMAIL (the board's owner account; asked for on a terminal when unset), AIDENHQ_OWNER_NAME
@@ -21,7 +25,7 @@
 # (private repos), AIDENHQ_RELEASE_FILE / AIDENHQ_RELEASE_URL / AIDENHQ_GIT_BASE (mirrors, air-gapped installs and tests).
 # Optional secrets, passed to the product's setup in a root-only config file and never printed: OPENROUTER_KEY (or
 # OPENROUTER_MANAGEMENT_KEY), TS_AUTHKEY. Without them the first-run page asks for the model key, and a server off a
-# tailnet keeps the board on loopback, reached through the SSH tunnel it prints. A private kernel repo's token goes to
+# tailnet gets the public HTTPS board (--exposure above). A private kernel repo's token goes to
 # setup in its own root-only file (--kernel-token-file), for its one fetch.
 #
 # No telemetry. Everything it fetches is pinned: the release file by digest, git checkouts by sha. Host packages are the
@@ -183,7 +187,7 @@ sha256() { if have sha256sum; then sha256sum "$1" | cut -d' ' -f1; else shasum -
 parse_args() {
   REL="${AIDENHQ_RELEASE:-$DEFAULT_RELEASE}" DIR="${AIDENHQ_DIR:-}" NONINT="${AIDENHQ_NON_INTERACTIVE:-0}"
   DRY="${AIDENHQ_DRY_RUN:-0}" NO_TS="${AIDENHQ_NO_TAILSCALE:-0}" UNINSTALL="${AIDENHQ_UNINSTALL:-0}"
-  VERBOSE="${AIDENHQ_VERBOSE:-0}"
+  VERBOSE="${AIDENHQ_VERBOSE:-0}" EXPOSURE="${AIDENHQ_EXPOSURE:-}"
   while [ $# -gt 0 ]; do
     case "$1" in
       --release) [ $# -ge 2 ] || die "--release needs a name"; REL="$2"; shift ;;
@@ -193,6 +197,8 @@ parse_args() {
       --non-interactive|-y|--yes) NONINT=1 ;;
       --dry-run) DRY=1 ;;
       --no-tailscale) NO_TS=1 ;;
+      --exposure) [ $# -ge 2 ] || die "--exposure needs a mode: public, tailscale or local"; EXPOSURE="$2"; shift ;;
+      --exposure=*) EXPOSURE="${1#*=}" ;;
       --uninstall) UNINSTALL=1 ;;
       --verbose|-v) VERBOSE=1 ;;
       -h|--help) usage; exit 0 ;;
@@ -202,6 +208,9 @@ parse_args() {
   done
   case "$REL" in *[!0-9.]*|'') die "release names look like 2026.11.18 or 2026.11.18.1, not '$REL'" ;; esac
   for v in DRY NO_TS UNINSTALL VERBOSE NONINT; do eval "case \$$v in 1|true|yes) $v=1 ;; *) $v=0 ;; esac"; done
+  # --no-tailscale is local; local is passed to setup as --no-tailscale, which every release's setup knows.
+  [ "$NO_TS" = 0 ] || EXPOSURE="${EXPOSURE:-local}"
+  case "$EXPOSURE" in ''|public|tailscale) ;; local) NO_TS=1 ;; *) die "--exposure is public, tailscale or local, not '$EXPOSURE'" ;; esac
   # No terminal to wait on: curl | sh in CI, cloud-init, or ssh without -t.
   if ! { [ -t 0 ] || (: </dev/tty) 2>/dev/null; }; then NONINT=1; fi
 }
@@ -211,7 +220,8 @@ usage() {
     '  --dir <path>       product checkout (AIDENHQ_DIR; default ~<user>/aidenhq)' \
     '  --non-interactive  never wait on a terminal (AIDENHQ_NON_INTERACTIVE=1)' \
     '  --dry-run          detect and plan only (AIDENHQ_DRY_RUN=1)' \
-    '  --no-tailscale     skip Tailscale (AIDENHQ_NO_TAILSCALE=1)' \
+    '  --exposure <mode>  public, tailscale or local (AIDENHQ_EXPOSURE; default: tailscale on a tailnet, else public)' \
+    '  --no-tailscale     the same as --exposure local (AIDENHQ_NO_TAILSCALE=1)' \
     '  --uninstall        stop and remove services, keep data (AIDENHQ_UNINSTALL=1)' \
     '  --verbose          stream every command (AIDENHQ_VERBOSE=1)' \
     'More: https://github.com/'"$DISTRO_REPO"'/blob/main/INSTALL.md'
@@ -334,7 +344,7 @@ open_log() {
   else LOG="$HOME/.aidenhq/install.log"; mkdir -p "$HOME/.aidenhq" 2>/dev/null || LOG="$TMPD/install.log"; fi
   # 0600: the one-time setup link lands here.
   (umask 077; : >>"$LOG") && chmod 600 "$LOG" 2>/dev/null || LOG="$TMPD/install.log"
-  log "AidenHQ installer, release $REL, args: dry=$DRY nonint=$NONINT no_ts=$NO_TS uninstall=$UNINSTALL"
+  log "AidenHQ installer, release $REL, args: dry=$DRY nonint=$NONINT exposure=${EXPOSURE:-default} no_ts=$NO_TS uninstall=$UNINSTALL"
 }
 
 ensure_sudo() {
@@ -344,7 +354,7 @@ ensure_sudo() {
     warn "sudo isn't installed: a real run needs root or sudo"
   fi
   printf '\n%sSystem steps need sudo, once:%s\n' "$B" "$N"
-  printf '    install the host packages (Docker, Node 24%s, ...) from fingerprint-pinned repos, at the kernel'"'"'s pinned versions;\n' "$([ "$NO_TS" = 1 ] || echo ', Tailscale')"
+  printf '    install the host packages (Docker, Node 24%s, ...) from fingerprint-pinned repos, at the kernel'"'"'s pinned versions;\n' "$(case "${EXPOSURE:-}" in tailscale) echo ', Tailscale' ;; '') echo ', Tailscale when this server is on a tailnet' ;; esac)"
   printf '    set Docker log rotation and build-cache limits and a journald cap; enable lingering;\n'
   printf '    then run the product setup (ops/setup.sh) as root, which makes the vault and the services.\n'
   [ "$DRY" = 1 ] && return 0
@@ -634,7 +644,9 @@ run_setup() {
   log "+ setup $*"
   # The product's own progress lines ("• ..." and AIDENHQ_PROGRESS=...) reach the terminal; everything goes to the log.
   # The release goes into the new instance.yaml (all three, or none when this copy wasn't cut for it).
-  { $SUDO env AIDENHQ_USER="$SVC" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" TIMEZONE="${AIDENHQ_TIMEZONE:-}" MODULES="${MODULES:-}" \
+  # The mode goes in the environment (AIDENHQ_EXPOSURE), never as a flag an older release's setup would refuse; local also
+  # as --no-tailscale (above), which every release knows.
+  { $SUDO env AIDENHQ_USER="$SVC" AIDENHQ_EXPOSURE="${EXPOSURE:-}" OWNER_EMAIL="$AIDENHQ_OWNER_EMAIL" OWNER_NAME="${AIDENHQ_OWNER_NAME:-$SVC}" TIMEZONE="${AIDENHQ_TIMEZONE:-}" MODULES="${MODULES:-}" \
       AIDENHQ_RELEASE="${REL_COMMIT:+$REL}" AIDENHQ_RELEASE_REPO="${REL_COMMIT:+$DISTRO_REPO}" AIDENHQ_RELEASE_SHA="$REL_COMMIT" \
       MAX_CONCURRENT="$MAX_CONCURRENT" TIMEOUT_MINUTES="$JOB_TIMEOUT" CI_RUNNERS="$CI_RUNNERS" AIDENHQ_PROGRESS_BASE="${PROGRESS_SLICE:-}" \
       bash "$KCOPY/ops/setup.sh" "$@" </dev/null 2>&1 && echo 0 >"$TMPD/rc" || echo $? >"$TMPD/rc"; } \
@@ -648,6 +660,8 @@ run_setup() {
   SETUP_URL=$(sed -n 's/^AIDENHQ_SETUP_URL=//p' "$TMPD/setup.out" | tail -1)
   SSH_TUNNEL=$(sed -n 's/^AIDENHQ_SSH_TUNNEL=//p' "$TMPD/setup.out" | tail -1)
   BOARD_URL=$(sed -n 's/^AIDENHQ_BOARD_URL=//p' "$TMPD/setup.out" | tail -1)
+  # The mode setup ended in (public falls back to local without a certificate); empty from a release before it said so.
+  SETUP_EXPOSURE=$(sed -n 's/^AIDENHQ_EXPOSURE=//p' "$TMPD/setup.out" | tail -1)
 }
 
 # Prune timers: the product's weekly Docker cleanup, plus a guard that prunes harder when free space drops below the reserve.
@@ -679,6 +693,7 @@ EOF
 finish() {
   if [ "$DRY" = 1 ]; then
     printf '\n%sDry run done.%s A real run ends with:\n' "$Y" "$N"; SETUP_URL="https://<board-host>:8446/setup?token=<one-time-token>"
+    SETUP_EXPOSURE="${EXPOSURE:-}"
     [ "$NO_TS" = 0 ] || SSH_TUNNEL="ssh -N -L 3121:127.0.0.1:3121 -L 3120:127.0.0.1:3120 -L 3130:127.0.0.1:3130 $SVC@<this-host>"
   fi
   # Inside a Mac's VM (the macOS path below): the Mac prints the way in and the 100% line, once. The link goes to a file
@@ -693,9 +708,14 @@ finish() {
     printf '  The board listens on this server only. On your laptop, open this tunnel first and leave it running:\n\n    %s%s%s\n\n' "$B" "$SSH_TUNNEL" "$N"
   fi
   if [ -n "$SETUP_URL" ]; then
-    printf '  Open this link to finish in your browser (one use, 72 hours):\n\n    %s%s%s\n\n' "$B" "$SETUP_URL" "$N"
+    printf '  Open this link to finish in your browser (one use, %s hours):\n\n    %s%s%s\n\n' "$([ "${SETUP_EXPOSURE:-}" = public ] && echo 24 || echo 72)" "$B" "$SETUP_URL" "$N"
     printf '  It sets up your account and authenticator, your model key and your channels.\n'
-    [ -n "$SSH_TUNNEL" ] || printf '  Your device must be on the same tailnet.\n'
+    case "${SETUP_EXPOSURE:-}" in
+      public) printf '  The board is on the public Internet (%s), behind your password and authenticator. To keep it off\n' "${BOARD_URL:-https on this server}"
+              printf '  the Internet, put this server on your tailnet and run this installer again with --exposure tailscale.\n' ;;
+      local) ;;
+      *) [ -n "$SSH_TUNNEL" ] || printf '  Your device must be on the same tailnet.\n' ;;
+    esac
   elif [ -n "$INST_YAML" ]; then   # an upgrade or a repair: the owner's account exists, there is no setup link
     printf '  This server is updated to release %s.%s\n' "$REL" "${BOARD_URL:+ The board is at $BOARD_URL}"
   else
@@ -707,6 +727,7 @@ finish() {
   fi
   # Machine-readable, plain and at the start of a line (no --verbose needed): scripts and agents grep these.
   printf '\n'
+  [ -z "${SETUP_EXPOSURE:-}" ] || printf 'AIDENHQ_EXPOSURE=%s\n' "$SETUP_EXPOSURE"
   [ -z "$SETUP_URL" ] || printf 'AIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
   [ -z "$SSH_TUNNEL" ] || printf 'AIDENHQ_SSH_TUNNEL=%s\n' "$SSH_TUNNEL"
 }
@@ -932,7 +953,8 @@ mac_inner() {
   step "AidenHQ in the VM (this installer's Linux path)"
   set -- --release "$REL"
   [ "$DRY" = 1 ] && set -- "$@" --dry-run
-  [ "$NO_TS" = 1 ] && set -- "$@" --no-tailscale
+  # The VM is behind the Mac's NAT: local (its ports forwarded to the Mac), unless the owner asks for its own tailnet node.
+  if [ "${EXPOSURE:-local}" = local ]; then set -- "$@" --no-tailscale; else set -- "$@" --exposure "${EXPOSURE:-}"; fi
   [ "$VERBOSE" = 1 ] && set -- "$@" --verbose
   [ "$NONINT" = 1 ] && set -- "$@" --non-interactive
   [ -z "$DIR" ] || set -- "$@" --dir "$DIR"

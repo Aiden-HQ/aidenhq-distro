@@ -7,7 +7,7 @@ curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 It checks the machine, asks for your email (the board's owner account), fetches and verifies the release, runs the
-product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, and `AIDENHQ_SSH_TUNNEL=` with `--no-tailscale`, for scripts and agents). Along the way it prints `AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>` lines (the percent never goes down and reaches 100 just before the link; the weights are estimates in one table at the top of `install.sh`). Everything after
+product's unattended setup (which installs the host packages and starts AidenHQ) and prints one link (plus the machine-readable `AIDENHQ_SETUP_URL=` line, `AIDENHQ_EXPOSURE=` with the mode the install ended in, and `AIDENHQ_SSH_TUNNEL=` in local mode, for scripts and agents). Along the way it prints `AIDENHQ_PROGRESS=<n>/<total> <percent>% <step> ~<minutes left>` lines (the percent never goes down and reaches 100 just before the link; the weights are estimates in one table at the top of `install.sh`). Everything after
 that happens in your browser: your password and authenticator, your model key, your channels.
 
 `get.aidenhq.ai` is a Cloudflare Worker (`web/worker.js`) that serves the latest graduated release's `install.sh` (its release file's digest baked in) as `text/plain`: exactly the asset GitHub published once the release passed its install-and-test and then graduated (a test instance upgraded to it and passed its checks; README "get.aidenhq.ai", "Release graduation"). To read the script before running it:
@@ -72,7 +72,8 @@ has an environment form.
 | `--dir <path>` | `AIDENHQ_DIR` | product checkout (default `~<user>/aidenhq`) |
 | `--non-interactive` | `AIDENHQ_NON_INTERACTIVE=1` | never wait on a terminal (implied when there is none) |
 | `--dry-run` | `AIDENHQ_DRY_RUN=1` | detect and print the plan; change nothing |
-| `--no-tailscale` | `AIDENHQ_NO_TAILSCALE=1` | skip Tailscale: the board stays on the server's loopback and the installer prints the SSH tunnel to reach it |
+| `--exposure <mode>` | `AIDENHQ_EXPOSURE` | how you reach the board: `public` (HTTPS on the server's public IP, behind your password and authenticator), `tailscale` (your tailnet) or `local` (loopback, through the SSH tunnel the installer prints). Unset, the release's setup picks (a rerun keeps the mode). Run the installer again with another mode to switch |
+| `--no-tailscale` | `AIDENHQ_NO_TAILSCALE=1` | the same as `--exposure local` |
 | `--uninstall` | `AIDENHQ_UNINSTALL=1` | stop and remove the services; keep data, vault, instance repo and packages |
 | `--verbose` | `AIDENHQ_VERBOSE=1` | stream every command's output |
 

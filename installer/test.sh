@@ -190,6 +190,15 @@ expect "the final output carries the two machine-readable lines, no --verbose ne
    sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SETUP_URL=http://127.0.0.1:3121/setup/t' \
      && printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_SSH_TUNNEL=ssh-x'"
 
+expect "--exposure takes public, tailscale or local; --no-tailscale is local" pass \
+  "parse_args --exposure public && [ \"\$EXPOSURE/\$NO_TS\" = public/0 ] && parse_args --no-tailscale && [ \"\$EXPOSURE/\$NO_TS\" = local/1 ] \
+   && parse_args --exposure=local && [ \"\$NO_TS\" = 1 ] && ! (parse_args --exposure funnel) 2>/dev/null"
+
+expect "a public install's link lasts 24 hours, says how to go private, and names the mode" pass \
+  "DRY=0 VERBOSE=0 N='' B='' G='' Y='' LOG=/dev/null DIR=/x SETUP_URL=https://203.0.113.7:8446/setup?token=t SSH_TUNNEL='' SETUP_EXPOSURE=public BOARD_URL=https://203.0.113.7
+   sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -q 'one use, 24 hours' && printf '%s\n' \"\$out\" | grep -q 'again with --exposure tailscale' \
+     && printf '%s\n' \"\$out\" | grep -qx 'AIDENHQ_EXPOSURE=public' && ! printf '%s\n' \"\$out\" | grep -q 'same tailnet'"
+
 expect "an upgrade or repair prints the release and the board address, not a setup link" pass \
   "DRY=0 VERBOSE=0 N='' B='' G='' Y='' LOG=/dev/null DIR=/x SETUP_URL='' SSH_TUNNEL='' INST_YAML=/x/instance.yaml REL=2026.11.18 BOARD_URL=https://box.ts.net
    sudo() { return 1; }; out=\$(finish); printf '%s\n' \"\$out\" | grep -q 'updated to release 2026.11.18. The board is at https://box.ts.net' \
