@@ -106,7 +106,14 @@ export function buildResult(dir, id, baseline) {
 /** What a triager needs, without admin rights to the logs: each failed check with its note, then the last note naming the update
  * record, scrubbed of URLs, addresses and tokens and capped (it goes in a public issue). */
 export function failureLines(result, cap = 12) {
-  const scrub = (t) => t.replace(/https?:\/\/\S+/g, "<url>").replace(/\b\d{1,3}(\.\d{1,3}){3}\b/g, "<ip>").replace(/(token=)\S+/g, "$1<redacted>").replace(/sk-or-[\w-]{20,}/g, "<redacted>").replace(/`/g, "'").slice(0, 300);
+  // The notice is a public issue: drop URLs, IPs, credentials in any common shape, and any long opaque string.
+  const scrub = (t) => t
+    .replace(/https?:\/\/\S+/g, "<url>")
+    .replace(/\b\d{1,3}(\.\d{1,3}){3}\b/g, "<ip>")
+    .replace(/\b(bearer|basic)\s+\S+/gi, "$1 <redacted>")
+    .replace(/\b(\w*(?:token|key|secret|password|passwd|cookie|session|auth)\w*)(["']?\s*[=:]\s*["']?)[^\s"',}]+/gi, "$1$2<redacted>")
+    .replace(/[A-Za-z0-9_\-+/=]{32,}/g, "<redacted>")
+    .replace(/`/g, "'").slice(0, 300);
   const lines = Object.entries(result.checks).filter(([, ok]) => !ok).map(([k]) => `FAIL ${k}: ${result.notes.findLast((n) => n.startsWith(`${k}: `))?.slice(k.length + 2) ?? "no note (it never ran or decided)"}`);
   const rec = result.notes.findLast((n) => n.includes("record:"));
   if (rec && !lines.some((l) => l.endsWith(rec.slice(rec.indexOf(": ") + 2)))) lines.push(`last record: ${rec}`);

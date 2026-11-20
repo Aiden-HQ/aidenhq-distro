@@ -149,3 +149,9 @@ test("the failure notice lists each failed check with its note and the last reco
   assert.doesNotMatch(out, /example\.com|10\.0\.0\.5/);
   assert.equal(failureLines({ checks: Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`c${i}`, false])), notes: [] }).split("\n").length, 12);
 });
+
+test("the failure notice redacts credentials in any common shape and long opaque strings", () => {
+  const note = 'boom Authorization: Bearer abc.def password=hunter2 {"api_key": "zz9"} ' + "x".repeat(40);
+  const out = failureLines({ checks: { upgraded: false }, notes: [`upgraded: ${note}`] });
+  for (const leak of ["abc.def", "hunter2", "zz9", "x".repeat(40)]) assert.ok(!out.includes(leak), `${leak} leaked: ${out}`);
+});
