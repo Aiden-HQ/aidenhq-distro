@@ -50,10 +50,12 @@ function install(dir) {
 /** Runs one suite's files, grouped by package; true when every one passed. */
 function runSuite(name, list) {
   if (name === "twin") {
-    // The kernel CI's own command for it (.github/ci/areas.json); it reads scripts/node_modules, installed first.
+    // The kernel CI's own command for it (.github/ci/areas.json). The product's CI installs kernel/sdk before its suites (its
+    // prepack needs kernel/sdk/node_modules/.bin/tsc), so this does too: scripts/node_modules is read by the command, the SDK's by npm pack.
     const cmd = json(".github/ci/areas.json").suites?.find((p) => p.name === "fixtures/twin")?.run;
     if (!cmd) throw new Error("the kernel's CI has no fixtures/twin row");
     install(join(kernel, "scripts"));
+    install(join(kernel, "kernel/sdk"));
     try { sh(cmd, join(kernel, "fixtures/twin")); return true; } catch { return false; }
   }
   const byPkg = new Map();
