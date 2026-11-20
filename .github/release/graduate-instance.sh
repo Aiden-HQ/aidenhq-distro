@@ -375,7 +375,7 @@ verify_security() {
   local out rc=0
   out=$(as_svc bash -c 'cd ~/aidenhq && bash scripts/verify-security.sh' 2>&1) || rc=$?
   printf '%s\n' "$out" | tail -60
-  if [ "$rc" = 0 ]; then rec verify_security true; else rec verify_security false "$(grep -m3 FAIL <<<"$out" | tr '\n' ' ')"; fi
+  if [ "$rc" = 0 ]; then rec verify_security true; else rec verify_security false "$(grep -c '^  FAIL' <<<"$out") failed: $(grep '^  FAIL' <<<"$out" | head -5 | sed 's/^  FAIL *//' | cut -c1-40 | paste -sd';' -)"; fi
 }
 
 result() {
