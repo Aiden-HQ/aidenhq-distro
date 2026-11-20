@@ -32,6 +32,7 @@
 # skipped. Old kernels are read from the new checkout's history (the installer's fetch takes main).
 set -euo pipefail
 here=$(cd "$(dirname "$0")/../.." && pwd)
+# shellcheck disable=SC1091 # kpath.sh is checked on its own
 . "$here/.github/release/kpath.sh"
 mode=$1 new=$(cd "$2" && pwd) rel=$3 relsha=$4 work=$5
 NAME='^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$'
