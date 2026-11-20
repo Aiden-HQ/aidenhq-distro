@@ -13,21 +13,31 @@
 #      deps its updater needs (yaml) installed; pinText is called as the updater's verify calls it (and resolveRelease,
 #      from the old tree, checks the result);
 #   3. what the apply of the NEW checkout validates before anything restarts (ops/apply-config-work.sh validate): the staged
-#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.mjs) passes and the release resolves (scripts/compiler/release.ts).
+#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.mjs) passes and the release resolves (scripts/compiler/release.ts);
+#   4. the review an install runs before it lands the pin (review-as-installed.ts, in the old release's own product checkout,
+#      its config compiled for that instance): the pin commit, on release/<name> as the updater's prepare commits it, filed
+#      as the kernel.apply that release's kernel files for it and judged by that release's own AI reviewer on the model,
+#      the authority diff and the "Release update" line included. Only an approval passes: a rejection, an escalation to the
+#      owner's tap or a failed review fails the test, with the reviewers' notes and every authority line they judged.
 # Whatever the new kernel's own pin step (`updates.ts pin`) would add for old installs (its module migration) is not
 # credited: only an old updater's pin counts, as it is the one that runs on a real server. An old release's updater
 # can't be run as the CLI `pin` (it demands the checkout be the new kernel), so its pinText is called directly.
 # A last release from before the one-repo layout (a release file with `marketplace` or `modules`, 2026.11.2 and older: the modules
-# came from a separate repo) is skipped: it upgrades once by hand (INSTALL.md). Runs without credentials: every
-# repository it reads is public. Old kernels are read from the new checkout's history (the installer's fetch takes main).
+# came from a separate repo) is skipped: it upgrades once by hand (INSTALL.md). Runs without GitHub credentials: every
+# repository it reads is public. OPENROUTER_API_KEY (graduation's spend-capped key) is required: the reviewer is never
+# skipped. Old kernels are read from the new checkout's history (the installer's fetch takes main).
 set -euo pipefail
 here=$(cd "$(dirname "$0")/../.." && pwd)
 new=$(cd "$1" && pwd) rel=$2 relsha=$3 work=$4
 NAME='^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$'
 [[ "$rel" =~ $NAME ]] && [[ "$relsha" =~ ^[0-9a-f]{40}$ ]] || { echo "usage: upgrade.sh <product checkout> <release> <distro sha> <work dir>" >&2; exit 2; }
 for v in AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN GH_TOKEN GIT_CONFIG_COUNT; do
-  [ -z "${!v:-}" ] || { echo "refusing: $v is set; the upgrade test runs without credentials" >&2; exit 1; }
+  [ -z "${!v:-}" ] || { echo "refusing: $v is set; the upgrade test runs without GitHub credentials" >&2; exit 1; }
 done
+# The model key goes only to the old release's review (review-as-installed.ts): never to this release's code (its npm ci,
+# compile, release.ts), nor the old release's compile.
+review_key=${OPENROUTER_API_KEY:-}; unset OPENROUTER_API_KEY
+[ -n "$review_key" ] || { echo "::error::OPENROUTER_API_KEY is not set: the last release's AI reviewer judges the update (GRADUATE_OPENROUTER_KEY)" >&2; exit 1; }
 kernel=$(git -C "$new" rev-parse HEAD)
 for p in scripts kernel; do [ -d "$new/$p/node_modules" ] || npm ci --ignore-scripts --no-audit --no-fund --prefix "$new/$p" >/dev/null; done
 mkdir -p "$work"
@@ -80,24 +90,34 @@ ok=1
 if [ "$ok" = 1 ]; then
   echo "$R's default instance.yaml:"; sed 's/^/  /' "$u/instance/instance.yaml"
   export AIDENHQ_INSTANCE_DIR="$u/instance"
-  old="$u/product"; mkdir -p "$old"
-  if ! { git -C "$new" archive "$RK" kernel scripts | tar -x -C "$old" \
+  # $R's product checkout as a real update finds it: at its kernel, with this release's kernel on its origin's main (what the
+  # updater's landKernel does to a local mirror), its config compiled for the instance its setup wrote.
+  old="$u/product"
+  if ! { git init -q --bare -b main "$u/product.git" && git -C "$new" push -q "$u/product.git" "$kernel:refs/heads/main" \
+      && git clone -q "$u/product.git" "$old" && git -C "$old" checkout -q --detach "$RK" \
       && for p in scripts kernel; do npm ci --ignore-scripts --no-audit --no-fund --prefix "$old/$p" >/dev/null; done \
+      && (cd "$old" && node scripts/compile.mjs >"$u/compile.log" 2>&1) \
       && git -C "$here" show "$relsha:releases/$rel.json" >"$u/new-release.json"; }; then
-    echo "::error::upgrade from $R: couldn't set up $R's kernel (${RK:0:12}) in $old"; ok=0
-  elif ! out=$(cp "$here/.github/release/pin-as-installed.ts" "$old/kernel/src/pin-as-installed.ts" \
+    tail -20 "$u/compile.log" 2>/dev/null || true; echo "::error::upgrade from $R: couldn't set up $R's product (${RK:0:12}) in $old"; ok=0
+  elif ! out=$(git -C "$u/instance" checkout -q -b "release/$rel" && cp "$here/.github/release/pin-as-installed.ts" "$old/kernel/src/pin-as-installed.ts" \
       && cd "$old" && node kernel/src/pin-as-installed.ts "$u/instance/instance.yaml" "$u/new-release.json" "$rel" "$relsha" 2>&1); then
     echo "$out"; echo "::error::upgrade from $R: $R's updater refused to pin $rel"; ok=0
   else
     echo "$out"
+    # The pin commit on release/<name>, as the updater's prepare commits it, then filed as the kernel.apply $R's kernel files
+    # and reviewed by $R's own AI reviewer (review-as-installed.ts): a release an install would reject never ships.
     git -C "$u/instance" -c user.name=updater -c user.email=updater@aidenhq.invalid commit -q -am "update: AidenHQ $rel (the updater, from $R)" \
-      && git -C "$u/instance" push -q origin HEAD:main && git -C "$u/instance" pull -q --ff-only origin main
+      && git -C "$u/instance" push -q origin "release/$rel"
     # A pin that left the instance as it was proves nothing.
     if [ "$(sed -n 's/^product: *//p' "$u/instance/instance.yaml")" != "$kernel" ]; then
       echo "::error::upgrade from $R: the pin didn't move product: to $kernel"; ok=0
     elif ! (cd "$new" && AIDENHQ_COMPILE_STAGE=1 node scripts/compile.mjs \
         && { [ ! -f scripts/compiler/release.ts ] || node scripts/compiler/release.ts "$u/instance/instance.yaml"; }); then
       echo "::error::upgrade from $R: the new product's staged compile of the pinned instance failed (above)"; ok=0
+    elif ! { cp "$here/.github/release/review-as-installed.ts" "$old/kernel/src/review-as-installed.ts" \
+        && (cd "$old" && mkdir -p "$u/secrets" && AIDENHQ_SECRETS_DIR="$u/secrets" AIDENHQ_PRODUCT_REPO=Aiden-HQ/AidenHQ OPENROUTER_API_KEY="$review_key" node --disable-warning=ExperimentalWarning kernel/src/review-as-installed.ts \
+          "$u/instance.git" local/aidenhq-instance "release/$rel" "$(git -C "$u/instance" rev-parse HEAD)" "$R" "$u/kernel.db"); }; then
+      echo "::error::upgrade from $R: $R's AI reviewer didn't approve the update to $rel (its note and the authority lines above): an install of $R wouldn't auto-update to it"; ok=0
     fi
     rm -rf "$new/config.next" "$new/compose.modules.next.yaml"
   fi

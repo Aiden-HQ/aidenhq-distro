@@ -1,6 +1,6 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11.18, 2026.11.18.1) on a main commit whose
 # releases/<release>.json names a real product sha (`kernel`: the product commit, whose modules/ tree is the official
-# modules). On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, checks the last release's install upgrades to it (.github/release/upgrade.sh), writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# modules). On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, checks the last release's install upgrades to it and its AI reviewer approves the update (.github/release/upgrade.sh), writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # Prebuilt images: the release file may carry `images` (name -> ghcr.io/aiden-hq/<name>@sha256:<digest>), which apply pulls
 # instead of building. The apply reads the release file from git at the pinned commit, so the digests are in the file before
@@ -92,8 +92,13 @@ jobs:
           jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
           echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
       # The upgrade test (.github/release/upgrade.sh): the last graduated release's default install (as its own setup writes it) is pinned to
-      # this one by that release's own updater, as a real update does, and must pass this kernel's staged compile. Fetched code, no token.
+      # this one by that release's own updater, as a real update does, must pass this kernel's staged compile, and is filed and
+      # reviewed as that release's kernel files the update: its own AI reviewer must approve it. Fetched code, no GitHub token.
+      # The model key is graduation's spend-capped GRADUATE_OPENROUTER_KEY: upgrade.sh unsets it at once and passes it only to
+      # the last (graduated) release's review, never to this release's code.
       - name: The last release's install upgrades to it
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT bash .github/release/upgrade.sh "$RUNNER_TEMP/set/kernel" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"
 
   # The images a release builds, from its own product checkout (scripts/release-images.mjs list, over its kernel and modules/): the fetched set, as a tarball for the

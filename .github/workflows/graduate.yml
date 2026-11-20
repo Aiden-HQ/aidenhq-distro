@@ -19,6 +19,7 @@
 # main; one run at a time and none cancelled (select picks the work, so a dropped queued run loses nothing). No
 # pull_request_target: a fork's code never meets the secret. The secret GRADUATE_OPENROUTER_KEY (a spend-capped OpenRouter
 # key) is the model key of the test instance, the only secret here; the test job runs the candidate's code with it.
+# release.yml's upgrade test uses it too, for the last release's AI reviewer.
 name: graduate
 on:
   schedule:
