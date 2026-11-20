@@ -16,7 +16,7 @@ const json = (p) => JSON.parse(readFileSync(join(kernel, p), "utf8"));
 
 const files = {
   "kernel-only": () => ["kernel/test/kernel-only.test.ts"].filter((f) => existsSync(join(kernel, f))),
-  swap: () => ["scripts/test/swap.test.ts", "scripts/test/swap.test.mjs"].filter((f) => existsSync(join(kernel, f))),
+  swap: () => ["scripts/test/swap.test.ts"].filter((f) => existsSync(join(kernel, f))),
   twin: () => (existsSync(join(kernel, "fixtures/twin/module.yaml")) ? ["fixtures/twin"] : []),
   adversarial: () => testsOf(json("scripts/lean/adversarial.json").map((r) => r.test).filter(Boolean)),
   parity: () => testsOf(json("scripts/lean/parity.json").flatMap((r) => r.today)),

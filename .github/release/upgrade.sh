@@ -17,7 +17,7 @@
 #      deps its updater needs (yaml) installed; pinText is called as the updater's verify calls it (and resolveRelease,
 #      from the old tree, checks the result);
 #   3. what the apply of the NEW checkout validates before anything restarts (ops/apply-config-work.sh validate): the staged
-#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.{ts,mjs}) passes and the release resolves (scripts/compiler/release.ts);
+#      compile (AIDENHQ_COMPILE_STAGE=1 scripts/compile.ts) passes and the release resolves (scripts/compiler/release.ts);
 #   4. the review an install runs before it lands the pin (review-as-installed.ts, in the old release's own product checkout
 #      at its exact kernel sha, checked clean first; its config compiled for that instance): the pin commit, on release/<name> as the updater's prepare commits it, filed
 #      as the kernel.apply that release's kernel files for it and judged by that release's own AI reviewer on the model,
@@ -32,8 +32,6 @@
 # skipped. Old kernels are read from the new checkout's history (the installer's fetch takes main).
 set -euo pipefail
 here=$(cd "$(dirname "$0")/../.." && pwd)
-# shellcheck disable=SC1091 # kpath.sh is checked on its own
-. "$here/.github/release/kpath.sh"
 mode=$1 new=$(cd "$2" && pwd) rel=$3 relsha=$4 work=$5
 NAME='^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$'
 [[ "$mode" =~ ^(compile|review)$ ]] && [[ "$rel" =~ $NAME ]] && [[ "$relsha" =~ ^[0-9a-f]{40}$ ]] || { echo "usage: upgrade.sh compile|review <product checkout> <release> <distro sha> <work dir>" >&2; exit 2; }
@@ -106,10 +104,14 @@ if [ "$ok" = 1 ]; then
   # $R's product checkout as a real update finds it: at its kernel, with this release's kernel on its origin's main (what the
   # updater's landKernel does to a local mirror), its config compiled for the instance its setup wrote.
   old="$u/product"
+  # TEMPORARY (2026-11-20): the baseline predates #941's .ts rename (its scripts are .mjs), so its own scripts run by the name
+  # it has; the new kernel is .ts only. Delete once a .ts release is Latest: oldext, the sed below, and the .mjs names.
+  oldext=mjs
   if ! { git init -q --bare -b main "$u/product.git" && git -C "$new" push -q "$u/product.git" "$kernel:refs/heads/main" \
       && git clone -q "$u/product.git" "$old" && git -C "$old" checkout -q --detach "$RK" \
+      && { [ ! -f "$old/scripts/compile.ts" ] || oldext=ts; } \
       && for p in scripts kernel; do npm ci --ignore-scripts --no-audit --no-fund --prefix "$old/$p" >/dev/null; done \
-      && { [ "$mode" = compile ] || (cd "$old" && node "$(kpath "$old" scripts/compile.mjs)" >"$u/compile.log" 2>&1); } \
+      && { [ "$mode" = compile ] || (cd "$old" && node "scripts/compile.$oldext" >"$u/compile.log" 2>&1); } \
       && git -C "$here" show "$relsha:releases/$rel.json" >"$u/new-release.json"; }; then
     tail -20 "$u/compile.log" 2>/dev/null || true; echo "::error::upgrade from $R: couldn't set up $R's product (${RK:0:12}) in $old"; ok=0
   elif ! out=$(git -C "$u/instance" checkout -q -b "release/$rel" && cp "$here/.github/release/pin-as-installed.ts" "$old/kernel/src/pin-as-installed.ts" \
@@ -125,7 +127,7 @@ if [ "$ok" = 1 ]; then
     if [ "$(sed -n 's/^product: *//p' "$u/instance/instance.yaml")" != "$kernel" ]; then
       echo "::error::upgrade from $R: the pin didn't move product: to $kernel"; ok=0
     elif [ "$mode" = compile ]; then
-      if ! (cd "$new" && AIDENHQ_COMPILE_STAGE=1 node "$(kpath "$new" scripts/compile.mjs)" \
+      if ! (cd "$new" && AIDENHQ_COMPILE_STAGE=1 node scripts/compile.ts \
           && { [ ! -f scripts/compiler/release.ts ] || node scripts/compiler/release.ts "$u/instance/instance.yaml"; }); then
         echo "::error::upgrade from $R: the new product's staged compile of the pinned instance failed (above)"; ok=0
       fi
@@ -135,6 +137,7 @@ if [ "$ok" = 1 ]; then
     elif [ "$(git -C "$old" rev-parse HEAD)" != "$RK" ] || [ -n "$(git -C "$old" status --porcelain --untracked-files=no)" ]; then
       git -C "$old" status --porcelain --untracked-files=no | head -20; echo "::error::upgrade from $R: its checkout isn't clean at ${RK:0:12}"; ok=0
     elif ! { cp "$here/.github/release/review-as-installed.ts" "$old/kernel/src/review-as-installed.ts" \
+        && { [ "$oldext" = ts ] || sed -i 's/review\.ts"/review.mjs"/' "$old/kernel/src/review-as-installed.ts"; } \
         && (cd "$old" && mkdir -p "$u/secrets" && AIDENHQ_SECRETS_DIR="$u/secrets" AIDENHQ_PRODUCT_REPO=Aiden-HQ/AidenHQ OPENROUTER_API_KEY="$review_key" node --disable-warning=ExperimentalWarning kernel/src/review-as-installed.ts \
           "$u/instance.git" local/aidenhq-instance "release/$rel" "$(git -C "$u/instance" rev-parse HEAD)" "$R" "$rel" "$relsha" "$u/kernel.db"); }; then
       echo "::error::upgrade from $R: $R's AI reviewer didn't approve the update to $rel (its note and the authority lines above): an install of $R wouldn't auto-update to it"; ok=0
