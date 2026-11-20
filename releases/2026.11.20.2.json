@@ -41,7 +41,7 @@
   "kernel": "bc02a89b414276badd98fe883af30071ef3f3ed5",
   "kernel_repo": "Aiden-HQ/AidenHQ",
   "notes": [
-    "Installs of 2026.11.20 upgrade by running the installer again: curl -fsSL https://get.aidenhq.ai | sh (as the same user, on the server). Later releases update themselves again.",
+    "Installs of 2026.11.20: run the installer again to upgrade (curl -fsSL https://get.aidenhq.ai | sh, as the same user, on the server). Later releases update themselves again.",
     "Every task shows one state the kernel works out from what happened (working, waiting on whom, idle and why, done): on the board, in the task tools and in Telegram /status and /waiting",
     "Agents act instead of setting a status: task_block, task_cancel, task_delegate wait, task_comment reopen; a question to the owner is an open wait that their reply ends",
     "No task sits idle unexplained after an agent is retired: its open tasks move to its successor's backlog with one triage task",
