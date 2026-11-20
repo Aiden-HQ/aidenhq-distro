@@ -100,7 +100,8 @@ Other inputs:
 - **Upgrades.** An install updates itself: each night (02:00-05:00 in your timezone) it installs a newer release, verified
   the same way, through the normal apply, and goes back to the previous release if the health check after it fails. Turn
   it off with `auto_update: "off"` in Settings; the board's Settings > Instance shows what's available and has Update now.
-  Installs from 2026.11.2 or earlier upgrade once by hand: run the same command again
+  Installs from 2026.11.2 or earlier, and installs of the release before one whose notes start by saying so
+  (`upgrade_from_previous: "manual"`, below), upgrade once by hand: run the same command again
   (`curl -fsSL https://get.aidenhq.ai | sh`, as the same user). It reads the existing instance (its release and owner email),
   says `upgrading from <old> to <new>`, verifies the new release as on day one, moves the instance's pin (one commit) and
   applies; if that apply fails, the server is back on the old release and the pin commit is reverted. An installer older than the release the server runs is refused: downgrades never happen.
@@ -161,7 +162,10 @@ A release is cut by pushing its tag (`2026.11.18`, a day's second cut `2026.11.1
 - `kernel`: one commit of [AidenHQ](https://github.com/Aiden-HQ/AidenHQ) on its `main`, which holds the kernel and the
   official modules (its `modules/`); `kernel_repo` names that repository (optional, `Aiden-HQ/AidenHQ` by default);
 - `images`: each prebuilt image by digest (`ghcr.io/aiden-hq/<name>@sha256:…`), built from that commit;
-- `notes` (optional) and `tested` (written when the release is published).
+- `notes` (optional) and `tested` (written when the release is published);
+- `upgrade_from_previous: "manual"` (optional, the owner's call for one cut): the last release's updater can't land this
+  one, so its installs upgrade by running the installer again. Its first note must say so ("run the installer again"); the
+  release check then skips the last release's AI review of the update, and graduation upgrades its test instance that way.
 
 It has no `marketplace` or `modules` entries: third-party modules are the instance's own marketplaces in
 `instance.yaml`, never part of a release. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch

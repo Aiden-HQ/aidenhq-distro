@@ -9,7 +9,8 @@
 #   bash graduate-instance.sh install                 BASELINE's install.sh (checked against BASELINE_INSTALL_DIGEST)
 #   bash graduate-instance.sh fixture                 the hello app: the baseline's app starter, registered and deployed
 #                                                     through the apps platform's host path (no model)
-#   bash graduate-instance.sh upgrade                 TAG through the instance's own updater (AIDENHQ_UPDATE_CANDIDATE)
+#   bash graduate-instance.sh upgrade                 TAG through the instance's own updater (AIDENHQ_UPDATE_CANDIDATE), or
+#                                                     its installer run again when its file sets upgrade_from_previous: manual
 #   bash graduate-instance.sh release-check           running release, kernel and images; generation
 #   bash graduate-instance.sh verify-security         scripts/verify-security.sh
 #   bash graduate-instance.sh result                  result.json, its verdict and the timings (graduate-checks.mjs)
@@ -266,8 +267,34 @@ fixture() {
   [ "$status" = healthy ]
 }
 
+# The upgrade an owner makes for a release whose file says `upgrade_from_previous: "manual"` (the baseline's updater can't land
+# it): the candidate's own published installer, run again on the instance (INSTALL.md "Upgrades"), checked against the asset
+# digest select read (IDENTITY).
+upgrade_by_installer() {
+  : "${IDENTITY:?}"
+  local d="$TMPD/candidate-installer" want t=$SECONDS rc=0
+  want=$(jq -er '.assets["install.sh"]' <<<"$IDENTITY")
+  mkdir -p "$d"; chmod 0755 "$d"
+  curl -fsSL --retry 3 -o "$d/install.sh" "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/install.sh"
+  [ "sha256:$(sha256sum "$d/install.sh" | cut -d' ' -f1)" = "$want" ] || die "$TAG's install.sh isn't the published asset select read"
+  chmod 0644 "$d/install.sh"
+  log "upgrading to $TAG by running its installer again (its release file sets upgrade_from_previous: manual)"
+  (cd / && sudo --preserve-env=OPENROUTER_KEY env AIDENHQ_USER="$SVC" AIDENHQ_OWNER_EMAIL=owner@example.com \
+    AIDENHQ_OWNER_NAME="Graduation Owner" AIDENHQ_TIMEZONE=UTC sh "$d/install.sh" --non-interactive --no-tailscale) \
+    >"$GRAD_DIR/upgrade-install.log" 2>&1 </dev/null || rc=$?
+  sed -E 's/(token=)[A-Za-z0-9_-]+/\1REDACTED/g' "$GRAD_DIR/upgrade-install.log" | grep -E '^(==>|    |AIDENHQ_PROGRESS|error|Install stopped)' | tail -80 || true
+  [ "$rc" = 0 ] || { rec upgraded false "$TAG's installer, run again, exited $rc"; exit 1; }
+  timing upgrade_install $((SECONDS - t)); t=$SECONDS
+  local end2=$((SECONDS + 20 * 60))
+  until good_on "$KERNEL" || [ "$SECONDS" -ge "$end2" ]; do sleep 5; done
+  timing upgrade_generation $((SECONDS - t))
+  if good_on "$KERNEL"; then rec upgraded true "$TAG installed by running its installer again (upgrade_from_previous: manual); generation $(last_gen | jq -r .n) good"
+  else rec upgraded false "the apply generation isn't good on ${KERNEL:0:12}: $(last_gen)"; exit 1; fi
+}
+
 upgrade() {
   : "${TAG:?}" "${KERNEL:?}"
+  if [ "$(jq -r '.upgrade_from_previous // ""' "$here/../../releases/$TAG.json" 2>/dev/null)" = manual ]; then upgrade_by_installer; return; fi
   # The bootstrap: a baseline whose updater can't prepare a named pre-release can't be upgraded this way (select checks it too).
   sudo grep -q AIDENHQ_UPDATE_CANDIDATE "$CO/kernel/src/updates.ts" \
     || { rec upgraded false "baseline predates graduation; graduate one release by hand"; die "baseline predates graduation; graduate one release by hand (README \"Release graduation\")"; }

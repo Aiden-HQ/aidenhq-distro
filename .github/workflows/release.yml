@@ -74,8 +74,9 @@ jobs:
             def sha: type == "string" and test("^[0-9a-f]{40}$");
             .release == $t and (.kernel | sha) and ((.kernel_repo // "x/y") | type == "string" and test("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"))
             and (has("marketplace") or has("modules") | not)
-            and ((.notes // []) | type == "array" and length <= 20 and all(.[]; type == "string" and length <= 300))' "$f" >/dev/null \
-            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), or its notes aren't up to 20 lines of text"; exit 1; }
+            and ((.notes // []) | type == "array" and length <= 20 and all(.[]; type == "string" and length <= 300))
+            and ((has("upgrade_from_previous") | not) or (.upgrade_from_previous == "manual" and (.notes[0] // "" | test("run the installer again"))))' "$f" >/dev/null \
+            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), its notes aren't up to 20 lines of text, or it sets upgrade_from_previous (only \"manual\") without a first note telling installs to run the installer again"; exit 1; }
       # The only step that sees the read token: install.sh's fetch and verify, which runs nothing it fetched.
       - name: Fetch and verify the set (install.sh's own checks)
         env:
@@ -99,6 +100,8 @@ jobs:
 
   # The update, filed and reviewed as an install of the last graduated release files it (.github/release/upgrade.sh review):
   # that release's own kernel and AI reviewer, at its exact kernel sha (checked clean before the review), must approve it.
+  # A release file with `upgrade_from_previous: "manual"` (the owner's call for one cut whose update the last release's
+  # updater can't land; its first note says so) skips this review: those installs run the installer again (INSTALL.md).
   # A fresh runner that never runs this release's code: the product repository is only cloned (git reads: its setup.sh, the
   # manifests), the pin is remade by the old updater, and nothing comes from the test job. The only job with
   # GRADUATE_OPENROUTER_KEY (graduation's spend-capped model key).
