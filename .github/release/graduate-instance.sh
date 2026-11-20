@@ -74,6 +74,11 @@ prepare() {
   # The baseline's installer and host setup may predate the retry setting: a mirror's transient error (a 503) retries
   # instead of failing the install. The same file the product's host setup writes.
   echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-aidenhq-retries >/dev/null
+  # GitHub's runner image puts its own user's XDG_RUNTIME_DIR (/run/user/1001) and XDG_CONFIG_HOME in /etc/environment, and
+  # every user's systemd manager passes them to its units: the kernel's `systemd-run --user` then dials the runner's bus and
+  # fails ("Failed to connect to bus: Permission denied"), so no kernel-launched apply could start. On a hosted runner only,
+  # before the service user's manager first starts, drop them, as on a fresh server.
+  [ "${GITHUB_ACTIONS:-}" != true ] || sudo sed -i '/^XDG_/d' /etc/environment
   # The service user as the installer makes it (ensure_user), made first so its uid is 1000: the stack runs as it (PUID) and
   # the pinned Paperclip image writes its own files as 1000 when it starts (distro #49). The installer finds it and keeps it.
   if ! id "$SVC" >/dev/null 2>&1; then
