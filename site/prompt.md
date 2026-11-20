@@ -8,7 +8,7 @@ user. Every command is validated against the installer served at `https://get.ai
 
 Complete every step yourself by running the commands directly. Do not ask the user to run them. Steps: ask the
 user two things, check the server, secrets (only if needed), dry run, install while relaying progress, read the result
-and verify. The rest of setup (password, authenticator, model key, channels) happens in the browser, guided by Aiden.
+and verify, then connect the AidenHQ MCP. The rest of setup (password, authenticator, model key, channels) happens in the browser, guided by Aiden.
 
 **Rules.** The installer runs on the Linux server, never on the user's laptop, unless the user chose their Mac (below). Never wrap it in `sudo`: connect as
 root or as a user with passwordless sudo, and it calls `sudo` itself. Secrets go only in the file in step 3, never on
@@ -113,12 +113,13 @@ the cause (below), recreate any secrets file, and start again.
 Root installs: run this as `aidenhq` with `sudo` on `/root/aidenhq-install.out` (step 2).
 
 ```sh
-ssh <target> 'grep -E "^AIDENHQ_(EXPOSURE|SETUP_URL|SSH_TUNNEL)=" ~/aidenhq-install.out'
+ssh <target> 'grep -E "^AIDENHQ_(EXPOSURE|BOARD_URL|SETUP_URL|SSH_TUNNEL)=" ~/aidenhq-install.out'
 ```
 
 - `AIDENHQ_EXPOSURE=`: how the board is reached. `public`: on the server's own `https://<ip>`, from anywhere, behind
   the owner's password and authenticator (the link lasts 24 hours). `tailscale`: on the tailnet only. `local`: through
   the SSH tunnel below (a server behind NAT, or a Mac's VM).
+- `AIDENHQ_BOARD_URL=`: the board's address. `/mcp` on it is the owner MCP (step 7).
 - `AIDENHQ_SETUP_URL=`: the owner's setup link. One use, valid 72 hours (24 in `public`). Never open it yourself. It is printed only
   after the install's own health checks pass.
 - `AIDENHQ_SSH_TUNNEL=`: printed only when the board is not reachable directly (a server without a public address).
@@ -134,6 +135,18 @@ ssh <user>@<host> 'curl -fsS http://127.0.0.1:3120/healthz; echo; curl -fsS http
 
 Expect `ok`, JSON with `"status":"ok"`, three `active` and every service `running`. Otherwise never report success:
 name the failed check. Finally delete `aidenhq-install-run.sh` from the same place as `aidenhq-install.out`.
+
+## 7. Connect the AidenHQ MCP
+
+The board serves an owner MCP at `<AIDENHQ_BOARD_URL>/mcp`: the user's own Claude manages AidenHQ through it. Add it now
+so it is ready after the browser setup:
+
+- You are Claude Code on the user's own computer: run `claude mcp add --transport http aidenhq <AIDENHQ_BOARD_URL>/mcp`
+  yourself. Codex CLI: `codex mcp add aidenhq --url <AIDENHQ_BOARD_URL>/mcp`.
+- You run on the server itself, or are another client: give the user that command to run on their own computer.
+
+In `tailscale` mode their computer must be on the tailnet; in `local` mode the SSH tunnel must be up. It cannot sign in
+yet: the owner account is created in the browser setup.
 
 ## (Optional) Tailscale
 
@@ -175,9 +188,18 @@ Once done, tell the user:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+Add: "When the browser setup is done, come back here. Authenticate the AidenHQ MCP (Claude Code: `/reload-plugins`, then `/mcp`,
+choose `aidenhq`, Authenticate; sign in with your password and authenticator, then Allow) and I'll finish setup with you."
+
 On a Mac, add one line: "Keep your Mac awake (on power) so your agents keep working." Only if the install output
 printed `AIDENHQ_SSH_TUNNEL=`, add above the link: "Keep this tunnel open on your laptop:
 `<the AIDENHQ_SSH_TUNNEL command>`". Say nothing about the vault recovery key: the browser setup shows it.
+
+## After the user authenticates the MCP
+
+Call `status`, then help with what it lists: services skipped in the browser setup (hand over the `connect` links; never
+ask for secrets in chat), module choices and settings through `change_settings`, and a first message to Aiden through
+`ask`. Never put secrets through the MCP or the chat.
 
 ## Resources
 

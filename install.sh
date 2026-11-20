@@ -700,6 +700,7 @@ finish() {
   # the Mac reads back (0600: it is a one-time sign-in).
   if [ -n "${AIDENHQ_MAC_VM:-}" ]; then
     [ "$DRY" = 1 ] || [ -z "$SETUP_URL" ] || (umask 077; printf '%s\n' "$SETUP_URL" >"$STATE_DIR/setup-url") || :
+    [ "$DRY" = 1 ] || [ -z "${BOARD_URL:-}" ] || (umask 077; printf '%s\n' "$BOARD_URL" >"$STATE_DIR/board-url") || :
     return 0
   fi
   progress_emit ready   # 100%, and the link follows
@@ -728,6 +729,7 @@ finish() {
   # Machine-readable, plain and at the start of a line (no --verbose needed): scripts and agents grep these.
   printf '\n'
   [ -z "${SETUP_EXPOSURE:-}" ] || printf 'AIDENHQ_EXPOSURE=%s\n' "$SETUP_EXPOSURE"
+  [ -z "${BOARD_URL:-}" ] || printf 'AIDENHQ_BOARD_URL=%s\n' "$BOARD_URL"
   [ -z "$SETUP_URL" ] || printf 'AIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
   [ -z "$SSH_TUNNEL" ] || printf 'AIDENHQ_SSH_TUNNEL=%s\n' "$SSH_TUNNEL"
 }
@@ -972,7 +974,7 @@ mac_inner() {
   fi
   vm_sh sh -c 'cat >"$HOME/.aidenhq-install.sh"' <"$src" || die "can't copy the installer into the VM"
   w='f=$HOME/.aidenhq-install.env; set -a; . "$f"; set +a; shred -u "$f" 2>/dev/null || rm -f "$f"
-    rm -f "$HOME/.aidenhq/setup-url"; exec sh "$HOME/.aidenhq-install.sh" "$@"'
+    rm -f "$HOME/.aidenhq/setup-url" "$HOME/.aidenhq/board-url"; exec sh "$HOME/.aidenhq-install.sh" "$@"'
   if [ -n "${AIDENHQ_RELEASE_FILE:-}" ]; then   # a Mac path: the VM gets a copy
     vm_sh sh -c 'cat >"$HOME/.aidenhq-release.json"' <"$AIDENHQ_RELEASE_FILE" || die "can't read AIDENHQ_RELEASE_FILE=$AIDENHQ_RELEASE_FILE"
     w="AIDENHQ_RELEASE_FILE=\$HOME/.aidenhq-release.json; export AIDENHQ_RELEASE_FILE; $w"
@@ -996,6 +998,8 @@ mac_inner() {
   SETUP_URL=$(vm_sh sh -c 'cat "$HOME/.aidenhq/setup-url" 2>/dev/null || :' </dev/null | tr -d '\r')
   # Without Tailscale the link is on the VM's loopback (3120 sign-in, 3121 the board), which Lima forwards to this Mac's.
   case "$SETUP_URL" in http://*:3120/*|http://*:3121/*) SETUP_URL="http://localhost:${SETUP_URL#http://*:}" ;; esac
+  BOARD_URL=$(vm_sh sh -c 'cat "$HOME/.aidenhq/board-url" 2>/dev/null || :' </dev/null | tr -d '\r')
+  case "$BOARD_URL" in http://*:3121) BOARD_URL=http://localhost:3121 ;; esac
 }
 
 mac_finish() {
@@ -1019,6 +1023,7 @@ mac_finish() {
     printf '  Vault recovery key: %s shell %s sudo cat /root/aidenhq-vault-recovery.txt, store it, then shred it (sudo shred -u).\n' "$lc" "$VM"
   fi
   printf '  Install log: %s\n\n' "$LOG"
+  [ -z "${BOARD_URL:-}" ] || printf 'AIDENHQ_BOARD_URL=%s\n' "$BOARD_URL"
   [ -z "$SETUP_URL" ] || printf 'AIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
 }
 
