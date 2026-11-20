@@ -145,7 +145,10 @@ used up: the next cut that day takes the next `.N`.
   3. Merge the `images.json` artifact into the file and land it on main.
   4. Push the tag `<name>` on that commit, or run `release` on the tag.
 
-  The tag run then tests and publishes it.
+  The tag run then tests and publishes it. When the last release's updater can't land this one (its AI reviewer would
+  reject it for something only a newer kernel fixes), the owner may set `"upgrade_from_previous": "manual"` in the file,
+  with a first note telling installs to run the installer again (INSTALL.md "Releases"): the release check skips that
+  review and graduation upgrades its test instance by running the candidate's installer again.
 
 The nightly and release workflows use the built-in `GITHUB_TOKEN`, plus one secret: graduation's model key (below), which
 the tag run's `review` job also uses so the last release's own AI reviewer judges the update.

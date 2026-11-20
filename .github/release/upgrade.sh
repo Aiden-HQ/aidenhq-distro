@@ -26,7 +26,7 @@
 # Whatever the new kernel's own pin step (`updates.ts pin`) would add for old installs (its module migration) is not
 # credited: only an old updater's pin counts, as it is the one that runs on a real server. An old release's updater
 # can't be run as the CLI `pin` (it demands the checkout be the new kernel), so its pinText is called directly.
-# A last release from before the one-repo layout (a release file with `marketplace` or `modules`, 2026.11.2 and older: the modules
+# A release file with `upgrade_from_previous: "manual"` skips step 4 (below). A last release from before the one-repo layout (a release file with `marketplace` or `modules`, 2026.11.2 and older: the modules
 # came from a separate repo) is skipped: it upgrades once by hand (INSTALL.md). Runs without GitHub credentials: every
 # repository it reads is public. review needs OPENROUTER_API_KEY (graduation's spend-capped key): the reviewer is never
 # skipped. Old kernels are read from the new checkout's history (the installer's fetch takes main).
@@ -85,6 +85,12 @@ $tmpl
 EOF"
 }
 
+# A release whose file says `upgrade_from_previous: "manual"` (the owner's call for one cut: the last release's updater can't
+# land it, e.g. its reviewer can't read the authority lines; its first note says so) is not judged by that release's AI
+# reviewer: those installs upgrade by running the installer again (INSTALL.md). The compile check still runs.
+if [ "$mode" = review ] && [ "$(git -C "$here" show "$relsha:releases/$rel.json" | jq -r '.upgrade_from_previous // ""')" = manual ]; then
+  echo "upgrade from the last release by its updater: skipped ($rel's file sets upgrade_from_previous: manual; those installs run the installer again)"; exit 0
+fi
 f=$(git -C "$here" show "$R:releases/$R.json" 2>/dev/null) || { echo "::error::tag $R has no releases/$R.json"; exit 1; }
 if jq -e 'has("marketplace") or has("modules")' <<<"$f" >/dev/null; then
   echo "upgrade from $R: skipped (it predates the one-repo layout; such installs upgrade once by hand)"; exit 0
