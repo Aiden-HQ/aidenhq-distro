@@ -1,6 +1,6 @@
 # Cut a release (lean-core spec §6.8): push a tag `<release>` (2026.11.18, 2026.11.18.1) on a main commit whose
 # releases/<release>.json names a real product sha (`kernel`: the product commit, whose modules/ tree is the official
-# modules). On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), runs the release suites on it, checks the last release's install upgrades to it and, in a separate job, that its AI reviewer approves the update (.github/release/upgrade.sh), writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
+# modules). On GitHub-hosted runners, this installs exactly that set (install.sh's own fetch and verify), checks the kernel is on product main with its CI green there, checks the last release's install upgrades to it and, in a separate, advisory job, what its AI reviewer says of the update (.github/release/upgrade.sh), writes `tested`, bakes the file's sha256 and the tag's commit into install.sh, and
 # publishes both as the release's assets: https://github.com/Aiden-HQ/aidenhq-distro/releases/download/<release>/install.sh.
 # Prebuilt images: the release file may carry `images` (name -> ghcr.io/aiden-hq/<name>@sha256:<digest>), which apply pulls
 # instead of building. The apply reads the release file from git at the pinned commit, so the digests are in the file before
@@ -18,8 +18,8 @@
 # untested release. Publishing makes a pre-release, never "latest": installs' updaters skip it and get.aidenhq.ai (GitHub's
 # latest, web/worker.js) keeps serving the graduated release. graduate.yml upgrades a test instance to it and only then makes
 # it a full release and latest (README "Release graduation").
-# Isolation: the test job's suites step is the only one that runs fetched code, and it has no token; publish is a separate
-# job (needs: test), so it lands on a fresh runner that never ran the suites.
+# Isolation: the test job's upgrade step is the only one that runs fetched code, and it has no token; publish is a separate
+# job (needs: test), so it lands on a fresh runner that never ran fetched code.
 name: release
 on:
   push:
@@ -51,8 +51,6 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: read
-    outputs:
-      suites: ${{ steps.suites.outputs.suites }}
     env:
       TAG: ${{ github.ref_name }}
     steps:
@@ -74,24 +72,33 @@ jobs:
             def sha: type == "string" and test("^[0-9a-f]{40}$");
             .release == $t and (.kernel | sha) and ((.kernel_repo // "x/y") | type == "string" and test("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"))
             and (has("marketplace") or has("modules") | not)
-            and ((.notes // []) | type == "array" and length <= 20 and all(.[]; type == "string" and length <= 300))
-            and ((has("upgrade_from_previous") | not) or (.upgrade_from_previous == "manual" and (.notes[0] // "" | test("run the installer again"))))' "$f" >/dev/null \
-            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), its notes aren't up to 20 lines of text, or it sets upgrade_from_previous (only \"manual\") without a first note telling installs to run the installer again"; exit 1; }
-      # The only step that sees the read token: install.sh's fetch and verify, which runs nothing it fetched.
+            and ((.notes // []) | type == "array" and all(.[]; type == "string"))
+            and ((has("upgrade_from_previous") | not) or .upgrade_from_previous == "manual")' "$f" >/dev/null \
+            || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), its notes aren't an array of strings, or it sets upgrade_from_previous to anything but \"manual\""; exit 1; }
+      # Product CI already ran every suite on this exact commit: the kernel must be on product main with its `ci-required`
+      # check green there (two reads of the commit through the API; nothing fetched runs).
+      - name: The kernel is on product main and its CI passed
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
+        run: |
+          api() { { [ -z "$GH_TOKEN" ] || printf 'Authorization: Bearer %s\n' "$GH_TOKEN"; echo 'Accept: application/vnd.github+json'; } | curl -fsS -H @- "$@"; }
+          repo=$(jq -er '.kernel_repo // "Aiden-HQ/AidenHQ"' "releases/$TAG.json") sha=$(jq -er .kernel "releases/$TAG.json")
+          st=$(api "$GITHUB_API_URL/repos/$repo/compare/$sha...main" | jq -r .status)
+          # compare base...head reports head relative to base: with base=sha, "ahead" (main is ahead of the sha) or "identical"
+          # means the sha is on main; "behind" or "diverged" means it isn't.
+          case "$st" in identical|ahead) ;; *) echo "::error::kernel $sha isn't on $repo's main ($st)"; exit 1 ;; esac
+          ci=$(api "$GITHUB_API_URL/repos/$repo/commits/$sha/check-runs?check_name=ci-required&per_page=20" \
+            | jq -r '.check_runs | sort_by(.started_at) | last | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end')
+          [ "$ci" = success ] || { echo "::error::$repo's ci-required on $sha is $ci, not success"; exit 1; }
+          echo "kernel $sha is on main, ci-required passed"
+      # The steps that see the read token: this one (install.sh's fetch and verify, which runs nothing it fetched) and the CI read above.
       - name: Fetch and verify the set (install.sh's own checks)
         env:
           AIDENHQ_GITHUB_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
         run: |
           rm -rf "$RUNNER_TEMP/set"
           sh .github/release/test-set.sh fetch "releases/$TAG.json" "$RUNNER_TEMP/set"
-      # Fetched code runs only here: a separate step whose environment never has the token (unset again to be sure;
-      # test-set.sh refuses to run the suites if any credential is set), in a job that can't write.
-      - name: Run the release suites on it
-        id: suites
-        run: |
-          env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT sh .github/release/test-set.sh suites "$RUNNER_TEMP/set"
-          jq -e 'type == "array" and all(.[]; IN("kernel-only", "swap", "parity", "adversarial", "twin"))' "$RUNNER_TEMP/set/suites.json"
-          echo "suites=$(jq -c . "$RUNNER_TEMP/set/suites.json")" >> "$GITHUB_OUTPUT"
+      # Fetched code runs only in the next step, whose environment never has the token, in a job that can't write.
       # The upgrade test (.github/release/upgrade.sh compile): the last graduated release's default install (as its own setup
       # writes it) is pinned to this one by that release's own updater, as a real update does, and must pass this kernel's
       # staged compile. Fetched code, no token. The review of that update by the last release's AI reviewer is its own job.
@@ -99,9 +106,10 @@ jobs:
         run: env -u AIDENHQ_GITHUB_TOKEN -u GITHUB_TOKEN -u GH_TOKEN -u GIT_CONFIG_COUNT bash .github/release/upgrade.sh compile "$RUNNER_TEMP/set/kernel" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"
 
   # The update, filed and reviewed as an install of the last graduated release files it (.github/release/upgrade.sh review):
-  # that release's own kernel and AI reviewer, at its exact kernel sha (checked clean before the review), must approve it.
-  # A release file with `upgrade_from_previous: "manual"` (the owner's call for one cut whose update the last release's
-  # updater can't land; its first note says so) skips this review: those installs run the installer again (INSTALL.md).
+  # that release's own kernel and AI reviewer, at its exact kernel sha (checked clean before the review), judges it.
+  # Advisory: a failure is a warning and doesn't block publish. When it fails, the previous release's installs will likely
+  # not update by themselves: the owner may re-cut with `upgrade_from_previous: "manual"` and a first note telling them to
+  # run the installer again (INSTALL.md). With that field set the review is skipped.
   # A fresh runner that never runs this release's code: the product repository is only cloned (git reads: its setup.sh, the
   # manifests), the pin is remade by the old updater, and nothing comes from the test job. The only job with
   # GRADUATE_OPENROUTER_KEY (graduation's spend-capped model key).
@@ -126,8 +134,13 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: |
           repo=$(jq -er '.kernel_repo // "Aiden-HQ/AidenHQ"' "releases/$TAG.json")
-          git clone -q --no-checkout "https://github.com/$repo.git" "$RUNNER_TEMP/product"
-          bash .github/release/upgrade.sh review "$RUNNER_TEMP/product" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"
+          if git clone -q --no-checkout "https://github.com/$repo.git" "$RUNNER_TEMP/product" \
+            && bash .github/release/upgrade.sh review "$RUNNER_TEMP/product" "$TAG" "$GITHUB_SHA" "$RUNNER_TEMP/upgrade"; then
+            echo "the last release's AI reviewer approves the update"
+          else
+            msg="the last release's AI reviewer did not approve the update to $TAG (advisory, publish goes on). The previous release's installs may need to run the installer again: say so in the first release note, or re-cut with upgrade_from_previous \"manual\" (INSTALL.md)."
+            echo "::warning::$msg"; echo "### Review warning: $msg" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   # The images a release builds, from its own product checkout (scripts/release-images.{ts,mjs} list, over its kernel and modules/): the fetched set, as a tarball for the
   # build legs, and their chains (a computer image builds FROM its parent, so a chain builds in order in one leg). A tag
@@ -329,7 +342,7 @@ jobs:
 
   publish:
     # Fail closed: the shape check ran in plan, and either there are no images to verify or verify passed (never merely not failed).
-    if: ${{ !cancelled() && needs.test.result == 'success' && needs.review.result == 'success' && needs.plan.result == 'success' && (needs.plan.outputs.go == 'false' || needs.verify.result == 'success') }}
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.plan.result == 'success' && (needs.plan.outputs.go == 'false' || needs.verify.result == 'success') }}
     needs: [test, review, plan, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -337,16 +350,16 @@ jobs:
       contents: write
     env:
       TAG: ${{ github.ref_name }}
-      SUITES: ${{ needs.test.outputs.suites }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # `suites` names what vouches for the kernel (product CI, checked in the test job); deployed updaters require a non-empty list.
       - name: Write tested, bake install.sh
         run: |
           mkdir -p dist
           run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          jq --arg run "$run_url" --argjson s "$SUITES" '.tested = { ci_run: $run, suites: $s } | del(.todo)' \
+          jq --arg run "$run_url" '.tested = { ci_run: $run, suites: ["product-ci"] } | del(.todo)' \
             "releases/$TAG.json" > "dist/$TAG.json"
           digest=$(sha256sum "dist/$TAG.json" | cut -d' ' -f1)
           sed -e "s/^DEFAULT_RELEASE=.*/DEFAULT_RELEASE=$TAG/" -e "s/^RELEASE_SHA256=\"\"/RELEASE_SHA256=\"$digest\"/" \

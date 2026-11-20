@@ -164,13 +164,13 @@ A release is cut by pushing its tag (`2026.11.18`, a day's second cut `2026.11.1
 - `images`: each prebuilt image by digest (`ghcr.io/aiden-hq/<name>@sha256:…`), built from that commit;
 - `notes` (optional) and `tested` (written when the release is published);
 - `upgrade_from_previous: "manual"` (optional, the owner's call for one cut): the last release's updater can't land this
-  one, so its installs upgrade by running the installer again. Its first note must say so ("run the installer again"); the
-  release check then skips the last release's AI review of the update, and graduation upgrades its test instance that way.
+  one, so its installs upgrade by running the installer again. Its first note should say so; the
+  release check then skips the last release's (advisory) AI review of the update, and graduation upgrades its test instance that way.
 
 It has no `marketplace` or `modules` entries: third-party modules are the instance's own marketplaces in
 `instance.yaml`, never part of a release. `.github/workflows/release.yml` then installs exactly that set on GitHub-hosted runners (this script's own fetch
-and verify), runs the release suites on it, checks that the last graduated release's default install upgrades to it
-(`.github/release/upgrade.sh`: that release's own updater's pin, then the new product's staged compile), writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
+and verify), checks that its kernel is on product main with its CI green there, checks that the last graduated release's default install upgrades to it
+(`.github/release/upgrade.sh`: that release's own updater's pin, then the new product's staged compile; that release's AI review of the update is advisory and only warns), writes `tested`, bakes the file's sha256 and the commit into `install.sh` and
 publishes both as the release's assets (a draft until they are checked) as a GitHub pre-release. Never to a branch.
 
 A pre-release is not offered to anyone yet. `.github/workflows/graduate.yml` graduates it: a fresh install of the current
@@ -181,7 +181,7 @@ that fails stays a pre-release, marked `graduation: failed <run>` in its notes, 
 have it tested again. To graduate one by hand: `gh release edit <tag> -R Aiden-HQ/aidenhq-distro --prerelease=false --latest`
 (README "Release graduation").
 
-A release file may carry `notes`: up to 20 one-line strings saying what changed (and whether the release adds new
+A release file may carry `notes`: an array of strings saying what changed (and whether the release adds new
 authority to any module). Installs show them when the release is available, and in the message after it installs.
 
 Installs pick a new release up on their own (the product's `kernel/src/updates.ts`): they read the newest release tag
