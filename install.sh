@@ -14,8 +14,8 @@
 #   --dry-run           AIDENHQ_DRY_RUN=1        detect and plan only
 #   --exposure <mode>   AIDENHQ_EXPOSURE         how you reach the board: public (HTTPS on the server's public IP, password
 #                                                and authenticator), tailscale (your tailnet) or local (an SSH tunnel).
-#                                                Default: tailscale on a tailnet, else public, else (behind NAT) local; on a
-#                                                Mac, local. Run again with another mode to switch.
+#                                                Default: tailscale on a tailnet, else public, else (behind NAT, a Mac's VM)
+#                                                local; a rerun keeps the mode. Run again with another mode to switch.
 #   --no-tailscale      AIDENHQ_NO_TAILSCALE=1   the same as --exposure local
 #   --uninstall         AIDENHQ_UNINSTALL=1      stop and remove services; keeps data, vault and packages
 #   --verbose           AIDENHQ_VERBOSE=1        stream every command's output, not just the steps
@@ -712,7 +712,7 @@ finish() {
     printf '  It sets up your account and authenticator, your model key and your channels.\n'
     case "${SETUP_EXPOSURE:-}" in
       public) printf '  The board is on the public Internet (%s), behind your password and authenticator. To keep it off\n' "${BOARD_URL:-https on this server}"
-              printf '  the Internet, put this server on your tailnet and run this installer again with --exposure tailscale.\n' ;;
+              printf '  the Internet, run this installer again with --exposure tailscale (it installs Tailscale and says how to sign in).\n' ;;
       local) ;;
       *) [ -n "$SSH_TUNNEL" ] || printf '  Your device must be on the same tailnet.\n' ;;
     esac
@@ -953,8 +953,9 @@ mac_inner() {
   step "AidenHQ in the VM (this installer's Linux path)"
   set -- --release "$REL"
   [ "$DRY" = 1 ] && set -- "$@" --dry-run
-  # The VM is behind the Mac's NAT: local (its ports forwarded to the Mac), unless the owner asks for its own tailnet node.
-  if [ "${EXPOSURE:-local}" = local ]; then set -- "$@" --no-tailscale; else set -- "$@" --exposure "${EXPOSURE:-}"; fi
+  # Only the mode the owner asked for: unset, the VM's setup keeps a rerun's mode, and a new VM (behind the Mac's NAT, no
+  # public IPv4) lands on local by itself.
+  if [ "$NO_TS" = 1 ]; then set -- "$@" --no-tailscale; elif [ -n "${EXPOSURE:-}" ]; then set -- "$@" --exposure "$EXPOSURE"; fi
   [ "$VERBOSE" = 1 ] && set -- "$@" --verbose
   [ "$NONINT" = 1 ] && set -- "$@" --non-interactive
   [ -z "$DIR" ] || set -- "$@" --dir "$DIR"
