@@ -64,6 +64,7 @@ The installer ends with a one-time setup link. Open it in your browser, create y
 - **Day one:** hand the agents something real: a doc to research, a follow-up, an app.
 - **Week one:** connect Slack or Google, and describe the first agent you want.
 - **Ongoing:** new releases arrive as tested distros. You choose when to update.
+- **From your Claude:** add the board's `/mcp` address to Claude Code or Codex and manage AidenHQ from there.
 **What it costs**
 AidenHQ is free and open source. You bring a server and a model key, set the monthly budget you want, and the Costs page shows exactly where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
 

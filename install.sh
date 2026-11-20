@@ -728,6 +728,7 @@ finish() {
   # Machine-readable, plain and at the start of a line (no --verbose needed): scripts and agents grep these.
   printf '\n'
   [ -z "${SETUP_EXPOSURE:-}" ] || printf 'AIDENHQ_EXPOSURE=%s\n' "$SETUP_EXPOSURE"
+  [ -z "${BOARD_URL:-}" ] || printf 'AIDENHQ_BOARD_URL=%s\n' "$BOARD_URL"
   [ -z "$SETUP_URL" ] || printf 'AIDENHQ_SETUP_URL=%s\n' "$SETUP_URL"
   [ -z "$SSH_TUNNEL" ] || printf 'AIDENHQ_SSH_TUNNEL=%s\n' "$SSH_TUNNEL"
 }
