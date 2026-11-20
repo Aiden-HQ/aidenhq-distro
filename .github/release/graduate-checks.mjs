@@ -103,6 +103,16 @@ export function buildResult(dir, id, baseline) {
   };
 }
 
+/** What a triager needs, without admin rights to the logs: each failed check with its note, then the last note naming the update
+ * record, scrubbed of URLs, addresses and tokens and capped (it goes in a public issue). */
+export function failureLines(result, cap = 12) {
+  const scrub = (t) => t.replace(/https?:\/\/\S+/g, "<url>").replace(/\b\d{1,3}(\.\d{1,3}){3}\b/g, "<ip>").replace(/(token=)\S+/g, "$1<redacted>").replace(/sk-or-[\w-]{20,}/g, "<redacted>").replace(/`/g, "'").slice(0, 300);
+  const lines = Object.entries(result.checks).filter(([, ok]) => !ok).map(([k]) => `FAIL ${k}: ${result.notes.findLast((n) => n.startsWith(`${k}: `))?.slice(k.length + 2) ?? "no note (it never ran or decided)"}`);
+  const rec = result.notes.findLast((n) => n.includes("record:"));
+  if (rec && !lines.some((l) => l.endsWith(rec.slice(rec.indexOf(": ") + 2)))) lines.push(`last record: ${rec}`);
+  return lines.slice(0, cap).map(scrub).join("\n");
+}
+
 if (import.meta.main && process.argv[2] === "result") {
   const dir = process.env.GRAD_DIR;
   if (!dir) throw new Error("GRAD_DIR is not set");
@@ -114,7 +124,7 @@ if (import.meta.main && process.argv[2] === "result") {
   console.log(`verdict: ${v}`);
   // Whether the candidate's move began (the updater prepared it): only then can a failure be the candidate's.
   const reached = existsSync(join(dir, "reached-candidate")) ? "candidate" : "";
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${v}\nreached=${reached}\n`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `verdict=${v}\nreached=${reached}\nfailures<<GRAD_EOF\n${failureLines(result)}\nGRAD_EOF\n`);
   const table = [
     "| check | |", "|---|---|", ...Object.entries(result.checks).map(([k, v]) => `| ${k} | ${v ? "ok" : "FAIL"} |`), "", `Verdict: ${v}`, "",
     "| phase | seconds |", "|---|---|", ...Object.entries(result.timings).map(([k, v]) => `| ${k} | ${v} |`), "",

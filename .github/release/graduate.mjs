@@ -261,6 +261,7 @@ async function reject() {
     if (!open.some((i) => i.title === title)) await api(`repos/${DISTRO}/issues`, { method: "POST", body: { title, body } });
   };
   const e = process.env;
+  const evidence = e.FAILURES?.trim() ? `\n\nFailing checks (from the test's verdict):\n\`\`\`\n${e.FAILURES.trim().replace(/`/g, "'")}\n\`\`\`` : "";
   const what = onFailure({ test: e.TEST_RESULT, reached: e.REACHED, verdict: e.VERDICT, promote: e.PROMOTE_RESULT });
   if (what === "none") { summary("nothing failed that rejects or reports"); return; }
   if (what === "issue") {
@@ -269,7 +270,7 @@ async function reject() {
       : e.VERDICT === "harness" ? "the test hit a limit of its own (the job log says which, e.g. the update waiting on an owner's tap the test doesn't make)"
       : e.REACHED !== "candidate" ? `the baseline ${base} or the runner failed before the upgrade started`
       : "the test didn't finish judging it (a rate limit, a step or the job cut short by its timeout, or a cancel)";
-    await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag} wasn't graduated or rejected: ${why}. It stays a pending pre-release and is tested again at the next run (every 6 hours, or run graduate by hand). If it keeps failing this way, reject it by hand (README "Release graduation").\n\nRun: ${run}`);
+    await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag} wasn't graduated or rejected: ${why}. It stays a pending pre-release and is tested again at the next run (every 6 hours, or run graduate by hand). If it keeps failing this way, reject it by hand (README "Release graduation").${evidence}\n\nRun: ${run}`);
     summary(`**${id.tag} not judged**: ${why}; ${run}`);
     return;
   }
@@ -281,14 +282,14 @@ async function reject() {
     const n = noteIncomplete(release.body, run);
     await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { body: n.body } });
     if (!n.rejected) {
-      await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag}'s upgrade began but the run ended without a verdict (it hung, a step timed out, or its checks never wrote): ${n.count} of ${INCOMPLETE_LIMIT} such runs. It stays pending and is tested again at the next run; at ${INCOMPLETE_LIMIT} it is rejected.\n\nRun: ${run}`);
+      await issue(`Graduation of ${id.tag} didn't finish`, `${id.tag}'s upgrade began but the run ended without a verdict (it hung, a step timed out, or its checks never wrote): ${n.count} of ${INCOMPLETE_LIMIT} such runs. It stays pending and is tested again at the next run; at ${INCOMPLETE_LIMIT} it is rejected.${evidence}\n\nRun: ${run}`);
       summary(`**${id.tag} incomplete** (${n.count}/${INCOMPLETE_LIMIT}); ${run}`);
       return;
     }
     marked = true; // its body above carries the rejected mark already
   }
   if (!marked) await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { body: markRejected(release.body, run) } });
-  await issue(`Release ${id.tag} failed graduation`, `${id.tag} didn't pass graduation, so it stays a pre-release: no install updates to it and get.aidenhq.ai keeps serving the latest graduated release. The next cut is tested from the same baseline.\n\nRun: ${run}\n\nTo test it again (an infrastructure failure), delete the \`${MARK}\` line from the release's notes; the next graduate run picks it up.`);
+  await issue(`Release ${id.tag} failed graduation`, `${id.tag} didn't pass graduation, so it stays a pre-release: no install updates to it and get.aidenhq.ai keeps serving the latest graduated release. The next cut is tested from the same baseline.${evidence}\n\nRun: ${run}\n\nTo test it again (an infrastructure failure), delete the \`${MARK}\` line from the release's notes; the next graduate run picks it up.`);
   summary(`**${id.tag} rejected**: marked in its notes; ${run}`);
 }
 

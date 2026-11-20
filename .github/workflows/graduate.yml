@@ -71,6 +71,8 @@ jobs:
       # passed, failed (a check ran and said no), harness (the test hit its own limit) or incomplete; empty when the job was
       # cut short before its result.
       verdict: ${{ steps.result.outputs.verdict }}
+      # Each failed check with its note, scrubbed and capped (graduate-checks.mjs failureLines), for the failure issue.
+      failures: ${{ steps.result.outputs.failures }}
     env:
       TAG: ${{ needs.select.outputs.tag }}
       TAG_SHA: ${{ needs.select.outputs.tag_sha }}
@@ -198,6 +200,7 @@ jobs:
           TEST_RESULT: ${{ needs.test.result }}
           REACHED: ${{ needs.test.outputs.reached }}
           VERDICT: ${{ needs.test.outputs.verdict }}
+          FAILURES: ${{ needs.test.outputs.failures }}
           PROMOTE_RESULT: ${{ needs.promote.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node .github/release/graduate.mjs reject

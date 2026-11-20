@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildResult, child, readChecks, runParallel, verdictOf, writeCheck } from "./graduate-checks.mjs";
+import { buildResult, child, failureLines, readChecks, runParallel, verdictOf, writeCheck } from "./graduate-checks.mjs";
 import { CHECKS, checkIdentity, closable, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
@@ -138,4 +138,14 @@ test("a graduation closes the \"didn't finish\" issues github-actions opened, ne
     i("Graduation of 2026.11.19.4 didn't finish", "github-actions[bot]", { pull_request: {} }),
   ]);
   assert.deepEqual(got.map((x) => x.title), ["Graduation of 2026.11.19.1 didn't finish", "Graduation of 2026.11.19.2 didn't finish"]);
+});
+
+test("the failure notice lists each failed check with its note and the last record line, scrubbed and capped", () => {
+  const checks = { installed: true, upgraded: false, smoke: false };
+  const notes = ["upgraded: 2026.11.20 didn't install: the card was rejected (record: rejected module-authority) see https://host.example.com/x 10.0.0.5", "other: unrelated"];
+  const out = failureLines({ checks, notes });
+  assert.match(out, /^FAIL upgraded: 2026\.11\.20 didn't install: the card was rejected \(record: rejected module-authority\) see <url> <ip>$/m);
+  assert.match(out, /^FAIL smoke: no note/m);
+  assert.doesNotMatch(out, /example\.com|10\.0\.0\.5/);
+  assert.equal(failureLines({ checks: Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`c${i}`, false])), notes: [] }).split("\n").length, 12);
 });
