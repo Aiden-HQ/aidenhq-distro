@@ -8,7 +8,7 @@ user. Every command is validated against the installer served at `https://get.ai
 
 Complete every step yourself by running the commands directly. Do not ask the user to run them. Steps: ask the
 user two things, check the server, secrets (only if needed), dry run, install while relaying progress, read the result
-and verify, connect the AidenHQ MCP. The rest of setup (password, authenticator, model key, channels) happens in the browser, guided by Aiden.
+and verify, then connect the AidenHQ MCP. The rest of setup (password, authenticator, model key, channels) happens in the browser, guided by Aiden.
 
 **Rules.** The installer runs on the Linux server, never on the user's laptop, unless the user chose their Mac (below). Never wrap it in `sudo`: connect as
 root or as a user with passwordless sudo, and it calls `sudo` itself. Secrets go only in the file in step 3, never on
@@ -188,8 +188,8 @@ Once done, tell the user:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-Add: "When the browser setup is done, come back here. Authenticate the AidenHQ MCP (Claude Code: `/mcp`, choose
-`aidenhq`, Authenticate; sign in with your password and authenticator, then Allow) and I'll finish setup with you."
+Add: "When the browser setup is done, come back here. Authenticate the AidenHQ MCP (Claude Code: `/reload-plugins`, then `/mcp`,
+choose `aidenhq`, Authenticate; sign in with your password and authenticator, then Allow) and I'll finish setup with you."
 
 On a Mac, add one line: "Keep your Mac awake (on power) so your agents keep working." Only if the install output
 printed `AIDENHQ_SSH_TUNNEL=`, add above the link: "Keep this tunnel open on your laptop:
