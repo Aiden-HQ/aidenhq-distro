@@ -17,7 +17,7 @@ Every installer step is idempotent: fix the cause and rerun the same command. Th
 GitHub token is needed (a private fork needs one: step 3).
 
 **On a Mac** (if the user wants AidenHQ on their Mac instead of a server): run the same command on the Mac itself, with
-`--no-tailscale` and no sudo. It installs pinned Lima, creates an Ubuntu 24.04 VM named `aidenhq` (about half the cores
+no sudo. It installs pinned Lima, creates an Ubuntu 24.04 VM named `aidenhq` (about half the cores
 and memory, a 100 GB sparse disk) and runs the Linux install inside it. Open the printed `http://localhost:3120/setup?...` link
 on the Mac; no tunnel is needed. Needs macOS 13+, 12 GB memory and 60 GB free. A sleeping Mac pauses every agent, so
 add `AIDENHQ_KEEP_AWAKE=1` next to the email in steps 4 and 5 unless the user said otherwise: it keeps the Mac awake on
@@ -72,7 +72,7 @@ ssh <target> 'umask 077; cat > ~/.aidenhq-secrets.env' < ~/.aidenhq-secrets.env
 It prints the plan and changes nothing.
 
 ```sh
-ssh <target> 'curl -fsSLo ~/aidenhq-install.sh https://get.aidenhq.ai && AIDENHQ_OWNER_EMAIL=<email> AIDENHQ_TIMEZONE=<zone> sh ~/aidenhq-install.sh --dry-run --non-interactive --no-tailscale'
+ssh <target> 'curl -fsSLo ~/aidenhq-install.sh https://get.aidenhq.ai && AIDENHQ_OWNER_EMAIL=<email> AIDENHQ_TIMEZONE=<zone> sh ~/aidenhq-install.sh --dry-run --non-interactive'
 ```
 
 Lines after `A real run would refuse:` or `A real run would stop here` are blockers: fix them or tell the user.
@@ -87,7 +87,7 @@ It downloads and starts everything, so run it detached:
 ssh <target> 'umask 077; cat > ~/aidenhq-install-run.sh' <<'EOF'
 #!/bin/sh
 if [ -f "$HOME/.aidenhq-secrets.env" ]; then set -a; . "$HOME/.aidenhq-secrets.env"; set +a; fi
-AIDENHQ_OWNER_EMAIL='<email>' AIDENHQ_OWNER_NAME='<name>' AIDENHQ_TIMEZONE='<zone>' sh "$HOME/aidenhq-install.sh" --non-interactive --no-tailscale
+AIDENHQ_OWNER_EMAIL='<email>' AIDENHQ_OWNER_NAME='<name>' AIDENHQ_TIMEZONE='<zone>' sh "$HOME/aidenhq-install.sh" --non-interactive
 echo "AIDENHQ_INSTALL_EXIT=$?"
 shred -u "$HOME/.aidenhq-secrets.env" 2>/dev/null || rm -f "$HOME/.aidenhq-secrets.env"
 EOF
@@ -113,10 +113,13 @@ the cause (below), recreate any secrets file, and start again.
 Root installs: run this as `aidenhq` with `sudo` on `/root/aidenhq-install.out` (step 2).
 
 ```sh
-ssh <target> 'grep -E "^AIDENHQ_(SETUP_URL|SSH_TUNNEL)=" ~/aidenhq-install.out'
+ssh <target> 'grep -E "^AIDENHQ_(EXPOSURE|SETUP_URL|SSH_TUNNEL)=" ~/aidenhq-install.out'
 ```
 
-- `AIDENHQ_SETUP_URL=`: the owner's setup link. One use, valid 72 hours. Never open it yourself. It is printed only
+- `AIDENHQ_EXPOSURE=`: how the board is reached. `public`: on the server's own `https://<ip>`, from anywhere, behind
+  the owner's password and authenticator (the link lasts 24 hours). `tailscale`: on the tailnet only. `local`: through
+  the SSH tunnel below (a server behind NAT, or a Mac's VM).
+- `AIDENHQ_SETUP_URL=`: the owner's setup link. One use, valid 72 hours (24 in `public`). Never open it yourself. It is printed only
   after the install's own health checks pass.
 - `AIDENHQ_SSH_TUNNEL=`: printed only when the board is not reachable directly (a server without a public address).
   Replace its host with the address you SSH to; keep the user and every local port as printed (3121 the board, 3120
@@ -134,10 +137,12 @@ name the failed check. Finally delete `aidenhq-install-run.sh` from the same pla
 
 ## (Optional) Tailscale
 
-Not part of the default path: offer it only if the user asks for private-network access. The board is then served at
-`https://<board-host>.<tailnet>.ts.net` to their tailnet only. They need MagicDNS and HTTPS certificates on
-(https://login.tailscale.com/admin/dns) and their laptop on the tailnet. Drop `--no-tailscale` in steps 4 and 5. A
-server not yet on the tailnet needs a `TS_AUTHKEY` (https://login.tailscale.com/admin/settings/keys) in step 3.
+Not part of the default path: offer it only if the user asks for private-network access, or wants the board off the
+public Internet. The board is then served at `https://<board-host>.<tailnet>.ts.net` to their tailnet only. They need
+MagicDNS and HTTPS certificates on (https://login.tailscale.com/admin/dns) and their laptop on the tailnet. A server
+already on the tailnet uses it by itself; otherwise put a `TS_AUTHKEY`
+(https://login.tailscale.com/admin/settings/keys) in step 3. To move an installed server onto the tailnet later: join
+it (`sudo tailscale up`), then, as the service user in `~/aidenhq`, `sudo ops/setup.sh --unattended --exposure tailscale`.
 
 ## If something goes wrong
 
@@ -146,11 +151,11 @@ server not yet on the tailnet needs a `TS_AUTHKEY` (https://login.tailscale.com/
   AIDENHQ_GITHUB_TOKEN` appears only for a private fork: add the token (step 3).
 - `needs passwordless sudo`: connect as root, or give that user passwordless sudo.
 - `set AIDENHQ_OWNER_EMAIL`: put the email on the `sh` side, exactly as in step 5.
-- `isn't on the tailnet`: add `TS_AUTHKEY` (step 3), or use `--no-tailscale`.
+- `isn't on the tailnet`: add `TS_AUTHKEY` (step 3), or join it first (`sudo tailscale up`).
 - CPU, RAM, disk, systemd, container, WSL or OS refusals: this server can't host AidenHQ. Ask for another.
 - `ops/setup.sh failed`: read `/var/log/aidenhq-install.log` (root) or `~/.aidenhq/install.log`.
 - `Permission denied (publickey)` for root after the install: expected. Connect as `aidenhq`.
-- Later, as the service user in `~/aidenhq` (add `--no-tailscale` if used): a new link while no account exists,
+- Later, as the service user in `~/aidenhq`: a new link while no account exists,
   `sudo OWNER_EMAIL=<email> ops/setup.sh --unattended --link`; a model key, `OPENROUTER_KEY=<key>` in a root-only
   `0600` file, then `sudo OWNER_EMAIL=<email> ops/setup.sh --unattended --config <file>`, then delete the file.
 - Remove: `sh ~/aidenhq-install.sh --uninstall --non-interactive` (root installs: as `aidenhq`,
@@ -164,7 +169,7 @@ Once done, tell the user:
 
 ```
 ┌─ AidenHQ is ready ──────────────────────────────────────────────┐
-│  Open your setup link (one use, 72 hours):                      │
+│  Open your setup link (one use):                                │
 │       <AIDENHQ_SETUP_URL>                                       │
 │  Aiden walks you through the rest.                              │
 └─────────────────────────────────────────────────────────────────┘

@@ -127,7 +127,7 @@
      "name": "Where does my data live?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "On the server you run it on. The workspace has no open ports: you reach it over an SSH tunnel or your private network. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back."
+      "text": "On the server you run it on. You reach the board over HTTPS on your server's own address, behind your password and a one-time code, or keep it on your private network with Tailscale. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back."
      }
     },
     {
@@ -387,7 +387,7 @@
       <li class="cap reveal" style="--c: var(--violet)"><h3>How do I install it?</h3><p>Paste one line into Claude Code, Codex or another coding assistant: &ldquo;Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md&rdquo;. Or run <code>curl -fsSL https://get.aidenhq.ai | sh</code> on the server yourself. The install ends with a one-time setup link: open it, create your password and authenticator, and add your model key.</p><p style="margin-top:10px"><a class="lnk" href="/start/">Get started</a></p></li>
       <li class="cap reveal" style="--c: var(--teal)"><h3>What do I need?</h3><p>A Linux server with Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13: at least 2 cores, 6 GB of memory and 60 GB of disk (4 cores, 8 GB and 100 GB recommended), reachable over SSH with a key. A Mac with macOS 13 or later, 12 GB of memory and 60 GB free also works. You also need an OpenRouter key for the AI models. Telegram, Slack and Google are optional.</p><p style="margin-top:10px"><a class="lnk" href="/install/">Install guide</a></p></li>
       <li class="cap reveal" style="--c: var(--amber)"><h3>What does it cost to run?</h3><p>AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Each agent has spend caps per run, per task and per day, you can put a monthly limit on the key itself, and the Costs page shows where every cent goes.</p><p style="margin-top:10px"><a class="lnk" href="/safety/#costs">Spend limits</a></p></li>
-      <li class="cap reveal" style="--c: var(--sky)"><h3>Where does my data live?</h3><p>On the server you run it on. The workspace has no open ports: you reach it over an SSH tunnel or your private network. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back.</p><p style="margin-top:10px"><a class="lnk" href="/safety/#private">Private by design</a></p></li>
+      <li class="cap reveal" style="--c: var(--sky)"><h3>Where does my data live?</h3><p>On the server you run it on. You reach the board over HTTPS on your server's own address, behind your password and a one-time code, or keep it on your private network with Tailscale. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back.</p><p style="margin-top:10px"><a class="lnk" href="/safety/#private">Private by design</a></p></li>
       <li class="cap reveal" style="--c: var(--pink)"><h3>Is it open source?</h3><p>Yes. The kernel is AGPL-3.0-only. The official modules, the app starter and the design system are MIT, so the apps your agents build carry no AGPL obligations.</p><p style="margin-top:10px"><a class="lnk" href="https://github.com/Aiden-HQ/AidenHQ">Source on GitHub</a></p></li>
     </ul>
   </div>
