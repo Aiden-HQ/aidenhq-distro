@@ -4,8 +4,9 @@
 // the commit, the product's git, the compiled config) and tiers it; the review loop builds the reviewer's request; that
 // release's own AI reviewer (modules/ai-reviewer, its policy) judges it on the model, as its service does.
 // One stand-in: the planner's check that the move is the updater's own verified release (updates.ts verify) needs the release
-// published, which this test precedes; it answers the commit's own instance.yaml, which the old updater's pinText wrote.
-//   OPENROUTER_API_KEY=… node kernel/src/review-as-installed.ts <instance bare repo> <instance repo> <branch> <sha> <from release> <records db>
+// published, which this test precedes; it answers the commit's own instance.yaml (which the old updater's pinText wrote) only
+// for exactly the release being cut, <release> at <distro sha>, as the workflow names it.
+//   OPENROUTER_API_KEY=… node kernel/src/review-as-installed.ts <instance bare repo> <instance repo> <branch> <sha> <from release> <release> <distro sha> <records db>
 // Exits 0 only when the record was approved; 1 for anything else (rejected, waiting on the owner, refused at filing).
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -25,14 +26,15 @@ import { LOCAL_KINDS } from "../../modules/codehost-local/src/host.ts";
 import { localApply } from "../../modules/codehost-local/src/apply.ts";
 import { openRouterAsk, review } from "../../modules/ai-reviewer/service/src/review.mjs";
 
-const [bare, instanceRepo, branch, sha, from, db] = process.argv.slice(2) as [string, string, string, string, string, string];
+const [bare, instanceRepo, branch, sha, from, release, relsha, db] = process.argv.slice(2) as [string, string, string, string, string, string, string, string];
 const key = process.env.OPENROUTER_API_KEY?.trim();
 if (!key) throw new Error("OPENROUTER_API_KEY is not set: the release's own AI reviewer needs a model key");
 const log = (msg: string, f: Record<string, unknown> = {}) => console.log(`  kernel: ${msg} ${JSON.stringify(f).slice(0, 400)}`);
 const git = (...args: string[]) => execFileSync("git", ["--git-dir", bare, ...args], { encoding: "utf8" });
 const pinned = git("show", `${sha}:instance.yaml`);
-const release = /^release: *\{ *name: *"?([0-9.]+)"?/m.exec(pinned)?.[1] ?? "";
-const kernel = /^product: *([0-9a-f]{40})/m.exec(pinned)?.[1] ?? "";
+const head = YAML.parse(pinned) as { product?: unknown; release?: { name?: unknown; sha?: unknown } };
+if (String(head.release?.name) !== release || String(head.release?.sha) !== relsha) throw new Error(`the pin commit doesn't pin ${release} at ${relsha}`);
+const kernel = String(head.product ?? "");
 const product = execFileSync("git", ["-C", repo, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 
 // The task the kernel files for a prepared release (main.ts, createUpdates' `file`), from this release's own templates.
@@ -66,7 +68,7 @@ const writes = createWrites({
     "kernel.apply": hostPlanner({
       repo, configDir, instanceRepo: () => instanceRepo, read: localApply({ bare, instanceRepo }).read, grants: () => ({}),
       connections: watched(join(configDir, "kernel", "connections.json"), (j) => j as never, {}),
-      verifyRelease: async (_base, name, s) => (name === release && pinned.includes(`sha: ${s}`) ? pinned : null),
+      verifyRelease: async (_base, name, s) => (name === release && s === relsha ? pinned : null),
     }),
   },
 });

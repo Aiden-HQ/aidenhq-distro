@@ -148,7 +148,7 @@ used up: the next cut that day takes the next `.N`.
   The tag run then tests and publishes it.
 
 The nightly and release workflows use the built-in `GITHUB_TOKEN`, plus one secret: graduation's model key (below), which
-the tag run's upgrade test also uses so the last release's own AI reviewer judges the update.
+the tag run's `review` job also uses so the last release's own AI reviewer judges the update.
 
 ### Release graduation
 
@@ -248,7 +248,7 @@ Operating it:
   `gh release edit <tag> -R Aiden-HQ/aidenhq-distro --prerelease=false --latest`. Never graduate a release older than
   the current latest.
 - **The secret:** `GRADUATE_OPENROUTER_KEY`, an OpenRouter key with a low spend limit. The test runs the candidate's
-  code with it, so it must be a key whose leak costs at most its limit. `release.yml`'s upgrade test uses it too: there
+  code with it, so it must be a key whose leak costs at most its limit. `release.yml`'s `review` job (its only user there, on a fresh runner that runs no code of the release) uses it too: there
   the last graduated release's own kernel files the update and its AI reviewer judges it, as on an install.
 - **The bootstrap:** a baseline whose updater predates graduation (no `AIDENHQ_UPDATE_CANDIDATE` in its
   `kernel/src/updates.ts`) can't be upgraded this way, and select fails with "baseline ... predates graduation;
