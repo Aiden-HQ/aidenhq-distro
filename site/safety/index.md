@@ -58,7 +58,7 @@ Every component is pinned to an exact version, and new releases wait a week befo
 
 AidenHQ runs on one machine you control. Your settings and history live there and in a private repository you control, and every change is recorded so it can be undone.
 
-- **Zero open ports.** The board lives on your private network, behind a password and a one-time code.
+- **One door, locked twice.** The board is behind a password and a one-time code, on your server's HTTPS address or only on your private network (Tailscale). Nothing else is open but SSH.
 - **An encrypted vault.** Passwords and keys are kept encrypted, out of every prompt; each service gets exactly its own.
 - **Logins stay with the connection.** Agents use your tools through a connection that holds the sign-in for them.
 - **Full history.** Agents, instructions, settings and apps live in your own private repository. Go back to any earlier version.

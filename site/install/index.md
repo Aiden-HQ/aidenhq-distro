@@ -38,7 +38,7 @@ Prefer to see every step? The setup guide walks through each one by hand, with a
 
 ## What you need.
 
-A modest server runs the whole workspace. Reach it over your private network or a secure tunnel, with zero open ports.
+A modest server runs the whole workspace. Reach it over HTTPS on its own address, or on your private network.
 
 - **Server:** Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13, with systemd
 - **Size:** 2 cores, 6 GB memory, 60 GB disk. Recommended: 4 cores, 8 GB, 100 GB
@@ -55,7 +55,7 @@ Telegram, Slack and Google are optional. Connect them later, from the board, wit
 
 ### Private access
 
-Reach the board over an SSH tunnel, or on your private network with Tailscale if you prefer.
+The board is on your server's own HTTPS address, behind your password and a one-time code. Prefer it off the Internet? Put the server on Tailscale and only your devices reach it.
 
 ## Your workspace opens.
 

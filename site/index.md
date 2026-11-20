@@ -101,7 +101,7 @@ AidenHQ itself is free and open source. You pay for your own server and for mode
 
 ### Where does my data live?
 
-On the server you run it on. The workspace has no open ports: you reach it over an SSH tunnel or your private network. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back. [Private by design](https://aidenhq.ai/safety/index.md#private)
+On the server you run it on. You reach the board over HTTPS on your server's own address, behind your password and a one-time code, or keep it on your private network with Tailscale. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back. [Private by design](https://aidenhq.ai/safety/index.md#private)
 
 ### Is it open source?
 
