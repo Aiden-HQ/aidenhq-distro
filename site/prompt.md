@@ -65,7 +65,7 @@ ssh <target> 'umask 077; cat > ~/.aidenhq-secrets.env' < ~/.aidenhq-secrets.env
 
 - `AIDENHQ_GITHUB_TOKEN=`: only for a private fork: contents read access to its repositories.
 - `OPENROUTER_KEY=`: only if the user offers a model key.
-- `TS_AUTHKEY=`: only for the optional Tailscale setup below.
+- `TS_AUTHKEY=`: only if the user chose Tailscale (optional; see the Tailscale section below). Tailscale is never required.
 
 ## 4. Dry run
 
@@ -117,7 +117,7 @@ ssh <target> 'grep -E "^AIDENHQ_(EXPOSURE|BOARD_URL|SETUP_URL|SSH_TUNNEL)=" ~/ai
 ```
 
 - `AIDENHQ_EXPOSURE=`: how the board is reached. `public`: on the server's own `https://<ip>`, from anywhere, behind
-  the owner's password and authenticator (the link lasts 24 hours). `tailscale`: on the tailnet only. `local`: through
+  the owner's password and authenticator (the link lasts 24 hours). `tailscale` (optional): on the user's tailnet only. `local`: through
   the SSH tunnel below (a server behind NAT, or a Mac's VM).
 - `AIDENHQ_BOARD_URL=`: the board's address. `/mcp` on it is the owner MCP (step 7).
 - `AIDENHQ_SETUP_URL=`: the owner's setup link. One use, valid 72 hours (24 in `public`). Never open it yourself. It is printed only
@@ -145,7 +145,7 @@ so it is ready after the browser setup:
   yourself. Codex CLI: `codex mcp add aidenhq --url <AIDENHQ_BOARD_URL>/mcp`.
 - You run on the server itself, or are another client: give the user that command to run on their own computer.
 
-In `tailscale` mode their computer must be on the tailnet; in `local` mode the SSH tunnel must be up. It cannot sign in
+In `public` mode nothing else is needed; in `local` mode the SSH tunnel must be up; only if the user chose `tailscale` must their computer be on the tailnet. It cannot sign in
 yet: the owner account is created in the browser setup.
 
 ## (Optional) Tailscale
@@ -164,7 +164,7 @@ it (`sudo tailscale up`), then, as the service user in `~/aidenhq`, `sudo ops/se
   AIDENHQ_GITHUB_TOKEN` appears only for a private fork: add the token (step 3).
 - `needs passwordless sudo`: connect as root, or give that user passwordless sudo.
 - `set AIDENHQ_OWNER_EMAIL`: put the email on the `sh` side, exactly as in step 5.
-- `isn't on the tailnet`: add `TS_AUTHKEY` (step 3), or join it first (`sudo tailscale up`).
+- A `--exposure tailscale` run that stops at a Tailscale sign-in: the user chose Tailscale, so add `TS_AUTHKEY` (step 3) or join first (`sudo tailscale up`). Otherwise rerun without it: a server needs no tailnet.
 - CPU, RAM, disk, systemd, container, WSL or OS refusals: this server can't host AidenHQ. Ask for another.
 - `ops/setup.sh failed`: read `/var/log/aidenhq-install.log` (root) or `~/.aidenhq/install.log`.
 - `Permission denied (publickey)` for root after the install: expected. Connect as `aidenhq`.
