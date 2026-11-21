@@ -130,14 +130,15 @@ test("checks side by side: each decides in its own file, a hang is incomplete (n
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
-test("a graduation closes the \"didn't finish\" issues github-actions opened, never a rejected cut's issue, a human's or a PR", () => {
+test("a graduation closes the \"didn't finish\" issues github-actions opened and older rejected cuts' issues, never a newer one's, a human's or a PR", () => {
   const i = (title, login = "github-actions[bot]", extra = {}) => ({ number: 1, title, user: { login }, ...extra });
   const got = closable([
     i("Graduation of 2026.11.19.1 didn't finish"), i("Graduation of 2026.11.19.2 didn't finish", "github-actions"),
-    i("Release 2026.11.19.1 failed graduation"), i("Graduation of 2026.11.19.3 didn't finish", "someone"),
+    i("Release 2026.11.19.1 failed graduation"), i("Release 2026.11.9.9 failed graduation"), i("Release 2026.11.20.1 failed graduation"),
+    i("Graduation of 2026.11.19.3 didn't finish", "someone"),
     i("Graduation of 2026.11.19.4 didn't finish", "github-actions[bot]", { pull_request: {} }),
-  ]);
-  assert.deepEqual(got.map((x) => x.title), ["Graduation of 2026.11.19.1 didn't finish", "Graduation of 2026.11.19.2 didn't finish"]);
+  ], "2026.11.19.5");
+  assert.deepEqual(got.map((x) => x.title), ["Graduation of 2026.11.19.1 didn't finish", "Graduation of 2026.11.19.2 didn't finish", "Release 2026.11.19.1 failed graduation", "Release 2026.11.9.9 failed graduation"]);
 });
 
 test("the failure notice lists each failed check with its note and the last record line, scrubbed and capped", () => {

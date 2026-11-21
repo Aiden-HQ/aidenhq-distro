@@ -11,7 +11,7 @@
 #            The only job that runs a release's code; it hands promote one small result.json, with each phase's seconds.
 #   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
 #            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
-#            to move latest back; a re-run of a graduated release does nothing. It closes the open "didn't finish" issues.
+#            to move latest back; a re-run of a graduated release does nothing. It closes the open "didn't finish" issues and older rejected cuts' issues.
 #   reject   (contents: write, issues: write) when test or promote failed: the rejected mark and one issue. A rejected
 #            release stays a pre-release; the next candidate is tested from the same baseline.
 # Triggers: release.yml dispatches it when its publish succeeds (its `graduate` job; not workflow_run, which never fires for
