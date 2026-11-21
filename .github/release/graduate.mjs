@@ -132,8 +132,14 @@ export function noteIncomplete(body, run) {
   return { body: reject ? markRejected(b, `${run} (never completed in ${n} runs)`) : b, count: n, rejected: reject };
 }
 
-/** The open issues graduation itself opened for a cut it couldn't judge (infrastructure failure, incomplete): closed once a release graduates. A rejected cut's own issue is not one. */
-export const closable = (issues) => issues.filter((i) => !i.pull_request && /^github-actions(\[bot\])?$/.test(i.user?.login ?? "") && /^Graduation of \S+ didn't finish$/.test(i.title));
+/** Release tags in order (YYYY.MM.DD.N): negative when `a` is older. */
+const tagOrder = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let k = 0; k < Math.max(x.length, y.length); k++) if ((x[k] ?? 0) !== (y[k] ?? 0)) return (x[k] ?? 0) - (y[k] ?? 0); return 0; };
+/**
+ * The open issues graduation itself opened, closed once `tag` graduates: every cut it couldn't judge (infrastructure failure,
+ * incomplete), and each older cut it rejected (a later cut graduated past it, so whatever failed it no longer stops releases).
+ */
+export const closable = (issues, tag) => issues.filter((i) => !i.pull_request && /^github-actions(\[bot\])?$/.test(i.user?.login ?? "") &&
+  (/^Graduation of \S+ didn't finish$/.test(i.title) || (/^Release (\S+) failed graduation$/.test(i.title) && tagOrder(i.title.split(" ")[1], tag) < 0)));
 
 /** The body with the rejected mark (unchanged when it has one). */
 export const markRejected = (body, run) => (rejected(body) ? String(body) : `${String(body ?? "").trimEnd()}\n\n${MARK} ${run}\n`);
@@ -245,7 +251,7 @@ async function promote(file) {
   await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { prerelease: false, make_latest: "true" } });
   const now = await api(`repos/${DISTRO}/releases/latest`);
   if (now.tag_name !== id.tag) throw new Error(`after promotion GitHub's latest is ${now.tag_name}, not ${id.tag}`);
-  for (const i of closable(await api(`repos/${DISTRO}/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100`))) {
+  for (const i of closable(await api(`repos/${DISTRO}/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100`), id.tag)) {
     await api(`repos/${DISTRO}/issues/${i.number}/comments`, { method: "POST", body: { body: `${id.tag} graduated: ${process.env.RUN_URL}` } });
     await api(`repos/${DISTRO}/issues/${i.number}`, { method: "PATCH", body: { state: "closed", state_reason: "completed" } });
   }
