@@ -12,7 +12,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Chief of staff and follow-ups
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | Chief of staff | Aiden takes any request, hands it to the right agent and follows up until it is done. | Board, Telegram | Core |
 | Board | Your daily view: tasks, chats, approvals, apps, costs and the panels you pin. | Tasks, Approvals, Apps, Costs | Core |
@@ -23,7 +23,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Engineering
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | Engineering | Engineers in a locked box write code, run checks and open pull requests. | Locked box, GitHub | Core |
 | Codex engine | The coding engine behind Engineer jobs. Engines are modules, so another can be added. | OpenRouter, Agent computer |  |
@@ -36,7 +36,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Work tools
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | GitHub | Agents read and write GitHub as you, labelled as AidenHQ. | Issues, Pull requests, Reviews, Checks, Projects |  |
 | Jira and Confluence | Atlassian's remote MCP server, signed in as you with the scopes you pick. | Jira, Confluence |  |
@@ -46,7 +46,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Apps and data
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | HubSpot | CRM through HubSpot's remote MCP server, with contacts and deals in the warehouse. | HubSpot CRM, Warehouse |  |
 | Grafana | Grafana for Engineer jobs, over a loopback MCP. | Grafana dashboards |  |
@@ -56,7 +56,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Channels
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | Telegram | Chat with Aiden and approve from your phone, with typed messages or voice notes. | Telegram | Core |
 | Slack | Your agents in Slack: read as you, or run a bot with a live listener. | Slack search, Channels, Drafts, Socket Mode |  |
@@ -65,7 +65,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Agents, memory and quality
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | Agent builder | Describe an agent and the Agent Architect designs, builds and trials it. | Primer, Engineer | Core |
 | Agent memory | Agents keep lessons and facts that carry into their next run. | Agent notes |  |
@@ -77,7 +77,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ### Ops and security
 
-| Module | What it does | Connects to | Included |
+| Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | Fleet steward | Unsticks stuck work, reviews outcomes and keeps agent notes tidy. | Board, Fleet |  |
 | Monitoring | Host and fleet monitoring with alerts that open tasks for the Fleet Steward. | Prometheus, Grafana, Alertmanager, cAdvisor |  |
