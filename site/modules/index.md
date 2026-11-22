@@ -8,24 +8,24 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ## Browse modules
 
-38 modules ship with AidenHQ today, in 7 groups. Each declares up front what it can read and write. "Core" marks the modules that are always installed.
+38 modules ship with AidenHQ today, in 7 groups. Each declares up front what it can read and write. "Core" marks the modules that are always installed; the rest are added in one step.
 
 ### Chief of staff and follow-ups
 
 | Module | What it does | Connects to | Included |
 |---|---|---|---|
-| Chief of staff | Aiden takes any request, hands it to the right agent and follows up until it is done. | Board, Telegram | Yes |
-| Board | Your daily view: tasks, chats, approvals, apps, costs and the panels you pin. | Tasks, Approvals, Apps, Costs | Yes |
+| Chief of staff | Aiden takes any request, hands it to the right agent and follows up until it is done. | Board, Telegram | Core |
+| Board | Your daily view: tasks, chats, approvals, apps, costs and the panels you pin. | Tasks, Approvals, Apps, Costs | Core |
 | Open loops | Tracks what others owe you and turns Slack and labelled email into your tasks. | Slack, Gmail, Calendar, Drive |  |
 | Meetings | Meeting memory: transcripts and an Obsidian vault your agents can search. | Obsidian vault, Transcripts |  |
 | Tasks | Every agent can read, create, delegate, comment on and close tasks as itself. | Paperclip tasks |  |
-| Fast chat lane | Agents with a chat answer in seconds with a light model, and can schedule their own wake-ups. | Board chat, Telegram | Yes |
+| Fast chat lane | Agents with a chat answer in seconds with a light model, and can schedule their own wake-ups. | Board chat, Telegram | Core |
 
 ### Engineering
 
 | Module | What it does | Connects to | Included |
 |---|---|---|---|
-| Engineering | Engineers in a locked box write code, run checks and open pull requests. | Locked box, GitHub | Yes |
+| Engineering | Engineers in a locked box write code, run checks and open pull requests. | Locked box, GitHub | Core |
 | Codex engine | The coding engine behind Engineer jobs. Engines are modules, so another can be added. | OpenRouter, Agent computer |  |
 | Code review | Reviews pull requests on the repos you list, or a whole repository on request. | GitHub, Credential-free box |  |
 | Maintainer | Watches your repos, validates labelled issues, hands fixes to an engineer and sees them to a merged PR. | GitHub |  |
@@ -51,14 +51,14 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 | HubSpot | CRM through HubSpot's remote MCP server, with contacts and deals in the warehouse. | HubSpot CRM, Warehouse |  |
 | Grafana | Grafana for Engineer jobs, over a loopback MCP. | Grafana dashboards |  |
 | ClickHouse | ClickHouse Cloud's MCP server: services, schemas and read-only SELECT queries. | ClickHouse Cloud |  |
-| Apps platform | Apps your agents build, deploy, run and keep healthy, from one starter and design system. | Deploy, Run, Rollback, App API | Yes |
-| Warehouse | One shared Postgres every source ingests into, ready for apps and agents to query. | Postgres | Yes |
+| Apps platform | Apps your agents build, deploy, run and keep healthy, from one starter and design system. | Deploy, Run, Rollback, App API | Core |
+| Warehouse | One shared Postgres every source ingests into, ready for apps and agents to query. | Postgres | Core |
 
 ### Channels
 
 | Module | What it does | Connects to | Included |
 |---|---|---|---|
-| Telegram | Chat with Aiden and approve from your phone, with typed messages or voice notes. | Telegram | Yes |
+| Telegram | Chat with Aiden and approve from your phone, with typed messages or voice notes. | Telegram | Core |
 | Slack | Your agents in Slack: read as you, or run a bot with a live listener. | Slack search, Channels, Drafts, Socket Mode |  |
 | Voice notes | Talk to Aiden with voice notes on Telegram, transcribed on your server. | Telegram, Local speech-to-text |  |
 | Owner channel | The one way anything reaches you: it lands once, in the right place. | Board, Telegram, Slack |  |
@@ -67,12 +67,12 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 | Module | What it does | Connects to | Included |
 |---|---|---|---|
-| Agent builder | Describe an agent and the Agent Architect designs, builds and trials it. | Primer, Engineer | Yes |
+| Agent builder | Describe an agent and the Agent Architect designs, builds and trials it. | Primer, Engineer | Core |
 | Agent memory | Agents keep lessons and facts that carry into their next run. | Agent notes |  |
 | Advisor and fan-out | A stronger model for hard calls, and cheap workers for many items at once. | Model gateway |  |
 | OpenRouter models | OpenRouter as the model provider: any model it lists works by id. | OpenRouter |  |
-| AI reviewer | A second AI checks risky actions and blocks only explicit malice. | Model gateway | Yes |
-| Graded done | A task is done only when its rubric is met and the grader agrees. | Board | Yes |
+| AI reviewer | A second AI checks risky actions and blocks only explicit malice. | Model gateway | Core |
+| Graded done | A task is done only when its rubric is met and the grader agrees. | Board | Core |
 | Dispatch | Turns wakes into jobs for every agent and posts each outcome once. | Board |  |
 
 ### Ops and security
