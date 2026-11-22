@@ -73,13 +73,708 @@
       <p class="eyebrow">Modules and distros</p>
       <h1>Shape the workspace around how you work.</h1>
       <p class="lede">Add modules, connect your tools, build your own agents and pin the panels you want. Underneath, AidenHQ is built like Linux. A slim kernel enforces the rules. Modules add the agents, channels, tools and apps. A distro bundles a kernel and a set of modules into one release, tested together, that fits how you work.</p>
-      <div class="btn-row"><a class="btn btn-primary" href="/install/">Get started</a><a class="btn btn-ghost" href="#distros">Pick a distro</a></div>
+      <div class="btn-row"><a class="btn btn-primary" href="#modules">Browse modules</a><a class="btn btn-ghost" href="#distros">Pick a distro</a></div>
     </div>
     <div class="reveal">
 <!--#include scene-distro-->
     </div>
   </div>
 </section>
+
+<section class="section mk" id="modules">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow c-violet">Browse modules</p>
+      <h2>38 modules, one workspace.</h2>
+      <p>Every module below ships with AidenHQ today. Each one declares up front what it can read and write, and adding one takes a single approval. Open any card to see what it connects to and what to ask it.</p>
+    </div>
+    <div class="mk-bar">
+      <label class="mk-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="mk-q" type="search" placeholder="Search modules, tools and agents" aria-label="Search modules" autocomplete="off"></label>
+      <nav class="mk-tabs" aria-label="Categories">
+      <a class="mt on" href="#modules" data-cat="all" aria-pressed="true">All <small>38</small></a>
+      <a class="mt" href="#cat-chief" data-cat="chief" aria-pressed="false">Chief of staff and follow-ups <small>6</small></a>
+      <a class="mt" href="#cat-eng" data-cat="eng" aria-pressed="false">Engineering <small>8</small></a>
+      <a class="mt" href="#cat-tools" data-cat="tools" aria-pressed="false">Work tools <small>5</small></a>
+      <a class="mt" href="#cat-data" data-cat="data" aria-pressed="false">Apps and data <small>5</small></a>
+      <a class="mt" href="#cat-chan" data-cat="chan" aria-pressed="false">Channels <small>4</small></a>
+      <a class="mt" href="#cat-agents" data-cat="agents" aria-pressed="false">Agents, memory and quality <small>7</small></a>
+      <a class="mt" href="#cat-ops" data-cat="ops" aria-pressed="false">Ops and security <small>3</small></a>
+      </nav>
+    </div>
+    <div class="mk-featured" id="mk-featured">
+      <h3 class="mk-label"><span class="mk-star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8L12 3Z"/></svg></span>Featured</h3>
+      <ul class="mfeat">
+<li class="mc feat" data-cat="chief" data-q="chief of staff aiden takes any request, hands it to the right agent and follows up until it is done. board telegram aiden researcher daily brief" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Chief of staff: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Chief of staff</h3>
+    <p class="mc-pitch">Aiden takes any request, hands it to the right agent and follows up until it is done.</p>
+    <span class="mc-conn"><span class="tag r">Board</span><span class="tag r">Telegram</span></span>
+    <span class="mc-ex">Ask the Researcher for a one-page brief on the Acme renewal.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Aiden is the chief of staff you talk to: he delegates, follows up and answers. The Researcher takes on long research, drafts and recurring reports, and the daily brief lands each morning.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board</span> <span class="tag r">Telegram</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Aiden</span> <span class="tag on">Researcher</span> <span class="tag on">Daily brief</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Ask the Researcher for a one-page brief on the Acme renewal.</li><li>What is waiting on me today?</li></ul>
+  </div>
+</li>
+<li class="mc feat" data-cat="eng" data-q="engineering engineers in a locked box write code, run checks and open pull requests. locked box github engineer" style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Engineering: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Engineering</h3>
+    <p class="mc-pitch">Engineers in a locked box write code, run checks and open pull requests.</p>
+    <span class="mc-conn"><span class="tag r">Locked box</span><span class="tag r">GitHub</span></span>
+    <span class="mc-ex">Fix the failing signup test and open a PR.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The Engineer runs coding jobs in a sealed computer on OpenRouter models through the model gateway. It handles code, apps, the fleet's own setup and the product.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Locked box</span> <span class="tag r">GitHub</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Engineer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Fix the failing signup test and open a PR.</li><li>Add a CSV export to the invoices app.</li></ul>
+  </div>
+</li>
+<li class="mc feat" data-cat="chief" data-q="open loops tracks what others owe you and turns slack and labelled email into your tasks. slack gmail calendar drive open loops intake" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Open loops: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-5l2 2M19 12a7 7 0 0 1-12 5l-2-2M19 4v5h-5M5 20v-5h5"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Open loops</h3>
+    <p class="mc-pitch">Tracks what others owe you and turns Slack and labelled email into your tasks.</p>
+    <span class="mc-conn"><span class="tag r">Slack</span><span class="tag r">Gmail</span><span class="tag r">Calendar</span><span class="tag r">Drive</span></span>
+    <span class="mc-ex">Who still owes me an answer from last week?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Waiting-on loops are joined to the conversation they came from, closed on evidence of delivery, and chased with drafts for anything overdue or quiet. Intake watches Slack and labelled email for work that needs you.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Slack</span> <span class="tag r">Gmail</span> <span class="tag r">Calendar</span> <span class="tag r">Drive</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Open Loops</span> <span class="tag on">Intake</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Who still owes me an answer from last week?</li><li>Turn my pinned Slack messages into tasks.</li></ul>
+  </div>
+</li>
+<li class="mc feat" data-cat="data" data-q="apps platform apps your agents build, deploy, run and keep healthy, from one starter and design system. deploy run rollback app api devops engineer app maintainer" style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Apps platform: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><path d="M17.2 13.5v7.5M13.5 17.2H21"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Apps platform</h3>
+    <p class="mc-pitch">Apps your agents build, deploy, run and keep healthy, from one starter and design system.</p>
+    <span class="mc-conn"><span class="tag r">Deploy</span><span class="tag r">Run</span><span class="tag r">Rollback</span><span class="tag r">App API</span></span>
+    <span class="mc-ex">Build a dashboard of open invoices.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The DevOps Engineer, apps-mcp (deploy, run, restart, rollback and app API writes, each a kernel record), the gate, the app starter and the design system.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Deploy</span> <span class="tag r">Run</span> <span class="tag r">Rollback</span> <span class="tag r">App API</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">DevOps Engineer</span> <span class="tag on">App maintainer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Build a dashboard of open invoices.</li><li>Roll back the notes app.</li></ul>
+  </div>
+</li>
+      </ul>
+    </div>
+    <p class="mk-empty" id="mk-empty" hidden>No module matches. Try a tool name such as Slack, or an agent such as Engineer.</p>
+  <section class="mg" id="cat-chief" data-cat="chief" style="--c: var(--violet)">
+    <div class="mg-h"><h3>Chief of staff and follow-ups</h3><p>Delegate, chase, remember who owes what.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-chief-of-staff" data-cat="chief" data-q="chief of staff aiden takes any request, hands it to the right agent and follows up until it is done. board telegram aiden researcher daily brief" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Chief of staff: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.6-6 7-6s6.2 2 7 6"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Chief of staff</h3>
+    <p class="mc-pitch">Aiden takes any request, hands it to the right agent and follows up until it is done.</p>
+    <span class="mc-conn"><span class="tag r">Board</span><span class="tag r">Telegram</span></span>
+    <span class="mc-ex">Ask the Researcher for a one-page brief on the Acme renewal.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Aiden is the chief of staff you talk to: he delegates, follows up and answers. The Researcher takes on long research, drafts and recurring reports, and the daily brief lands each morning.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board</span> <span class="tag r">Telegram</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Aiden</span> <span class="tag on">Researcher</span> <span class="tag on">Daily brief</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Ask the Researcher for a one-page brief on the Acme renewal.</li><li>What is waiting on me today?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-board" data-cat="chief" data-q="board your daily view: tasks, chats, approvals, apps, costs and the panels you pin. tasks approvals apps costs " style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Board: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><path d="M17.2 13.5v7.5M13.5 17.2H21"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Board</h3>
+    <p class="mc-pitch">Your daily view: tasks, chats, approvals, apps, costs and the panels you pin.</p>
+    <span class="mc-conn"><span class="tag r">Tasks</span><span class="tag r">Approvals</span><span class="tag r">Apps</span><span class="tag r">Costs</span></span>
+    <span class="mc-ex">Pin a panel for this week's deploys.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The board is where you work with your agents day to day. Other modules extend it with sign-in banners and guided setup flows.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Tasks</span> <span class="tag r">Approvals</span> <span class="tag r">Apps</span> <span class="tag r">Costs</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Pin a panel for this week's deploys.</li><li>Show what needs my approval.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-open-loops" data-cat="chief" data-q="open loops tracks what others owe you and turns slack and labelled email into your tasks. slack gmail calendar drive open loops intake" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Open loops: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-5l2 2M19 12a7 7 0 0 1-12 5l-2-2M19 4v5h-5M5 20v-5h5"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Open loops</h3>
+    <p class="mc-pitch">Tracks what others owe you and turns Slack and labelled email into your tasks.</p>
+    <span class="mc-conn"><span class="tag r">Slack</span><span class="tag r">Gmail</span><span class="tag r">Calendar</span><span class="tag r">Drive</span></span>
+    <span class="mc-ex">Who still owes me an answer from last week?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Waiting-on loops are joined to the conversation they came from, closed on evidence of delivery, and chased with drafts for anything overdue or quiet. Intake watches Slack and labelled email for work that needs you.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Slack</span> <span class="tag r">Gmail</span> <span class="tag r">Calendar</span> <span class="tag r">Drive</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Open Loops</span> <span class="tag on">Intake</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Who still owes me an answer from last week?</li><li>Turn my pinned Slack messages into tasks.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-meetings" data-cat="chief" data-q="meetings meeting memory: transcripts and an obsidian vault your agents can search. obsidian vault transcripts meeting scan" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Meetings: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Meetings</h3>
+    <p class="mc-pitch">Meeting memory: transcripts and an Obsidian vault your agents can search.</p>
+    <span class="mc-conn"><span class="tag r">Obsidian vault</span><span class="tag r">Transcripts</span></span>
+    <span class="mc-ex">What did we decide about pricing in Tuesday's call?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Transcripts are published into a vault by the Researcher's meeting scan, so decisions and action items stay findable.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Obsidian vault</span> <span class="tag r">Transcripts</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Meeting scan</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>What did we decide about pricing in Tuesday's call?</li><li>Which meetings did I miss notes for?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-tasks" data-cat="chief" data-q="tasks every agent can read, create, delegate, comment on and close tasks as itself. paperclip tasks " style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Tasks: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Tasks</h3>
+    <p class="mc-pitch">Every agent can read, create, delegate, comment on and close tasks as itself.</p>
+    <span class="mc-conn"><span class="tag r">Paperclip tasks</span></span>
+    <span class="mc-ex">Delegate the invoice cleanup to the Researcher and report back.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Task tools for every agent: read, create, delegate, comment and close, always as the calling agent so the log shows who did what.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Paperclip tasks</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Delegate the invoice cleanup to the Researcher and report back.</li><li>Show every task blocked on a person.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-chat-lane" data-cat="chief" data-q="fast chat lane agents with a chat answer in seconds with a light model, and can schedule their own wake-ups. board chat telegram " style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Fast chat lane: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Fast chat lane</h3>
+    <p class="mc-pitch">Agents with a chat answer in seconds with a light model, and can schedule their own wake-ups.</p>
+    <span class="mc-conn"><span class="tag r">Board chat</span><span class="tag r">Telegram</span></span>
+    <span class="mc-ex">Remind me about the contract on Friday morning.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Each agent's chat is one task that a light model answers quickly, plus wake_at, wake_list and chat_send so agents schedule their own follow-ups.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board chat</span> <span class="tag r">Telegram</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Remind me about the contract on Friday morning.</li><li>What is on my plate right now?</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  <section class="mg" id="cat-eng" data-cat="eng" style="--c: var(--blue)">
+    <div class="mg-h"><h3>Engineering</h3><p>Write, review, ship and maintain code.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-engineering" data-cat="eng" data-q="engineering engineers in a locked box write code, run checks and open pull requests. locked box github engineer" style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Engineering: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Engineering</h3>
+    <p class="mc-pitch">Engineers in a locked box write code, run checks and open pull requests.</p>
+    <span class="mc-conn"><span class="tag r">Locked box</span><span class="tag r">GitHub</span></span>
+    <span class="mc-ex">Fix the failing signup test and open a PR.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The Engineer runs coding jobs in a sealed computer on OpenRouter models through the model gateway. It handles code, apps, the fleet's own setup and the product.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Locked box</span> <span class="tag r">GitHub</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Engineer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Fix the failing signup test and open a PR.</li><li>Add a CSV export to the invoices app.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-engine-codex" data-cat="eng" data-q="codex engine the coding engine behind engineer jobs. swap it for claude code or opencode. openrouter agent computer " style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Codex engine: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></span><span class="tag w">Swap</span></span>
+    <h3>Codex engine</h3>
+    <p class="mc-pitch">The coding engine behind Engineer jobs. Swap it for Claude Code or opencode.</p>
+    <span class="mc-conn"><span class="tag r">OpenRouter</span><span class="tag r">Agent computer</span></span>
+    <span class="mc-ex">Run this migration with the Codex engine.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Codex on OpenRouter models, through the model gateway, in an agent computer. Engines are modules, so they swap.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">OpenRouter</span> <span class="tag r">Agent computer</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Run this migration with the Codex engine.</li><li>Which engine runs my jobs?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-code-review" data-cat="eng" data-q="code review reviews pull requests on the repos you list, or a whole repository on request. github credential-free box reviewer manager" style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Code review: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M6 8v8M18 16V9a3 3 0 0 0-3-3h-3m0 0 2-2m-2 2 2 2"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Code review</h3>
+    <p class="mc-pitch">Reviews pull requests on the repos you list, or a whole repository on request.</p>
+    <span class="mc-conn"><span class="tag r">GitHub</span><span class="tag r">Credential-free box</span></span>
+    <span class="mc-ex">Review PR 214 and post the findings.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Each moment (a PR opens, each push) runs a list of engine, model and effort combos in a credential-free box. It can also review one PR or a whole repository at a commit on request.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">GitHub</span> <span class="tag r">Credential-free box</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Reviewer manager</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Review PR 214 and post the findings.</li><li>Audit the payments repo at main.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-maintainer" data-cat="eng" data-q="maintainer watches your repos, validates labelled issues, hands fixes to an engineer and sees them to a merged pr. github maintainer triage improve" style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Maintainer: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9L18 15Z"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Maintainer</h3>
+    <p class="mc-pitch">Watches your repos, validates labelled issues, hands fixes to an engineer and sees them to a merged PR.</p>
+    <span class="mc-conn"><span class="tag r">GitHub</span></span>
+    <span class="mc-ex">Triage the new issues on acme/web.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Validates each issue labelled for a fix, hands the fix to an engineer and follows it to a merged PR that closes the issue. Per repo it can also label feature requests and build the ones you approve.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">GitHub</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Maintainer</span> <span class="tag on">Triage</span> <span class="tag on">Improve</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Triage the new issues on acme/web.</li><li>Which fixes are still waiting on review?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-design" data-cat="eng" data-q="design a ui/ux designer drafts mockups and a reviewer checks every ui pull request with screenshots. design system screenshots ui designer ui reviewer" style="--c: var(--pink)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Design: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-5L16 4l4 4L9 19l-5 1Z"/><path d="m14 6 4 4"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Design</h3>
+    <p class="mc-pitch">A UI/UX designer drafts mockups and a reviewer checks every UI pull request with screenshots.</p>
+    <span class="mc-conn"><span class="tag r">Design system</span><span class="tag r">Screenshots</span></span>
+    <span class="mc-ex">Mock up a settings page for the billing app.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The Designer makes the mockups the Engineer builds from and maintains the design system. The UI Reviewer runs screenshot reviews of UI PRs as the design-review check.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Design system</span> <span class="tag r">Screenshots</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">UI Designer</span> <span class="tag on">UI Reviewer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Mock up a settings page for the billing app.</li><li>Review the screenshots on PR 87.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-ci" data-cat="eng" data-q="self-hosted ci github actions runners on your server: one fresh container per job. github actions " style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Self-hosted CI: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="6" rx="1.6"/><rect x="3" y="14" width="18" height="6" rx="1.6"/><path d="M7 7h.1M7 17h.1"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Self-hosted CI</h3>
+    <p class="mc-pitch">GitHub Actions runners on your server: one fresh container per job.</p>
+    <span class="mc-conn"><span class="tag r">GitHub Actions</span></span>
+    <span class="mc-ex">Which runners are online?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Self-hosted runners (labels self-hosted, aidenhq) for your fleet org's app repos and any other org your GitHub sign-in registers runners in.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">GitHub Actions</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Which runners are online?</li><li>Run the test suite on the self-hosted runner.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-codehost-local" data-cat="eng" data-q="local code host repositories on your own server, with an atomic squash merge. no github needed. bare repos " style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Local code host: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Local code host</h3>
+    <p class="mc-pitch">Repositories on your own server, with an atomic squash merge. No GitHub needed.</p>
+    <span class="mc-conn"><span class="tag r">Bare repos</span></span>
+    <span class="mc-ex">Create a repo for the notes app.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Bare repos under the data directory, change requests as git refs, the checks receipt and an atomic squash merge.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Bare repos</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Create a repo for the notes app.</li><li>Merge the approved change request.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-platform" data-cat="eng" data-q="platform checks the product's own gate on every push, pr and merge. product repo " style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Platform checks: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Platform checks</h3>
+    <p class="mc-pitch">The product's own gate on every push, PR and merge.</p>
+    <span class="mc-conn"><span class="tag r">Product repo</span></span>
+    <span class="mc-ex">Why did the platform check fail?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The platform check on every push, PR and merge, the fork switch-back routine and the improving prompts.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Product repo</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Why did the platform check fail?</li><li>Show the platform checks on the last merge.</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  <section class="mg" id="cat-tools" data-cat="tools" style="--c: var(--sky)">
+    <div class="mg-h"><h3>Work tools</h3><p>Your existing systems, connected once.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-github" data-cat="tools" data-q="github agents read and write github as you, labelled as aidenhq. issues pull requests reviews checks projects " style="--c: var(--sky)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="GitHub: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M6 8v8M18 16V9a3 3 0 0 0-3-3h-3m0 0 2-2m-2 2 2 2"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>GitHub</h3>
+    <p class="mc-pitch">Agents read and write GitHub as you, labelled as AidenHQ.</p>
+    <span class="mc-conn"><span class="tag r">Issues</span><span class="tag r">Pull requests</span><span class="tag r">Reviews</span><span class="tag r">Checks</span></span>
+    <span class="mc-ex">Summarise last week's merged PRs.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>One GitHub sign-in: issues, pull requests, reviews, checks, Projects boards and code through GitHub's own MCP server and AidenHQ's GitHub tools.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Issues</span> <span class="tag r">Pull requests</span> <span class="tag r">Reviews</span> <span class="tag r">Checks</span> <span class="tag r">Projects</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Summarise last week's merged PRs.</li><li>Open an issue for the flaky login test.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-jira" data-cat="tools" data-q="jira and confluence atlassian's remote mcp server, signed in as you with the scopes you pick. jira confluence " style="--c: var(--sky)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Jira and Confluence: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Jira and Confluence</h3>
+    <p class="mc-pitch">Atlassian's remote MCP server, signed in as you with the scopes you pick.</p>
+    <span class="mc-conn"><span class="tag r">Jira</span><span class="tag r">Confluence</span></span>
+    <span class="mc-ex">Which tickets are blocked in the Acme project?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Jira and Confluence passed through whole, signed in as the owner on the board, with history ingested into the shared warehouse.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Jira</span> <span class="tag r">Confluence</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Which tickets are blocked in the Acme project?</li><li>Find the Confluence page on the launch checklist.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-glean" data-cat="tools" data-q="glean your organisation's glean: search, documents, people and meetings. glean search documents people meetings " style="--c: var(--sky)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Glean: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Glean</h3>
+    <p class="mc-pitch">Your organisation's Glean: search, documents, people and meetings.</p>
+    <span class="mc-conn"><span class="tag r">Glean search</span><span class="tag r">Documents</span><span class="tag r">People</span><span class="tag r">Meetings</span></span>
+    <span class="mc-ex">Who owns the onboarding doc?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Glean passed through whole as the owner. Its writes (memory, artifacts, images) are available by name and reviewed.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Glean search</span> <span class="tag r">Documents</span> <span class="tag r">People</span> <span class="tag r">Meetings</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Who owns the onboarding doc?</li><li>Find what we said about the Q3 plan.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-google" data-cat="tools" data-q="google workspace gmail, calendar, drive and docs, read by your agents. gmail calendar drive docs " style="--c: var(--sky)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Google Workspace: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Google Workspace</h3>
+    <p class="mc-pitch">Gmail, Calendar, Drive and Docs, read by your agents.</p>
+    <span class="mc-conn"><span class="tag r">Gmail</span><span class="tag r">Calendar</span><span class="tag r">Drive</span><span class="tag r">Docs</span></span>
+    <span class="mc-ex">What is on my calendar tomorrow?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Reads across Gmail, Calendar, Drive and Docs through Google's Workspace MCP server.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Gmail</span> <span class="tag r">Calendar</span> <span class="tag r">Drive</span> <span class="tag r">Docs</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>What is on my calendar tomorrow?</li><li>Find the latest Acme contract in Drive.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-primer" data-cat="tools" data-q="primer read documents, and publish them when asked. primer documents " style="--c: var(--sky)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Primer: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Primer</h3>
+    <p class="mc-pitch">Read documents, and publish them when asked.</p>
+    <span class="mc-conn"><span class="tag r">Primer documents</span></span>
+    <span class="mc-ex">Publish this design as a Primer document.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Primer is the shared-document surface agents read, and publish to when asked.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Primer documents</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Publish this design as a Primer document.</li><li>Find the doc on the hiring plan.</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  <section class="mg" id="cat-data" data-cat="data" style="--c: var(--teal)">
+    <div class="mg-h"><h3>Apps and data</h3><p>Internal apps and one shared warehouse.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-hubspot" data-cat="data" data-q="hubspot crm through hubspot's remote mcp server, with contacts and deals in the warehouse. hubspot crm warehouse " style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="HubSpot: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5M15 14.2c2.6-.3 4.8 1.2 5.5 4.3"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>HubSpot</h3>
+    <p class="mc-pitch">CRM through HubSpot's remote MCP server, with contacts and deals in the warehouse.</p>
+    <span class="mc-conn"><span class="tag r">HubSpot CRM</span><span class="tag r">Warehouse</span></span>
+    <span class="mc-ex">Which deals closed this quarter?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Reads, reviewed writes, and contacts, companies, deals and activities ingested into the shared warehouse.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">HubSpot CRM</span> <span class="tag r">Warehouse</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Which deals closed this quarter?</li><li>List the contacts we have not touched in 60 days.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-grafana" data-cat="data" data-q="grafana grafana for engineer jobs, over a loopback mcp. grafana dashboards " style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Grafana: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Grafana</h3>
+    <p class="mc-pitch">Grafana for Engineer jobs, over a loopback MCP.</p>
+    <span class="mc-conn"><span class="tag r">Grafana dashboards</span></span>
+    <span class="mc-ex">Show the error rate for the API this week.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Grafana for the runner's Engineer jobs through a loopback MCP.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Grafana dashboards</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Show the error rate for the API this week.</li><li>Which dashboard covers checkout latency?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-clickhouse" data-cat="data" data-q="clickhouse clickhouse cloud's mcp server: services, schemas and read-only select queries. clickhouse cloud " style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="ClickHouse: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>ClickHouse</h3>
+    <p class="mc-pitch">ClickHouse Cloud's MCP server: services, schemas and read-only SELECT queries.</p>
+    <span class="mc-conn"><span class="tag r">ClickHouse Cloud</span></span>
+    <span class="mc-ex">How many signups did we get yesterday?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Passed through as the owner: your services, schemas and read-only SELECT queries.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">ClickHouse Cloud</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>How many signups did we get yesterday?</li><li>Describe the events table.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-apps-platform" data-cat="data" data-q="apps platform apps your agents build, deploy, run and keep healthy, from one starter and design system. deploy run rollback app api devops engineer app maintainer" style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Apps platform: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><path d="M17.2 13.5v7.5M13.5 17.2H21"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Apps platform</h3>
+    <p class="mc-pitch">Apps your agents build, deploy, run and keep healthy, from one starter and design system.</p>
+    <span class="mc-conn"><span class="tag r">Deploy</span><span class="tag r">Run</span><span class="tag r">Rollback</span><span class="tag r">App API</span></span>
+    <span class="mc-ex">Build a dashboard of open invoices.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The DevOps Engineer, apps-mcp (deploy, run, restart, rollback and app API writes, each a kernel record), the gate, the app starter and the design system.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Deploy</span> <span class="tag r">Run</span> <span class="tag r">Rollback</span> <span class="tag r">App API</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">DevOps Engineer</span> <span class="tag on">App maintainer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Build a dashboard of open invoices.</li><li>Roll back the notes app.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-warehouse" data-cat="data" data-q="warehouse one shared postgres every source ingests into, ready for apps and agents to query. postgres " style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Warehouse: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Warehouse</h3>
+    <p class="mc-pitch">One shared Postgres every source ingests into, ready for apps and agents to query.</p>
+    <span class="mc-conn"><span class="tag r">Postgres</span></span>
+    <span class="mc-ex">Which Jira tickets mention the Acme launch?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The shared Postgres warehouse is an app, and each source module contributes its schema and views to it.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Postgres</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Which Jira tickets mention the Acme launch?</li><li>Join our deals with open tickets.</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  <section class="mg" id="cat-chan" data-cat="chan" style="--c: var(--pink)">
+    <div class="mg-h"><h3>Channels</h3><p>Reach your agents where you already are.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-channel-telegram" data-cat="chan" data-q="telegram chat with aiden and approve from your phone, with typed messages or voice notes. telegram " style="--c: var(--pink)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Telegram: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 3 11l7 3 3 7 8-17Z"/><path d="m10 14 4-4"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Telegram</h3>
+    <p class="mc-pitch">Chat with Aiden and approve from your phone, with typed messages or voice notes.</p>
+    <span class="mc-conn"><span class="tag r">Telegram</span></span>
+    <span class="mc-ex">Approve the pending deploy.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Your chat with Aiden, approval cards decided with single-use tokens, and a transport for notifications. Telegram itself is optional.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Telegram</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Approve the pending deploy.</li><li>What did the fleet do overnight?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-slack" data-cat="chan" data-q="slack your agents in slack: read as you, or run a bot with a live listener. slack search channels drafts socket mode " style="--c: var(--pink)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Slack: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Slack</h3>
+    <p class="mc-pitch">Your agents in Slack: read as you, or run a bot with a live listener.</p>
+    <span class="mc-conn"><span class="tag r">Slack search</span><span class="tag r">Channels</span><span class="tag r">Drafts</span><span class="tag r">Socket Mode</span></span>
+    <span class="mc-ex">Summarise #launch since Monday.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Basic: sign in and agents read Slack as you through Slack's MCP server, with reviewed sends. Advanced, with your own Slack app: a bot and live listener that feeds triage.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Slack search</span> <span class="tag r">Channels</span> <span class="tag r">Drafts</span> <span class="tag r">Socket Mode</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Summarise #launch since Monday.</li><li>Draft a reply to the vendor thread.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-voice" data-cat="chan" data-q="voice notes talk to aiden with voice notes on telegram, transcribed on your server. telegram local speech-to-text " style="--c: var(--pink)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Voice notes: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Voice notes</h3>
+    <p class="mc-pitch">Talk to Aiden with voice notes on Telegram, transcribed on your server.</p>
+    <span class="mc-conn"><span class="tag r">Telegram</span><span class="tag r">Local speech-to-text</span></span>
+    <span class="mc-ex">Send a voice note: add a task to call the accountant.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Transcription runs on your server, so audio never leaves it. Off by default; adds a 2 GB speech service and about 8 GB of disk.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Telegram</span> <span class="tag r">Local speech-to-text</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Send a voice note: add a task to call the accountant.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-owner-channel" data-cat="chan" data-q="owner channel the one way anything reaches you: it lands once, in the right place. board telegram slack " style="--c: var(--pink)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Owner channel: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4l2-2ZM10 21h4"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Owner channel</h3>
+    <p class="mc-pitch">The one way anything reaches you: it lands once, in the right place.</p>
+    <span class="mc-conn"><span class="tag r">Board</span><span class="tag r">Telegram</span><span class="tag r">Slack</span></span>
+    <span class="mc-ex">Only tell me about things that need me.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Agents' notify and every message from the kernel, board and runner land once on your board chat and on the first channel that delivers. Duplicates drop.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board</span> <span class="tag r">Telegram</span> <span class="tag r">Slack</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Only tell me about things that need me.</li><li>Send me a daily digest.</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  <section class="mg" id="cat-agents" data-cat="agents" style="--c: var(--amber)">
+    <div class="mg-h"><h3>Agents, memory and quality</h3><p>Build agents, make them remember, check their work.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-agent-builder" data-cat="agents" data-q="agent builder describe an agent and the agent architect designs, builds and trials it. primer engineer architect trial review" style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Agent builder: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9L18 15Z"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Agent builder</h3>
+    <p class="mc-pitch">Describe an agent and the Agent Architect designs, builds and trials it.</p>
+    <span class="mc-conn"><span class="tag r">Primer</span><span class="tag r">Engineer</span></span>
+    <span class="mc-ex">Build me an agent that chases overdue invoices.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The Architect designs, builds and improves agents and reviews agents in trial, starting from agent templates. Its changes wait for your tap.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Primer</span> <span class="tag r">Engineer</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Architect</span> <span class="tag on">Trial review</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Build me an agent that chases overdue invoices.</li><li>Review the agent in trial.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-memory" data-cat="agents" data-q="agent memory agents keep lessons and facts that carry into their next run. agent notes " style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Agent memory: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 3 4 3 3 0 0 0 5 1V5a2 2 0 0 0-3-1ZM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-3 4 3 3 0 0 1-5 1"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Agent memory</h3>
+    <p class="mc-pitch">Agents keep lessons and facts that carry into their next run.</p>
+    <span class="mc-conn"><span class="tag r">Agent notes</span></span>
+    <span class="mc-ex">Remember that Acme invoices go to finance.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Lessons and facts from each agent's notes and recent work, curated by the Fleet Steward and compiled into its handbook and fast chat lane.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Agent notes</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Remember that Acme invoices go to finance.</li><li>What do you know about my reporting style?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-model-tools" data-cat="agents" data-q="advisor and fan-out a stronger model for hard calls, and cheap workers for many items at once. model gateway " style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Advisor and fan-out: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9L18 15Z"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Advisor and fan-out</h3>
+    <p class="mc-pitch">A stronger model for hard calls, and cheap workers for many items at once.</p>
+    <span class="mc-conn"><span class="tag r">Model gateway</span></span>
+    <span class="mc-ex">Ask the advisor whether this migration is safe.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The advisor (advisor_ask) and fan-out workers (fanout_map: cheap tool-less workers over many items).</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Model gateway</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Ask the advisor whether this migration is safe.</li><li>Classify these 200 tickets.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-models-openrouter" data-cat="agents" data-q="openrouter models openrouter as the model provider: any model it lists works by id. openrouter " style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="OpenRouter models: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>OpenRouter models</h3>
+    <p class="mc-pitch">OpenRouter as the model provider: any model it lists works by id.</p>
+    <span class="mc-conn"><span class="tag r">OpenRouter</span></span>
+    <span class="mc-ex">Which model is this agent on?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The gateway prices every call from OpenRouter's own models list, so any model OpenRouter lists works by its id.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">OpenRouter</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Which model is this agent on?</li><li>Switch the Researcher to another model.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-ai-reviewer" data-cat="agents" data-q="ai reviewer a second ai checks risky actions and blocks only explicit malice. model gateway " style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="AI reviewer: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><span class="tag on">Core</span></span>
+    <h3>AI reviewer</h3>
+    <p class="mc-pitch">A second AI checks risky actions and blocks only explicit malice.</p>
+    <span class="mc-conn"><span class="tag r">Model gateway</span></span>
+    <span class="mc-ex">Why was this send held?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>One schema-bound call from a different model family than the requester's, with tools that only read the request's own change. It blocks explicit malice and approves everything else.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Model gateway</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Why was this send held?</li><li>Show the review for the last deploy.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-grading" data-cat="agents" data-q="graded done a task is done only when its rubric is met and the grader agrees. board " style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Graded done: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span><span class="tag on">Core</span></span>
+    <h3>Graded done</h3>
+    <p class="mc-pitch">A task is done only when its rubric is met and the grader agrees.</p>
+    <span class="mc-conn"><span class="tag r">Board</span></span>
+    <span class="mc-ex">Show tasks the grader sent back.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>A delegated task's rubric and grade, and the finish check every move to done passes.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Show tasks the grader sent back.</li><li>Amend the rubric for this task.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-dispatch" data-cat="agents" data-q="dispatch turns wakes into jobs for every agent and posts each outcome once. board " style="--c: var(--amber)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Dispatch: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4 3 11l7 3 3 7 8-17Z"/><path d="m10 14 4-4"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Dispatch</h3>
+    <p class="mc-pitch">Turns wakes into jobs for every agent and posts each outcome once.</p>
+    <span class="mc-conn"><span class="tag r">Board</span></span>
+    <span class="mc-ex">Why did this agent not wake?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Decides which inbox rows start work, builds the job's prompt and posts its outcome once.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Why did this agent not wake?</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  <section class="mg" id="cat-ops" data-cat="ops" style="--c: var(--violet)">
+    <div class="mg-h"><h3>Ops and security</h3><p>Keep the fleet and your systems healthy.</p></div>
+    <ul class="mgrid">
+<li class="mc" id="m-fleet-steward" data-cat="ops" data-q="fleet steward unsticks stuck work, reviews outcomes and keeps agent notes tidy. board fleet fleet steward ops digest coach review librarian" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Fleet steward: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Fleet steward</h3>
+    <p class="mc-pitch">Unsticks stuck work, reviews outcomes and keeps agent notes tidy.</p>
+    <span class="mc-conn"><span class="tag r">Board</span><span class="tag r">Fleet</span></span>
+    <span class="mc-ex">What is stuck right now?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Settles stuck work (answers waits, accepts finished work, cancels stale tasks, re-routes handbacks), routes every fix to its source and reviews other agents' outcomes.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Board</span> <span class="tag r">Fleet</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Fleet Steward</span> <span class="tag on">Ops digest</span> <span class="tag on">Coach review</span> <span class="tag on">Librarian</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>What is stuck right now?</li><li>Give me the weekly fleet digest.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-monitoring" data-cat="ops" data-q="monitoring host and fleet monitoring with alerts that open tasks for the fleet steward. prometheus grafana alertmanager cadvisor " style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Monitoring: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Monitoring</h3>
+    <p class="mc-pitch">Host and fleet monitoring with alerts that open tasks for the Fleet Steward.</p>
+    <span class="mc-conn"><span class="tag r">Prometheus</span><span class="tag r">Grafana</span><span class="tag r">Alertmanager</span><span class="tag r">cAdvisor</span></span>
+    <span class="mc-ex">Is the server healthy?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Prometheus, node-exporter, cAdvisor, Alertmanager and Grafana. Every alert opens or updates a Fleet Steward task; critical ones also tell you in one line.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Prometheus</span> <span class="tag r">Grafana</span> <span class="tag r">Alertmanager</span> <span class="tag r">cAdvisor</span></p>
+    
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Is the server healthy?</li><li>What alerted overnight?</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-security" data-cat="ops" data-q="security security watch scans for cves, and the red teamer attacks your own apps and agents. cve feeds your apps security watch red teamer" style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Security: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4.5M12 17.5v.1"/></svg></span><span class="tag opt">Add-on</span></span>
+    <h3>Security</h3>
+    <p class="mc-pitch">Security Watch scans for CVEs, and the Red Teamer attacks your own apps and agents.</p>
+    <span class="mc-conn"><span class="tag r">CVE feeds</span><span class="tag r">Your apps</span></span>
+    <span class="mc-ex">Any new CVEs in what we run?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Security Watch scans everything you run, verifies with the web and files fix tasks. The Red Teamer reports with a proof of concept and never patches.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">CVE feeds</span> <span class="tag r">Your apps</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Security Watch</span> <span class="tag on">Red Teamer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Any new CVEs in what we run?</li><li>Red-team the invoices app.</li></ul>
+  </div>
+</li>
+    </ul>
+  </section>
+  </div>
+</section>
+<dialog class="mk-dlg" id="mk-dlg" aria-labelledby="mk-dlg-t"><div class="mk-dlg-in"><button type="button" class="mk-x" aria-label="Close">&times;</button><div id="mk-dlg-b"></div></div></dialog>
 
 <section class="section-sm band" id="kernel">
   <div class="wrap">
@@ -94,34 +789,6 @@
       <li class="cap reveal" style="--c: var(--amber)"><h3>Approvals</h3><p>Every write becomes a record with its exact request, given its level by rules in code, and decided by the right party.</p></li>
       <li class="cap reveal" style="--c: var(--teal)"><h3>Identity and the locked box</h3><p>Sign-in for you and your admins, a sealed workspace for coding jobs, and a log of everything.</p></li>
     </ul>
-  </div>
-</section>
-
-<section class="section" id="modules">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <p class="eyebrow c-violet">Modules</p>
-      <h2>Everything else is a module.</h2>
-      <p>A module is a folder that can add agents, chat channels, tool connections, apps or coding engines. Ours use exactly the same public rules as anyone else's, and each declares up front what it can read and write.</p>
-    </div>
-    <table class="tbl reveal">
-      <thead><tr><th>Module</th><th>What it adds</th><th class="hide-sm">Included</th></tr></thead>
-      <tbody>
-        <tr><td>Chief of staff</td><td>Aiden, who routes any request, and the morning brief</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>Board</td><td>Your daily view: tasks, chats, approvals, apps, costs and panels</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>Agent builder and coach</td><td>The Agent Architect and the Agent Coach</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>Engineering</td><td>Engineers in the locked box, with code checks and reviews</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>Apps platform and warehouse</td><td>Apps your agents build and run, on one shared database</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>AI reviewer and grader</td><td>The second AI that checks risky actions, and the grader that checks finished work</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>Telegram</td><td>Chat with your agents and approve from your phone</td><td class="hide-sm"><span class="tag on">Core</span></td></tr>
-        <tr><td>Slack</td><td>Your agents in your Slack channels</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
-        <tr><td>Google Workspace</td><td>Gmail, Calendar and Drive</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
-        <tr><td>Follow-ups and meetings</td><td>The Follow-up Tracker and the Meeting Librarian</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
-        <tr><td>Jira, Glean, Grafana, ClickHouse</td><td>Connections to your work and data tools</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
-        <tr><td>Security</td><td>Security Watch and the Red Teamer</td><td class="hide-sm"><span class="tag opt">Add-on</span></td></tr>
-        <tr><td>Coding engines</td><td>Codex by default; Claude Code or opencode instead</td><td class="hide-sm"><span class="tag opt">Swap</span></td></tr>
-      </tbody>
-    </table>
   </div>
 </section>
 

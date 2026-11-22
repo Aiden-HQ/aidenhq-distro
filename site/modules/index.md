@@ -6,6 +6,83 @@ Add modules, connect your tools, build your own agents and pin the panels you wa
 
 _Animation: a distro is assembled: the kernel at the base, then modules for chat, tools, agents and apps stack on top, and the whole set is sealed as one release tested together_
 
+## Browse modules
+
+38 modules ship with AidenHQ today, in 7 groups. Each declares up front what it can read and write.
+
+### Chief of staff and follow-ups
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| Chief of staff | Aiden takes any request, hands it to the right agent and follows up until it is done. | Board, Telegram | Core |
+| Board | Your daily view: tasks, chats, approvals, apps, costs and the panels you pin. | Tasks, Approvals, Apps, Costs | Core |
+| Open loops | Tracks what others owe you and turns Slack and labelled email into your tasks. | Slack, Gmail, Calendar, Drive | Add-on |
+| Meetings | Meeting memory: transcripts and an Obsidian vault your agents can search. | Obsidian vault, Transcripts | Add-on |
+| Tasks | Every agent can read, create, delegate, comment on and close tasks as itself. | Paperclip tasks | Add-on |
+| Fast chat lane | Agents with a chat answer in seconds with a light model, and can schedule their own wake-ups. | Board chat, Telegram | Core |
+
+### Engineering
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| Engineering | Engineers in a locked box write code, run checks and open pull requests. | Locked box, GitHub | Core |
+| Codex engine | The coding engine behind Engineer jobs. Swap it for Claude Code or opencode. | OpenRouter, Agent computer | Swap |
+| Code review | Reviews pull requests on the repos you list, or a whole repository on request. | GitHub, Credential-free box | Add-on |
+| Maintainer | Watches your repos, validates labelled issues, hands fixes to an engineer and sees them to a merged PR. | GitHub | Add-on |
+| Design | A UI/UX designer drafts mockups and a reviewer checks every UI pull request with screenshots. | Design system, Screenshots | Add-on |
+| Self-hosted CI | GitHub Actions runners on your server: one fresh container per job. | GitHub Actions | Add-on |
+| Local code host | Repositories on your own server, with an atomic squash merge. No GitHub needed. | Bare repos | Add-on |
+| Platform checks | The product's own gate on every push, PR and merge. | Product repo | Add-on |
+
+### Work tools
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| GitHub | Agents read and write GitHub as you, labelled as AidenHQ. | Issues, Pull requests, Reviews, Checks, Projects | Add-on |
+| Jira and Confluence | Atlassian's remote MCP server, signed in as you with the scopes you pick. | Jira, Confluence | Add-on |
+| Glean | Your organisation's Glean: search, documents, people and meetings. | Glean search, Documents, People, Meetings | Add-on |
+| Google Workspace | Gmail, Calendar, Drive and Docs, read by your agents. | Gmail, Calendar, Drive, Docs | Add-on |
+| Primer | Read documents, and publish them when asked. | Primer documents | Add-on |
+
+### Apps and data
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| HubSpot | CRM through HubSpot's remote MCP server, with contacts and deals in the warehouse. | HubSpot CRM, Warehouse | Add-on |
+| Grafana | Grafana for Engineer jobs, over a loopback MCP. | Grafana dashboards | Add-on |
+| ClickHouse | ClickHouse Cloud's MCP server: services, schemas and read-only SELECT queries. | ClickHouse Cloud | Add-on |
+| Apps platform | Apps your agents build, deploy, run and keep healthy, from one starter and design system. | Deploy, Run, Rollback, App API | Core |
+| Warehouse | One shared Postgres every source ingests into, ready for apps and agents to query. | Postgres | Add-on |
+
+### Channels
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| Telegram | Chat with Aiden and approve from your phone, with typed messages or voice notes. | Telegram | Core |
+| Slack | Your agents in Slack: read as you, or run a bot with a live listener. | Slack search, Channels, Drafts, Socket Mode | Add-on |
+| Voice notes | Talk to Aiden with voice notes on Telegram, transcribed on your server. | Telegram, Local speech-to-text | Add-on |
+| Owner channel | The one way anything reaches you: it lands once, in the right place. | Board, Telegram, Slack | Add-on |
+
+### Agents, memory and quality
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| Agent builder | Describe an agent and the Agent Architect designs, builds and trials it. | Primer, Engineer | Core |
+| Agent memory | Agents keep lessons and facts that carry into their next run. | Agent notes | Add-on |
+| Advisor and fan-out | A stronger model for hard calls, and cheap workers for many items at once. | Model gateway | Add-on |
+| OpenRouter models | OpenRouter as the model provider: any model it lists works by id. | OpenRouter | Add-on |
+| AI reviewer | A second AI checks risky actions and blocks only explicit malice. | Model gateway | Core |
+| Graded done | A task is done only when its rubric is met and the grader agrees. | Board | Core |
+| Dispatch | Turns wakes into jobs for every agent and posts each outcome once. | Board | Add-on |
+
+### Ops and security
+
+| Module | What it does | Connects to | Included |
+|---|---|---|---|
+| Fleet steward | Unsticks stuck work, reviews outcomes and keeps agent notes tidy. | Board, Fleet | Add-on |
+| Monitoring | Host and fleet monitoring with alerts that open tasks for the Fleet Steward. | Prometheus, Grafana, Alertmanager, cAdvisor | Add-on |
+| Security | Security Watch scans for CVEs, and the Red Teamer attacks your own apps and agents. | CVE feeds, Your apps | Add-on |
+
 ## The part that keeps everyone honest.
 
 The kernel is lean by design. It holds what must be true for every agent and every module, whoever wrote them, and leaves everything else to modules.
@@ -25,26 +102,6 @@ Every write becomes a record with its exact request, given its level by rules in
 ### Identity and the locked box
 
 Sign-in for you and your admins, a sealed workspace for coding jobs, and a log of everything.
-
-## Everything else is a module.
-
-A module is a folder that can add agents, chat channels, tool connections, apps or coding engines. Ours use exactly the same public rules as anyone else's, and each declares up front what it can read and write.
-
-| Module | What it adds | Included |
-|---|---|---|
-| Chief of staff | Aiden, who routes any request, and the morning brief | Core |
-| Board | Your daily view: tasks, chats, approvals, apps, costs and panels | Core |
-| Agent builder and coach | The Agent Architect and the Agent Coach | Core |
-| Engineering | Engineers in the locked box, with code checks and reviews | Core |
-| Apps platform and warehouse | Apps your agents build and run, on one shared database | Core |
-| AI reviewer and grader | The second AI that checks risky actions, and the grader that checks finished work | Core |
-| Telegram | Chat with your agents and approve from your phone | Core |
-| Slack | Your agents in your Slack channels | Add-on |
-| Google Workspace | Gmail, Calendar and Drive | Add-on |
-| Follow-ups and meetings | The Follow-up Tracker and the Meeting Librarian | Add-on |
-| Jira, Glean, Grafana, ClickHouse | Connections to your work and data tools | Add-on |
-| Security | Security Watch and the Red Teamer | Add-on |
-| Coding engines | Codex by default; Claude Code or opencode instead | Swap |
 
 ## Add a module in one step, and see exactly what it gets.
 

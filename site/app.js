@@ -244,3 +244,46 @@
     run();
   }
 })();
+
+/* Modules marketplace: filter by search and category tab, and open a module's detail dialog. */
+(function () {
+  'use strict';
+  var q = document.getElementById('mk-q');
+  var dlg = document.getElementById('mk-dlg');
+  if (!q || !dlg) return;
+  var cards = document.querySelectorAll('.mg .mc');
+  var groups = document.querySelectorAll('.mg');
+  var tabs = document.querySelectorAll('.mt');
+  var featured = document.getElementById('mk-featured');
+  var empty = document.getElementById('mk-empty');
+  var cat = 'all';
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = (cat === 'all' || c.dataset.cat === cat) && (!term || c.dataset.q.indexOf(term) !== -1);
+      c.hidden = !ok; if (ok) shown++;
+    });
+    groups.forEach(function (g) { g.hidden = !g.querySelector('.mc:not([hidden])'); });
+    featured.hidden = cat !== 'all' || !!term;
+    empty.hidden = shown !== 0;
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function (e) {
+      e.preventDefault();
+      cat = t.dataset.cat;
+      tabs.forEach(function (x) { var on = x === t; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+      apply();
+    });
+  });
+  q.addEventListener('input', apply);
+  var body = document.getElementById('mk-dlg-b');
+  document.querySelectorAll('.mc').forEach(function (c) {
+    c.querySelector('.mc-btn').addEventListener('click', function () {
+      body.innerHTML = '<span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true">' + c.querySelector('.pi svg').innerHTML + '</svg></span><h3 id="mk-dlg-t">' + c.querySelector('h3').innerHTML + '</h3>' + c.querySelector('.mc-more').innerHTML;
+      dlg.style.setProperty('--c', getComputedStyle(c).getPropertyValue('--c'));
+      dlg.showModal();
+    });
+  });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target.closest('.mk-x')) dlg.close(); });
+})();
