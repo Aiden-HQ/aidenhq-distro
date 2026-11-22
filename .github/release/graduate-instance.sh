@@ -56,6 +56,41 @@ record_state() {
   [ -n "$2" ] || return 0
   sudo node -e 'const { DatabaseSync } = require("node:sqlite"); const r = new DatabaseSync(process.argv[1], { readOnly: true }).prepare("SELECT state, rule FROM records WHERE id = ?").get(process.argv[2]); if (r) console.log(`${r.state} ${r.rule ?? ""}`)' "$1/kernel/kernel.db" "$2" 2>/dev/null || true
 }
+# A kernel record's reviewer verdict: "state<TAB>review_code<TAB>the review note's first line" (kernel.db, read-only), empty when
+# there is none or an older kernel has no such columns. Same tolerance as record_state: an absent db is not a failure here.
+record_review() {
+  [ -n "$2" ] || return 0
+  sudo node -e 'const { DatabaseSync } = require("node:sqlite"); const r = new DatabaseSync(process.argv[1], { readOnly: true }).prepare("SELECT state, review_code, review FROM records WHERE id = ?").get(process.argv[2]); if (r) console.log([r.state ?? "", r.review_code ?? "", String(r.review ?? "").split(/\r?\n/)[0].replace(/\t/g, " ").trim()].join("\t"))' "$1/kernel/kernel.db" "$2" 2>/dev/null || true
+}
+# The `upgraded` failure note: today's "TAG didn't install: why", then the record's reviewer verdict when its id is known —
+# the kernel deletes `flight` from state.json when the record ends, so the id comes from $GRAD_DIR/flight-record. The record id
+# and review_code go first and the review note's first line last, cut with … so the whole note stays inside rec()'s 280 chars.
+upgraded_note() { # data tag why [record id]
+  local head="$2 didn't install: $3" rv code line
+  [ -n "${4:-}" ] || { printf '%s' "$head"; return 0; }
+  rv=$(record_review "$1" "$4")
+  IFS=$'\t' read -r _ code line <<<"$rv" || true
+  jq -nr --arg tag "$2" --arg why "$3" --arg id "$4" --arg code "$code" --arg line "$line" '
+    ($tag + " didn\u0027t install: ") as $tp
+    | ($tp + $why) as $h
+    | ("record " + $id + (if $code == "" then "" else " review_code " + $code end)) as $d
+    | ($h + " (" + $d + ")") as $b
+    # A why longer than the cap (the kernel allows 400): keep the tag, cut the why, and the record id and code still fit.
+    | if ($b | length) > 280 then
+        (280 - ($tp | length) - ($d | length) - 3) as $room
+        | $tp + (if $room >= 2 then ($why[0:$room - 1] + "…") else "" end) + " (" + $d + ")"
+      elif $line == "" then $b
+      else
+        ($h + " (" + $d + " review: " + $line + ")") as $f
+        | if ($f | length) <= 280 then $f
+          else (($f | length) - 280) as $over
+            # No room left for one review character and the ellipsis: the record id and code alone.
+            | if (($line | length) - $over) < 2 then $b
+              else $h + " (" + $d + " review: " + ($line[0:($line | length) - $over - 1] + "…") + ")"
+              end
+          end
+      end'
+}
 # The newest apply generation (ops/lib/generations.sh), as JSON ({} before any); good_on SHA: it is good on that product.
 last_gen() { local g; g=$(sudo tail -1 "$STATE/generations.jsonl" 2>/dev/null || true); { [ -n "$g" ] && jq -c . <<<"$g" 2>/dev/null; } || echo '{}'; }
 good_on() { [ "$(last_gen | jq -r '"\(.health) \(.product)"')" = "good $1" ]; }
@@ -305,6 +340,7 @@ upgrade() {
     || { rec upgraded false "baseline predates graduation; graduate one release by hand"; die "baseline predates graduation; graduate one release by hand (README \"Release graduation\")"; }
   local data t=$SECONDS
   data=$(data_dir)
+  rm -f "$GRAD_DIR/flight-record"   # never a previous run's record id
   log "pre-pull: $([ -f "$GRAD_DIR/prepull.done" ] && echo 'done' || echo "still running (the apply pulls the rest)"): $(tail -1 "$GRAD_DIR/prepull.log" 2>/dev/null || echo 'no log')"
   # The instance's own updater, asked for exactly this pre-release: verified and prepared as any release, then filed by the
   # kernel as a kernel.apply that the AI reviewer decides (auto-updates are on for a new install). GitHub's API,
@@ -328,20 +364,27 @@ upgrade() {
   # with why (75 minutes), through the AI reviewer or panel ("review"). A record that ends up waiting on the owner (Tier 2 on
   # its merits, e.g. new module authority under a baseline that keeps it the owner's) needs a tap this test doesn't make:
   # the run stops there as the harness's limit, never the candidate's failure.
-  local st='{}' rec_state='' shown=0 end=$((SECONDS + 75 * 60)) filed=''
+  local st='{}' rec_state='' shown=0 end=$((SECONDS + 75 * 60)) filed='' rec_id='' saved_rec=''
   while [ "$SECONDS" -lt "$end" ]; do
     st=$(sudo cat "$data/updates/state.json" 2>/dev/null || echo '{}')
     [ "$(jq -r '.last.release // ""' <<<"$st")" = "$TAG" ] && break
     if [ -z "$filed" ] && [ -n "$(jq -r '.flight.record // ""' <<<"$st")" ]; then
       filed=1; timing upgrade_filed $((SECONDS - t)); t=$SECONDS
     fi
+    # The record id survives the kernel deleting `flight` from state.json when the record ends (kernel/src/updates.ts
+    # follow(), `delete s.flight`), so the failure note can still name the card's reviewer verdict.
+    rec_id=$(jq -r '.flight.record // ""' <<<"$st")
+    if [ -n "$rec_id" ] && [ "$rec_id" != "$saved_rec" ]; then printf '%s\n' "$rec_id" >"$GRAD_DIR/flight-record"; saved_rec=$rec_id; fi
     rec_state=$(record_state "$data" "$(jq -r '.flight.record // ""' <<<"$st")")
     [ "${rec_state%% *}" != owner ] || harness upgraded "the update's record $(jq -r '.flight.record' <<<"$st") waits on the owner's approval (rule ${rec_state#* }) after the AI review; the baseline $BASELINE makes this move the owner's"
     if [ $((SECONDS - shown)) -ge 120 ]; then log "waiting: $(jq -c '{ready: (.ready.release // null), flight: (.flight | if . then {release, record} else null end), error}' <<<"$st") record: ${rec_state:-none}"; shown=$SECONDS; fi
     sleep 5
   done
   if [ "$(jq -r '.last.release // ""' <<<"$st")" != "$TAG" ]; then rec upgraded false "the update record didn't end within 75 minutes (record: ${rec_state:-none}): $(jq -c '{flight, error}' <<<"$st")"; exit 1; fi
-  [ "$(jq -r .last.outcome <<<"$st")" = installed ] || { rec upgraded false "$TAG didn't install: $(jq -r '.last.why // "?"' <<<"$st")"; exit 1; }
+  [ "$(jq -r .last.outcome <<<"$st")" = installed ] || {
+    saved_rec=$(cat "$GRAD_DIR/flight-record" 2>/dev/null || true)
+    rec upgraded false "$(upgraded_note "$data" "$TAG" "$(jq -r '.last.why // "?"' <<<"$st")" "${saved_rec:-$rec_id}")"; exit 1
+  }
   timing upgrade_install $((SECONDS - t)); t=$SECONDS
   # Its apply generation settled good on the candidate's kernel (20 minutes).
   local end2=$((SECONDS + 20 * 60))
