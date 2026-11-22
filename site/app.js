@@ -266,13 +266,13 @@
     });
     groups.forEach(function (g) { g.hidden = !g.querySelector('.mc:not([hidden])'); });
     featured.hidden = cat !== 'all' || !!term;
-    empty.hidden = shown !== 0;
+    empty.textContent = shown ? '' : 'No module matches. Try a tool name such as Slack, or an agent such as Engineer.';
   }
   tabs.forEach(function (t) {
     t.addEventListener('click', function (e) {
       e.preventDefault();
       cat = t.dataset.cat;
-      tabs.forEach(function (x) { var on = x === t; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+      tabs.forEach(function (x) { var on = x === t; x.classList.toggle('on', on); if (on) x.setAttribute('aria-current', 'true'); else x.removeAttribute('aria-current'); });
       apply();
     });
   });

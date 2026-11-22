@@ -924,7 +924,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .mc-ex { margin-top: auto; width: 100%; padding: 8px 10px; border-radius: var(--r-sm); background: var(--bg-2); color: var(--text-2); font-size: 13px; font-style: italic; line-height: 1.4; }
 .mc-ex::before { content: "\201C"; } .mc-ex::after { content: "\201D"; }
 .mc.feat .mc-pitch { font-size: 15px; }
-.mk-empty { padding: 28px 0; color: var(--text-2); }
+.mk-empty { color: var(--text-2); } .mk-empty:not(:empty) { padding: 28px 0; }
 .mk-dlg { width: min(560px, calc(100% - 32px)); max-height: calc(100% - 48px); padding: 0; border: 1px solid var(--line-2); border-radius: var(--r-lg); background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); }
 .mk-dlg::backdrop { background: rgba(7, 13, 26, .55); backdrop-filter: blur(3px); }
 .mk-dlg-in { position: relative; padding: 22px 22px 20px; border-top: 4px solid var(--c, var(--brand)); }
@@ -939,3 +939,5 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .mc-prompts li::before { content: "\201C"; } .mc-prompts li::after { content: "\201D"; }
 @media (max-width: 1240px) { .mfeat { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .mfeat { grid-template-columns: minmax(0, 1fr); } .mk-dlg-in { padding: 18px 16px; } }
+.mc-btn:focus-visible { outline-offset: -3px; border-radius: var(--r-lg); }
+.mt[aria-current="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
