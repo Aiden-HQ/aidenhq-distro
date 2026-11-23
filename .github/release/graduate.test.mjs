@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildResult, child, failureLines, readChecks, runParallel, verdictOf, writeCheck } from "./graduate-checks.mjs";
-import { CHECKS, checkIdentity, closable, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, validateResult } from "./graduate.mjs";
+import { CHECKS, checkIdentity, closable, decide, identityOf, markRejected, noteIncomplete, onFailure, pick, rateLimitWait, rejected, stageOf, stalledHours, stallBody, validateResult } from "./graduate.mjs";
 
 const d = (c) => `sha256:${c.repeat(64)}`;
 const rel = (tag, { pre = true, draft = false, body = "", id = 1 } = {}) => ({
@@ -155,4 +155,24 @@ test("the failure notice redacts credentials in any common shape and long opaque
   const note = 'boom Authorization: Bearer abc.def password=hunter2 {"api_key": "zz9"} ' + "x".repeat(40);
   const out = failureLines({ checks: { upgraded: false }, notes: [`upgraded: ${note}`] });
   for (const leak of ["abc.def", "hunter2", "zz9", "x".repeat(40)]) assert.ok(!out.includes(leak), `${leak} leaked: ${out}`);
+});
+
+test("a candidate waiting over 24 hours is reported as stalled, naming the stage each run failed in", () => {
+  const now = Date.parse("2026-11-23T12:00:00Z");
+  assert.equal(stalledHours("2026-11-21T10:00:00Z", now), 50);
+  assert.equal(stalledHours("2026-11-23T00:00:00Z", now), null);
+  const job = (...steps) => ({ steps: steps.map(([name, conclusion]) => ({ name, conclusion })) });
+  const base = stageOf(job(["a. Service user and disk", "success"], ["c. Baseline scenario", "failure"], ["d. Upgrade", "skipped"], ["Result", "success"]));
+  assert.deepEqual(base, { stage: "baseline", step: "c. Baseline scenario" });
+  assert.equal(stageOf(job(["d. Upgrade", "failure"], ["Result", "success"])).stage, "candidate");
+  assert.equal(stageOf(job(["a. Service user and disk", "success"])), null);
+  const body = stallBody({ tag: "2026.11.21.1", baseline: "2026.11.20.7", hours: 50, runs: [{ url: "https://github.com/a/b/actions/runs/2", conclusion: "failure", fail: base }] });
+  assert.match(body, /2026\.11\.21\.1 .* 50 hours.*Baseline: 2026\.11\.20\.7/);
+  assert.match(body, /runs\/2: failure, failed in the baseline stage .*before the candidate was touched/);
+});
+
+test("the stall issue closes when its candidate or a newer cut graduates, never a later cut's", () => {
+  const i = (title) => ({ number: 1, title, user: { login: "github-actions[bot]" } });
+  const got = closable([i("Graduation stalled: 2026.11.21.1 waiting since 2026-11-21T10:00:00Z"), i("Graduation stalled: 2026.11.20.9 waiting since 2026-11-20T10:00:00Z"), i("Graduation stalled: 2026.11.22 waiting since 2026-11-22T10:00:00Z")], "2026.11.21.1");
+  assert.deepEqual(got.map((x) => x.title.split(" ")[2]), ["2026.11.21.1", "2026.11.20.9"]);
 });

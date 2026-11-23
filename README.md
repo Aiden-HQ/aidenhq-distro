@@ -224,6 +224,10 @@ release the nightly started with `GITHUB_TOKEN`), and runs every 6 hours to catc
    adds a `graduation: incomplete <run url>` line to its notes; at the third such line it is rejected as never
    completed, so one release can't hold back every later cut.
 
+   A candidate that has waited over 24 hours without graduating also gets one `Graduation stalled: <tag> waiting since <time>`
+   issue (opened by `select`, kept open once, closed when that cut or a newer one graduates). It names the baseline and
+   the last runs, and whether each failed in the baseline stage (before the candidate was touched) or the candidate stage.
+
 Operating it:
 
 - **See what it would do:** `GITHUB_TOKEN=$(gh auth token) node .github/release/graduate.mjs select` (read-only).

@@ -5,13 +5,14 @@
 # passes smoke checks. Only then is the candidate made a full release and latest, which installs update to and the site serves.
 #   select   (contents: read) the candidate: the OLDEST pre-release newer than latest without the rejected mark
 #            (`graduation: failed <run>` in its notes); exact tag, tag commit, kernel, release id and asset digests. Nothing to
-#            do: the run ends there. A baseline whose updater can't prepare a named pre-release fails here (the bootstrap).
+#            do: the run ends there. Over 24 hours after the candidate was published it also opens one "Graduation stalled" issue
+#            (issues: write; actions: read for the recent runs' failing stage). A baseline whose updater can't prepare a named pre-release fails here (the bootstrap).
 #   test     (no token, no permissions) steps a-e on ubuntu-24.04: disk, baseline install (the candidate's images pre-pulled
 #            beside it), baseline scenario (first run, a chat, the prebuilt hello app), upgrade, smoke checks side by side.
 #            The only job that runs a release's code; it hands promote one small result.json, with each phase's seconds.
 #   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
 #            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
-#            to move latest back; a re-run of a graduated release does nothing. It closes the open "didn't finish" issues and older rejected cuts' issues.
+#            to move latest back; a re-run of a graduated release does nothing. It closes the open "didn't finish" issues, older rejected cuts' issues and the stall issue.
 #   reject   (contents: write, issues: write) when test or promote failed: the rejected mark and one issue. A rejected
 #            release stays a pre-release; the next candidate is tested from the same baseline.
 # Triggers: release.yml dispatches it when its publish succeeds (its `graduate` job; not workflow_run, which never fires for
@@ -36,6 +37,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      actions: read
+      issues: write
     outputs:
       found: ${{ steps.pick.outputs.found }}
       tag: ${{ steps.pick.outputs.tag }}
