@@ -168,9 +168,12 @@ async function chatNow(id, since) {
   const r = await board("GET", `/api/chats/${encodeURIComponent(id)}?peek`);
   const c = r.json ?? {};
   const reply = (c.messages ?? []).find((m) => m.kind === "reply" && Date.parse(m.at) >= since - 5000);
-  return { reply: reply?.text, state: c.state, reason: c.reason, handedOut: c.handedOut ?? [], approvals: (c.approvals ?? []).map((a) => `${a.kind ?? "?"} ${a.state ?? "?"}`) };
+  // The board answers the kernel's task-state row (or null with no facts); a baseline predating that answers a string.
+  const kind = c.state?.kind ?? (typeof c.state === "string" ? c.state : "none");
+  const reason = c.state?.reason ?? c.reason;
+  return { reply: reply?.text, state: kind, reason, handedOut: c.handedOut ?? [], approvals: (c.approvals ?? []).map((a) => `${a.action ?? a.kind ?? "?"} ${a.state ?? "?"}`) };
 }
-const describe = (n) => `state ${n.state}${n.reason ? ` (${n.reason})` : ""}; handed out: ${n.handedOut.map((k) => `${k.identifier} ${k.agent} ${k.state}`).join(", ") || "nothing"}; approvals: ${n.approvals.join(", ") || "none"}`;
+const describe = (n) => `state ${n.state}${n.reason ? ` (${n.reason})` : ""}; handed out: ${n.handedOut.map((k) => `${k.identifier} ${k.agent} ${k.state?.kind ?? k.state ?? "none"}`).join(", ") || "nothing"}; approvals: ${n.approvals.join(", ") || "none"}`;
 
 /** A scripted chat that must get a reply: two attempts, 10 minutes each. */
 async function chatReply(label) {
@@ -186,7 +189,7 @@ async function chatReply(label) {
       const n = await chatNow(id, since).catch((e) => ({ state: `unreadable: ${e.message}`, handedOut: [], approvals: [] }));
       if (n.reply) return { ok: true, note: `${id} replied` };
       last = `${id}: ${describe(n)}`;
-      failedSince = n.state === "failed" ? failedSince || Date.now() : 0;
+      failedSince = n.reason === "failed" ? failedSince || Date.now() : 0;
       if (failedSince && Date.now() - failedSince >= MIN) break;
     }
   }
