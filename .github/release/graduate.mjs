@@ -8,6 +8,7 @@
 //                                                   failed, or after its 3rd run that reached it without a verdict; anything
 //                                                   else (the baseline, the runner, a rate limit before the candidate ran,
 //                                                   a cancel, promotion) only an issue: it stays pending (onFailure)
+//   (select also opens one "Graduation stalled" issue once the candidate has waited over STALL_HOURS; promote closes it)
 //   node .github/release/graduate.mjs rejected      the rejected releases' names, space-separated (release.yml's upgrade test)
 // A cut is published as a pre-release (release.yml). The baseline is GitHub's latest release: the newest graduated one, what
 // get.aidenhq.ai serves. The candidate is the OLDEST pre-release newer than the baseline that isn't marked rejected (a line
@@ -136,10 +137,37 @@ export function noteIncomplete(body, run) {
 const tagOrder = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let k = 0; k < Math.max(x.length, y.length); k++) if ((x[k] ?? 0) !== (y[k] ?? 0)) return (x[k] ?? 0) - (y[k] ?? 0); return 0; };
 /**
  * The open issues graduation itself opened, closed once `tag` graduates: every cut it couldn't judge (infrastructure failure,
- * incomplete), and each older cut it rejected (a later cut graduated past it, so whatever failed it no longer stops releases).
+ * incomplete), each older cut it rejected (a later cut graduated past it, so whatever failed it no longer stops releases), and the stall
+ * issue of this cut or an older one.
  */
 export const closable = (issues, tag) => issues.filter((i) => !i.pull_request && /^github-actions(\[bot\])?$/.test(i.user?.login ?? "") &&
-  (/^Graduation of \S+ didn't finish$/.test(i.title) || (/^Release (\S+) failed graduation$/.test(i.title) && tagOrder(i.title.split(" ")[1], tag) < 0)));
+  (/^Graduation of \S+ didn't finish$/.test(i.title) || (/^Release (\S+) failed graduation$/.test(i.title) && tagOrder(i.title.split(" ")[1], tag) < 0) ||
+    (/^Graduation stalled: \S+ waiting since /.test(i.title) && tagOrder(i.title.split(" ")[2], tag) <= 0)));
+
+/** How long an eligible candidate may wait before select reports the stall. */
+export const STALL_HOURS = 24;
+export const STALL_PREFIX = (tag) => `Graduation stalled: ${tag} waiting since `;
+/** Hours the candidate has waited (since it was published) when that is over STALL_HOURS, else null. */
+export const stalledHours = (publishedAt, now = Date.now()) => {
+  const h = (now - Date.parse(publishedAt)) / 3_600_000;
+  return h > STALL_HOURS ? Math.floor(h) : null;
+};
+/**
+ * Where a graduate run's test job failed, from its steps: "baseline" (steps a-c: before the candidate was touched), "candidate"
+ * (d, e: the upgrade and its checks; the upgrade step can still fail before the updater prepared the candidate), or null when
+ * no lettered step failed (passed, or cut short elsewhere).
+ */
+export const stageOf = (job) => {
+  const f = (job?.steps ?? []).find((s) => /^[a-e]\. /.test(s.name) && s.conclusion && !["success", "skipped"].includes(s.conclusion));
+  return f ? { stage: /^[a-c]\./.test(f.name) ? "baseline" : "candidate", step: f.name } : null;
+};
+/** The stall issue's body: candidate, baseline, and each recent run (newest first) with the stage it failed in. */
+export const stallBody = ({ tag, baseline, hours, runs }) => [
+  `${tag} is an eligible pre-release that has waited ${hours} hours without graduating (limit ${STALL_HOURS}). Baseline: ${baseline}, the current latest.`,
+  "", "Recent graduation runs since it was published (newest first):",
+  ...(runs.length ? runs.map((r) => `- ${r.url}: ${r.conclusion}${r.fail ? `, failed in the ${r.fail.stage} stage (step "${r.fail.step}")${r.fail.stage === "baseline" ? ": before the candidate was touched" : ""}` : ""}`) : ["- none finished"]),
+  "", "Nothing graduates until this is settled: fix the baseline or the candidate, or graduate it by hand (README \"Release graduation\"). This issue closes when the candidate (or a newer cut) graduates through the workflow; after a manual graduation, close it by hand.",
+].join("\n");
 
 /** The body with the rejected mark (unchanged when it has one). */
 export const markRejected = (body, run) => (rejected(body) ? String(body) : `${String(body ?? "").trimEnd()}\n\n${MARK} ${run}\n`);
@@ -220,7 +248,31 @@ async function selection(want = {}) {
     throw new Error(`baseline ${base} predates graduation (its updater has no ${CANDIDATE_ENV}); graduate one release by hand (README "Release graduation")`);
   }
   const baseAssets = assetsOf(latest);
-  return { tag: c.tag_name, release_id: c.id, tag_sha: tagSha, kernel: file.kernel, baseline: base, baseline_install_digest: baseAssets["install.sh"], candidate_file_digest: id.assets[`${c.tag_name}.json`], identity: JSON.stringify(id) };
+  return { tag: c.tag_name, published_at: c.published_at ?? c.created_at, release_id: c.id, tag_sha: tagSha, kernel: file.kernel, baseline: base, baseline_install_digest: baseAssets["install.sh"], candidate_file_digest: id.assets[`${c.tag_name}.json`], identity: JSON.stringify(id) };
+}
+
+/** Opens an issue unless an open one's title starts with `prefix` (the whole title by default): graduation's one failure-issue path. */
+async function openIssue(title, body, prefix = title) {
+  const open = await api(`repos/${DISTRO}/issues?state=open&per_page=100`);
+  if (!open.some((i) => !i.pull_request && i.title.startsWith(prefix))) await api(`repos/${DISTRO}/issues`, { method: "POST", body: { title, body } });
+}
+
+/** Once the candidate has waited over STALL_HOURS, opens (or keeps open) the one stall issue naming the recent runs' failing stage. */
+async function reportStall(s) {
+  const hours = stalledHours(s.published_at);
+  if (hours == null) return;
+  const prefix = STALL_PREFIX(s.tag);
+  const open = await api(`repos/${DISTRO}/issues?state=open&per_page=100`);
+  if (open.some((i) => !i.pull_request && i.title.startsWith(prefix))) return;
+  const since = Date.parse(s.published_at);
+  const rows = (await api(`repos/${DISTRO}/actions/workflows/graduate.yml/runs?status=completed&per_page=10`)).workflow_runs.filter((r) => Date.parse(r.created_at) >= since).slice(0, 5);
+  const runs = [];
+  for (const r of rows) {
+    const job = (await api(`repos/${DISTRO}/actions/runs/${r.id}/jobs?per_page=100`)).jobs.find((j) => j.name === "test");
+    runs.push({ url: r.html_url, conclusion: r.conclusion, fail: stageOf(job) });
+  }
+  await openIssue(`${prefix}${s.published_at}`, stallBody({ tag: s.tag, baseline: s.baseline, hours, runs }), prefix);
+  summary(`**${s.tag} stalled**: waiting ${hours} hours; issue opened.`);
 }
 
 async function select() {
@@ -228,6 +280,8 @@ async function select() {
   if (!s) { summary("**Nothing to graduate**: no pending pre-release newer than latest."); output({ found: "false" }); return; }
   summary(`**Graduating ${s.tag}** (distro ${s.tag_sha.slice(0, 12)}, kernel ${s.kernel.slice(0, 12)}) from ${s.baseline}.`);
   output({ found: "true", ...s });
+  // Reporting writes an issue: only in the workflow (the dry run stays read-only), and never stops the graduation itself.
+  if (process.env.GITHUB_OUTPUT) await reportStall(s).catch((e) => console.log(`::warning::stall report failed: ${e.message}`));
 }
 
 /** A manual run's env (README "Release graduation"): `eval "$(node graduate.mjs env [candidate] [baseline])"`. */
@@ -262,10 +316,7 @@ async function reject() {
   const id = checkIdentity(JSON.parse(process.env.IDENTITY ?? ""));
   const run = String(process.env.RUN_URL ?? "");
   if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/.test(run)) throw new Error("RUN_URL isn't a run link");
-  const issue = async (title, body) => {
-    const open = await api(`repos/${DISTRO}/issues?state=open&per_page=100`);
-    if (!open.some((i) => i.title === title)) await api(`repos/${DISTRO}/issues`, { method: "POST", body: { title, body } });
-  };
+  const issue = openIssue;
   const e = process.env;
   const evidence = e.FAILURES?.trim() ? `\n\nFailing checks (from the test's verdict):\n\`\`\`\n${e.FAILURES.trim().replace(/`/g, "'")}\n\`\`\`` : "";
   const what = onFailure({ test: e.TEST_RESULT, reached: e.REACHED, verdict: e.VERDICT, promote: e.PROMOTE_RESULT });
