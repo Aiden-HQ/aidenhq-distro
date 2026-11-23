@@ -165,8 +165,8 @@ export const stageOf = (job) => {
 export const stallBody = ({ tag, baseline, hours, runs }) => [
   `${tag} is an eligible pre-release that has waited ${hours} hours without graduating (limit ${STALL_HOURS}). Baseline: ${baseline}, the current latest.`,
   "", "Recent graduation runs since it was published (newest first):",
-  ...(runs.length ? runs.map((r) => `- ${r.url}: ${r.conclusion}${r.fail ? `, failed in the ${r.fail.stage} stage (step "${r.fail.step}")${r.fail.stage === "baseline" ? ": before the candidate was touched, so the baseline itself fails its own checks" : ""}` : ""}`) : ["- none finished"]),
-  "", "Nothing graduates until this is settled: fix the baseline or the candidate, or graduate it by hand (README \"Release graduation\"). This issue closes when the candidate (or a newer cut) graduates.",
+  ...(runs.length ? runs.map((r) => `- ${r.url}: ${r.conclusion}${r.fail ? `, failed in the ${r.fail.stage} stage (step "${r.fail.step}")${r.fail.stage === "baseline" ? ": before the candidate was touched" : ""}` : ""}`) : ["- none finished"]),
+  "", "Nothing graduates until this is settled: fix the baseline or the candidate, or graduate it by hand (README \"Release graduation\"). This issue closes when the candidate (or a newer cut) graduates through the workflow; after a manual graduation, close it by hand.",
 ].join("\n");
 
 /** The body with the rejected mark (unchanged when it has one). */
@@ -280,8 +280,8 @@ async function select() {
   if (!s) { summary("**Nothing to graduate**: no pending pre-release newer than latest."); output({ found: "false" }); return; }
   summary(`**Graduating ${s.tag}** (distro ${s.tag_sha.slice(0, 12)}, kernel ${s.kernel.slice(0, 12)}) from ${s.baseline}.`);
   output({ found: "true", ...s });
-  // Reporting must never stop the graduation itself.
-  await reportStall(s).catch((e) => console.log(`::warning::stall report failed: ${e.message}`));
+  // Reporting writes an issue: only in the workflow (the dry run stays read-only), and never stops the graduation itself.
+  if (process.env.GITHUB_OUTPUT) await reportStall(s).catch((e) => console.log(`::warning::stall report failed: ${e.message}`));
 }
 
 /** A manual run's env (README "Release graduation"): `eval "$(node graduate.mjs env [candidate] [baseline])"`. */
