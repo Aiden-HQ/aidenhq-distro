@@ -189,7 +189,8 @@ async function chatReply(label) {
       const n = await chatNow(id, since).catch((e) => ({ state: `unreadable: ${e.message}`, handedOut: [], approvals: [] }));
       if (n.reply) return { ok: true, note: `${id} replied` };
       last = `${id}: ${describe(n)}`;
-      failedSince = n.reason === "failed" ? failedSince || Date.now() : 0;
+      // A failed chat is {kind: "idle", reason: "failed"}; a baseline predating the row says state "failed" itself.
+      failedSince = n.reason === "failed" || n.state === "failed" ? failedSince || Date.now() : 0;
       if (failedSince && Date.now() - failedSince >= MIN) break;
     }
   }
