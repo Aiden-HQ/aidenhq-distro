@@ -1,0 +1,18 @@
+{
+  "kernel": "4634cce2afbefe37c95d2b2cdb499437c5cd08d6",
+  "kernel_repo": "Aiden-HQ/AidenHQ",
+  "notes": [
+    "May add authority (grants, writes, roles or secrets) in: chief-of-staff, engineering, maintainer, ship. Auto-updates accept it; turn them off to review first.",
+    "Ship: hand a PR to the fleet and it reaches merge: repair, CI and review fixes, AI approval, the merge queue, and stacked PRs",
+    "Ship uses a repo's own commands and workflows, and adopts PRs handed over to it",
+    "One GitHub change feed with a kernel event log, instead of each module polling",
+    "Modules get their own pages in Fleet, with settings drawers (Ship, Maintainer) and plain-words help",
+    "The Reviews page is now code review's module view",
+    "Fleet overview: who is working on what at a glance",
+    "Task truth on the board: what done means, delegated work, one activity feed; answer owner questions in place",
+    "Faster kernel and board: fewer calls, retention for old rows and run history, warm boxes reused",
+    "Code review: repo reviews split into areas, incremental area reviews, per-option default models",
+    "Stop duplicate agent-failure alerts to the owner; Telegram button and approval fixes"
+  ],
+  "release": "2026.11.24.1"
+}
