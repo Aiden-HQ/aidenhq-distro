@@ -1,8 +1,9 @@
 {
-  "kernel": "4634cce2afbefe37c95d2b2cdb499437c5cd08d6",
+  "kernel": "f0808ad8276fa790076b91cd6776063cb651601a",
   "kernel_repo": "Aiden-HQ/AidenHQ",
   "notes": [
     "May add authority (grants, writes, roles or secrets) in: chief-of-staff, engineering, maintainer, ship. Auto-updates accept it; turn them off to review first.",
+    "The fleet's PR loop (auto-merge, CI and conflict wakes) now lives in the ship module. It is in the default bundle; an instance that lists its modules explicitly must add ship to keep it.",
     "Ship: hand a PR to the fleet and it reaches merge: repair, CI and review fixes, AI approval, the merge queue, and stacked PRs",
     "Ship uses a repo's own commands and workflows, and adopts PRs handed over to it",
     "One GitHub change feed with a kernel event log, instead of each module polling",
@@ -12,7 +13,9 @@
     "Task truth on the board: what done means, delegated work, one activity feed; answer owner questions in place",
     "Faster kernel and board: fewer calls, retention for old rows and run history, warm boxes reused",
     "Code review: repo reviews split into areas, incremental area reviews, per-option default models",
-    "Stop duplicate agent-failure alerts to the owner; Telegram button and approval fixes"
+    "Stop duplicate agent-failure alerts to the owner; Telegram button and approval fixes",
+    "Ship files a fleet PR's merge under its owning task and stops refiling a refused merge",
+    "A GitHub sign-in that still works is never marked expired, and a wrong mark heals itself"
   ],
   "release": "2026.11.24.1"
 }
