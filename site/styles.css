@@ -1089,7 +1089,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .ic-d { font-size: 14.5px; color: var(--text-2); line-height: 1.5; }
 .ic-cmd { margin-top: auto; }
 .ic-cmd code { font-size: 13px; line-height: 1.45; }
-.ic-wrap code { white-space: normal; overflow-wrap: anywhere; }
+.ic-cmd code { white-space: normal; overflow-wrap: anywhere; }
 .cta .ic { margin-inline: auto; max-width: 980px; }
 .cta .ic-card { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); box-shadow: none; }
 .cta .ic-t, .cta .ic-d { color: #fff; }

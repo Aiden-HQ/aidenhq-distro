@@ -227,8 +227,8 @@ every sign-in and key goes through a link the user opens.
 4. **Schedules.** A new install starts quiet: nothing runs on a schedule and agents don't check in until the owner
    turns it on, and model spend stops at a daily limit. Ask which ones they want (a morning brief, a weekly look at how
    the agents work, an evening fleet digest). Aiden resumes a routine only on the owner's own words naming it, so pass
-   their words through `ask` (e.g. "resume the daily brief"). Agent check-ins: `change_settings` with
-   `changes: [{"kind":"agent","agent":"<key>","field":"heartbeat","value":true}]`.
+   their words through `ask` (e.g. "resume the daily brief"). Agent check-ins: ask how often: every 1, 2, 3, 4, 6, 8, 12 or 24 hours (4 is a good default), then `change_settings` with
+   `changes: [{"kind":"agent","agent":"<key>","field":"heartbeat","value":4}]` (`false` turns them off).
 5. **Cards.** If `status` shows pending cards, read them with `approvals`, explain each, and `decide` (id plus the
    digest from `approvals`) only on the user's explicit answer.
 6. **First message.** Send their first message to Aiden with `ask` (it waits up to `wait_seconds` and returns the
