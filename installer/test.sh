@@ -53,6 +53,16 @@ case_() {
   if [ "$got" = "$expect" ]; then ok "$name${why:+  ($why)}"; else bad "$name (got $got)"; sed 's/^/     /' "$work/out"; fi
 }
 
+# The release run's API read (.github/release/gh-get.sh): before a release tag can be deleted, a failed read (429, 500, a
+# transport error) must fail the step naming the status and body, never read as an empty answer. The test stubs curl and
+# checks the token doesn't leak into argv.
+if out=$(sh "$here/.github/release/gh-get.test.sh" 2>&1); then
+  ok "a failed release API read fails naming the status (gh-get.sh)"
+else
+  bad "a failed release API read fails naming the status (gh-get.sh)"
+  printf '%s\n' "$out" | sed 's/^/     /'
+fi
+
 case_ "a real release verifies, fetching only the product" pass "$K" '[ ! -e "$STATE_DIR/modules" ]'
 case_ "a placeholder sha stops it"               stop "TODO-kernel-sha"
 case_ "one flipped hex digit in the kernel sha"  stop "$(flip "$K")"
