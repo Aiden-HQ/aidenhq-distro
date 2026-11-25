@@ -1080,3 +1080,24 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
   .h-wins, .h-shelf, .h-trust.h-trust5, .h-share { grid-template-columns: 1fr; }
   .h-actions > * { width: 100%; }
 }
+
+/* Two equal ways to install: ask your AI agent, or run one command. */
+.ic { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; margin-top: 22px; text-align: left; }
+.ic-card { display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow-sm); min-width: 0; }
+.ic-t { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; letter-spacing: -.01em; }
+.ic-t svg { width: 18px; height: 18px; fill: none; stroke: var(--brand); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.ic-d { font-size: 14.5px; color: var(--text-2); line-height: 1.5; }
+.ic-cmd { margin-top: auto; }
+.ic-cmd code { font-size: 13px; line-height: 1.45; }
+.ic-cmd code { white-space: normal; overflow-wrap: anywhere; }
+.cta .ic { margin-inline: auto; max-width: 980px; }
+.cta .ic-card { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); box-shadow: none; }
+.cta .ic-t, .cta .ic-d { color: #fff; }
+.cta .ic-d { color: rgba(255,255,255,.86); margin: 0; font-size: 14.5px; }
+.cta .ic-t svg { stroke: #fff; }
+.cta .ic-cmd { background: rgba(6, 11, 24, .82); border-color: rgba(255,255,255,.14); }
+.cta .ic-cmd .copy { background: #fff; color: #1B2A6B; }
+.cta .ic-cmd .copy.done { background: #0B8A7B; color: #fff; }
+.ph .ic { margin-top: 20px; }
+.ph-in .ic { grid-template-columns: 1fr; }
+@media (max-width: 720px) { .ic { grid-template-columns: 1fr; } }

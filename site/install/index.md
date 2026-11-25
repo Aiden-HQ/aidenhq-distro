@@ -1,8 +1,18 @@
-# Set up your workspace in one command.
+# Install AidenHQ your way.
 
-> Install AidenHQ with one command on an Ubuntu or Debian server or a Mac, or let your coding agent do it. Requirements, what you need first, what happens next, and what it costs to run.
+> Install AidenHQ by asking your AI coding agent, or with one command on an Ubuntu or Debian server or a Mac. Requirements, what you need first, what happens next, and what it costs to run.
 
-Run one line on a fresh Linux server you own, or on your Mac. It installs everything it needs, checks the release, and hands you a one-time link to finish setup in your browser.
+Ask your AI coding agent to do it, or run one command yourself, on a fresh Linux server you own or on your Mac. Either
+way you get a one-time link to finish setup in your browser.
+
+**Ask your AI agent.** Paste this into Claude Code, Codex or any coding agent. It sets up the server, installs
+AidenHQ, checks every step and hands you your link:
+
+```text
+Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
+```
+
+**Or run one command** on a fresh Ubuntu or Debian server, or on your Mac:
 
 ```sh
 curl -fsSL https://get.aidenhq.ai | sh
@@ -14,20 +24,20 @@ _Animation: the install command runs on a fresh server, checks it, installs what
 
 All three end in the same place: your own workspace, with its agents ready for their first job.
 
-### One command
-
-On the server, as root or a user with sudo. It installs Docker and Node itself, at pinned versions.
-
-```sh
-curl -fsSL https://get.aidenhq.ai | sh
-```
-
 ### Ask your coding agent
 
 Using Claude Code, Codex or another coding agent? Paste one line and it does the whole install for you, checking each step.
 
 ```text
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
+```
+
+### One command
+
+On the server, as root or a user with sudo. It installs Docker and Node itself, at pinned versions.
+
+```sh
+curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 ### Step by step
