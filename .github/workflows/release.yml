@@ -467,11 +467,17 @@ jobs:
         run: |
           api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
           R="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY" run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          if api "$R/releases/tags/$TAG" >/dev/null 2>&1; then
-            title="Release $TAG: its run failed after it was published" body="Release $TAG is published, so its tag stays. Run: $run"
-          else
-            for id in $(api "$R/releases?per_page=100" | jq -r --arg t "$TAG" '.[] | select(.draft and .tag_name == $t) | .id'); do api -X DELETE "$R/releases/$id"; done
-            api -X DELETE "$R/git/refs/tags/$TAG" || echo "tag $TAG is already gone"
-            title="Release $TAG failed" body="Release $TAG didn't pass its install-and-test or publish: its tag is deleted and nothing was released. Run: $run"
-          fi
+          # Only a confirmed 404 (no release for this tag) authorizes deleting the tag: a lookup that failed another way
+          # says nothing about whether the cut published, and deleting a published release's tag is the worse error. The
+          # response status is read, not inferred from api's exit, and a transient failure is retried first.
+          code=$(api -o /dev/null -w '%{http_code}' --retry 3 --retry-all-errors "$R/releases/tags/$TAG" 2>/dev/null) || true
+          case "${code:-000}" in
+            200) title="Release $TAG: its run failed after it was published" body="Release $TAG is published, so its tag stays. Run: $run" ;;
+            404)
+              for id in $(api "$R/releases?per_page=100" | jq -r --arg t "$TAG" '.[] | select(.draft and .tag_name == $t) | .id'); do api -X DELETE "$R/releases/$id"; done
+              api -X DELETE "$R/git/refs/tags/$TAG" || echo "tag $TAG is already gone"
+              title="Release $TAG failed" body="Release $TAG didn't pass its install-and-test or publish: its tag is deleted and nothing was released. Run: $run" ;;
+            *)
+              title="Release $TAG failed: its publication isn't known" body="Release $TAG's run didn't publish, but reading whether a release exists for the tag failed (HTTP ${code:-no status}). Its tag is left in place so a published cut is never deleted: check the run and the tag by hand. Run: $run" ;;
+          esac
           api -X POST "$R/issues" -d "$(jq -n --arg t "$title" --arg b "$body" '{title: $t, body: $b}')" | jq -r .html_url
