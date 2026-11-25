@@ -1,10 +1,11 @@
-# AidenHQ: the workspace that runs itself
+# AidenHQ: your work life, on autopilot
 
-> The autonomous agentic workspace: AI agents plan, build, ship and follow up around the clock, and you drop in to shape the work whenever you like. On a server you own.
+> Aiden is an open-source AI chief of staff on your own server. It reads your Slack, email and meetings, turns what needs you into action items, follows up with people, and builds new agents for everything else.
 
-Agents plan, build, ship, maintain and follow up on their own, with the tools, data and instructions they need. You
-join in however you like: comment on a shared doc, chat with any agent, give one a Slack channel, approve with a tap.
-Self-hosted and open source. Install it with one command on a fresh Ubuntu or Debian server (or a Mac):
+Meet Aiden, your AI chief of staff, and a team of agents that works for you 24/7. Aiden cuts the noise in your Slack,
+email and meetings and follows up on what matters. Describe any agent in a sentence, and Aiden builds it and puts it
+to work. Open source, on your own server, with any AI model. Install it with one command on a fresh Ubuntu or Debian
+server (or a Mac):
 
 ```sh
 curl -fsSL https://get.aidenhq.ai | sh
@@ -16,96 +17,98 @@ curl -fsSL https://get.aidenhq.ai | sh
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
 ```
 
-## What sets it apart
+## Cut the noise. Focus on what matters
 
-- **Never off the clock: work that moves while you sleep.** They plan, build, ship, maintain and follow up on
-  schedules and events, day and night, without being prompted, and every piece of work is graded against a clear
-  definition of done. [Agents](https://aidenhq.ai/agents/index.md) · [Apps](https://aidenhq.ai/apps/index.md)
-- **Side by side: shape the work without taking it over.** Shared pages and whiteboards with comments that
-  wake agents, chat with any agent (or ask Aiden, the chief of staff), agents in your Slack channels, approvals from
-  your phone. [Workspace](https://aidenhq.ai/workspace/index.md) · [Approvals](https://aidenhq.ai/safety/index.md)
-- **Made to measure: a workspace that fits you.** Start from a distro, add modules, connect any tool,
-  build your own agents, pin board panels, and keep a working-style profile every agent follows.
-  [Modules and distros](https://aidenhq.ai/modules/index.md) · [Integrations](https://aidenhq.ai/integrations/index.md)
+Most of what reaches you doesn't need you. Aiden reads it all, keeps what does, and makes sure nothing slips.
 
-Also: sovereign AI on your own server, deterministic guardrails on every action, open source, any model (frontier or
-open-weight), and budgets per agent, task and day.
+1. **Reads everything:** your Slack channels and DMs, the email you hand it, your meeting transcripts and notes, and
+   anything you forward on Telegram.
+2. **Keeps what needs you:** asks, promises and deadlines become one action item each, linked to where they came from.
+   The rest stays out of your way.
+3. **Follows up until it's done:** Aiden tracks what people owe you, drafts the nudge when something slips, and tells you
+   when it's settled.
+   Only urgent things interrupt you.
 
-Built for one person and their agents. Invite teammates whenever you like: they join the same docs, channels and
-approvals, and work with the same agents.
+Also: a morning brief on Telegram or Slack, decisions and action items filed from each meeting transcript or your notes, answers to
+"where does this stand?" from your messages, docs and tasks, and apps that agents build and keep running.
+[Apps](https://aidenhq.ai/apps/index.md)
 
-## An AI workforce that runs as a team
+## Build any agent in a sentence
 
-Not one assistant: a multi-agent team that orchestrates itself. Aiden, the chief of staff, routes each request to the
-right specialist; specialists delegate, hand off with full context, review each other's work and pass finished work to
-DevOps to ship. Agents keep long-term memory of people, decisions and your preferences. Every correction becomes a rule
-and an eval, the Agent Coach refines and prunes the shared handbook, and evals gate every change, so the team gets
-better every week. Agents also design new agents and build the tools they need.
+Agents that merge code, run a roadmap or defend your systems all started as a description. Describe yours and Aiden
+designs it, gives it tools, tries it on real work and adds it to your team.
 
-## A day in the workspace
+These run today, each built on AidenHQ:
 
-Most of the day the agents work on their own. When you want to shape something, you drop in where the work lives.
+- **Ship:** Takes every pull request from opened to merged. Repairs conflicts, updates branches that fall behind, wakes the engineer when a check goes red, and merges once review and CI pass. Hand it any PR with one label.
+- **Maintainer:** Looks after your open-source repos. Checks each issue you label for a fix, hands it to an Engineer and sees it through to a merged PR that closes the issue. Labels feature requests, builds the ones you pick, and closes contributor PRs that went quiet.
+- **Roadmap Keeper:** Keeps a live product roadmap your team actually trusts. Three times a day it updates every major feature's milestones and ETA history, links the evidence that it shipped, and flags slips on a dashboard your team opens. A second agent acts on reader feedback within a minute.
+- **Code review:** Reviews every pull request with several AI models. Runs Codex and Claude Code reviews with the models and effort you choose, posts the findings on GitHub, and keeps score of which findings turned out to be real and what each review cost.
+- **Fleet Steward:** Runs operations for the agent team itself. Unsticks stuck work, restarts failed services and rolls back a bad update, then fixes why it happened. Every evening it reviews each message that reached you and fixes the needless ones at their source.
+- **Security team:** Hunts vulnerabilities and attacks your own setup. Security Watch scans everything you run for known vulnerabilities, verifies them and files fixes. The Red Teamer attacks your own apps and agents and reports each hole with a proof of concept.
+- **Executive assistant:** A fast front door for everyday asks. Quick answers with sources from your calendar, email, Slack and docs, reminders that actually fire, and calendar changes on request.
 
-- **09:30, shared docs: comment, and an agent picks it up.** Mention an agent in a comment on a doc or whiteboard. It
-  wakes, makes the change while you watch, and answers in the thread.
-- **11:00, apps: an app from one sentence.** Ask for a tracker, a dashboard or a form. You pick a layout, agents
-  build it, a second AI checks it, and it goes live for your team. [Apps](https://aidenhq.ai/apps/index.md)
-- **14:00, a new agent from a description.** The Agent Architect writes its instructions, picks its tools, tries it
-  out and adds it to the workspace once its work holds up.
-- **02:00, apps that fix themselves.** When something breaks, the DevOps Engineer rolls it back, an Engineer fixes
-  the cause, and the fix ships after a second AI checks it.
+Ideas you can describe:
 
-## Full autonomy, with you in the loop where it counts
+- **Incident commander:** "When an alert fires, find the cause, open a fix and post status updates until it's resolved."
+- **Deal desk:** "Watch every deal in HubSpot. When one stalls, find out why from email and Slack and propose the next step."
+- **Investor update:** "On the first of each month, draft our investor update from metrics, wins, hires and asks."
+- **Competitor watch:** "Every Friday, check our competitors' sites, changelogs and docs and tell me what changed and why it matters."
 
-Agents act on their own, and deterministic guardrails check every action that changes something: a message, a deploy,
-a merge, a settings change. For the ones that matter, you see the exact request and approve with one tap, from your
-phone.
+Yours join the same team: Aiden hands them work, and they learn from every correction you make.
+[How agents get built](https://aidenhq.ai/agents/index.md)
 
-1. **Runs by itself:** safe, reversible steps, like updating a board or drafting a reply.
-2. **A second AI checks it:** merges, deploys and messages are reviewed by a different AI model first.
-3. **You decide:** anything that gives an agent more power, spends more or speaks for you.
+## A team that works together, 24/7
 
-## Plugged into your whole stack, through MCP
+Your agents hand work to each other, check each other's work and keep going while you sleep. You see every handoff and
+can step in whenever you like. An example day:
 
-Slack, Telegram, Gmail, Calendar, Drive, Jira, GitHub, Glean, Grafana, ClickHouse, OpenRouter and a shared
-warehouse. Connect each once with your own accounts; every agent you grant can use it, tool by tool, and every source
-feeds one shared warehouse for context. [Integrations](https://aidenhq.ai/integrations/index.md)
+- **02:10** DevOps Engineer saw the hiring tracker fail, rolled it back and filed the bug.
+- **02:40** Engineer fixed the cause. A second AI reviewed the fix, and it shipped.
+- **07:30** Aiden sent your morning brief: four things need you, the rest is handled.
+- **10:15** Researcher compared vendor prices and added a table to the launch plan.
+- **14:00** Agent Architect built the sales follow-up agent you described and added it to the team.
+- **18:20** Follow-up Tracker drafted nudges for two replies that slipped.
 
-## Yours, and open
+Work moves between agents with the goal, the history and a clear definition of done. A grader checks the work before a
+task counts as done. Safe steps run on their own, a second AI reviews merges, deploys and messages, and you decide
+anything that matters. Agents remember people, decisions
+and how you like things; correct one once and the whole team learns it.
+[Agents and teams](https://aidenhq.ai/agents/index.md)
 
-- **Your server, your AI:** sovereign by default, on one machine you control and your private network.
-- **Open source:** the kernel is AGPL-3.0-only; the official modules, the app starter and the design system are MIT.
-- **Any model, open-weight included:** pick the best model for each agent and switch whenever you like.
-- **Everything as code:** agents, handbooks and apps live in your own repository with full history.
-- **Budgets you control:** per agent, per task and per day, with every cost on the record.
-- **Distros that fit you:** a lean kernel, modules on top, and tested bundles such as a founder's office or an
-  engineering team. [Modules and distros](https://aidenhq.ai/modules/index.md)
+## Autonomous, and still yours
+
+- **Nothing speaks for you unchecked:** a second AI reviews every message, merge and deploy, and anything that matters
+  waits for one tap from your phone. [Approvals](https://aidenhq.ai/safety/index.md)
+- **Your server, your data:** it runs on a machine you own. Open source, with every agent and instruction in your own
+  repository. [Source](https://github.com/Aiden-HQ/AidenHQ)
+- **Any model, a budget you set:** pick the model for each agent, open-weight included. Spend is capped per agent, per
+  task and per day. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
+
+Works with Slack, Gmail, Calendar, Drive, Telegram, GitHub, Jira, Glean and more.
+[Integrations](https://aidenhq.ai/integrations/index.md)
 
 ## Questions
 
 ### What is AidenHQ?
 
-AidenHQ is an open-source, self-hosted workspace where a team of AI agents runs work end to end: it plans, builds and ships, follows up with people, and maintains the internal apps it builds. You talk to Aiden, the chief of staff, on the web, Telegram or Slack. Aiden hands work to specialist agents and brings you only the decisions.
+AidenHQ is an open-source AI chief of staff and agent team that runs on your own server. Aiden reads your Slack, the email you hand it and your meeting notes, turns what needs you into action items and follows up with people. For anything else you want off your plate, describe an agent and Aiden builds it. You talk to Aiden on Telegram, Slack or the web.
 
-### How do I install it?
+### Will it send messages without asking?
 
-Paste one line into Claude Code, Codex or another coding assistant: “Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md”. Or run `curl -fsSL https://get.aidenhq.ai | sh` on the server yourself. The install ends with a one-time setup link: open it, create your password and authenticator, and add your model key. [Get started](https://aidenhq.ai/start/index.md)
-
-### What do I need?
-
-A Linux server with Ubuntu 22.04, 24.04 or 26.04, or Debian 12 or 13: at least 2 cores, 6 GB of memory and 60 GB of disk (4 cores, 8 GB and 100 GB recommended), reachable over SSH with a key. A Mac with macOS 13 or later, 12 GB of memory and 60 GB free also works. You also need an OpenRouter key for the AI models. Telegram, Slack and Google are optional. [Install guide](https://aidenhq.ai/install/index.md)
-
-### What does it cost to run?
-
-AidenHQ itself is free and open source. You pay for your own server and for model usage, which OpenRouter bills to your own key. Each agent has spend caps per run, per task and per day, you can put a monthly limit on the key itself, and the Costs page shows where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
+Not unchecked. Safe, reversible steps run by themselves. Messages, merges and deploys are reviewed by a second AI model first, and anything that speaks for you, spends more or gives an agent more power waits for your one-tap approval. A new install starts quiet: nothing runs on a schedule until you turn it on. [How approvals work](https://aidenhq.ai/safety/)
 
 ### Where does my data live?
 
-On the server you run it on. You reach the board over HTTPS on your server's own address, behind your password and a one-time code, or keep it on your private network with Tailscale. Every agent, instruction and app lives in your own git repository, so every change is reviewable and can be rolled back. [Private by design](https://aidenhq.ai/safety/index.md#private)
+On the server you run it on. You reach it over HTTPS on your server's own address, behind your password and a one-time code, or keep it on your private network with Tailscale. Every agent, instruction and app lives in your own git repository, so every change can be reviewed and rolled back. [Private by design](https://aidenhq.ai/safety/#private)
 
-### Is it open source?
+### What does it cost?
 
-Yes. The kernel is AGPL-3.0-only. The official modules, the app starter and the design system are MIT, so the apps your agents build carry no AGPL obligations. [Source on GitHub](https://github.com/Aiden-HQ/AidenHQ)
+AidenHQ is free and open source. You pay for your own server and for the AI models, which OpenRouter bills to your own key. Spend is capped per agent, per task and per day, and the Costs page shows where every cent goes. [Spend limits](https://aidenhq.ai/safety/#costs)
+
+### How do I set it up?
+
+Paste one line into Claude Code, Codex or another coding agent: “Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md”. Or run `curl -fsSL https://get.aidenhq.ai | sh` yourself on a fresh Ubuntu or Debian server, or a Mac. It ends with a setup link where you create your password and add your model key. [Install guide](https://aidenhq.ai/install/)
 
 ## Get started
 

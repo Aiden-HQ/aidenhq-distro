@@ -130,119 +130,62 @@
     })();
   });
 
-  /* Home hero: the live board */
-  var board = document.querySelector('.board');
-  if (board) heroBoard(board);
-
-  function heroBoard(board) {
-    var msgs = document.getElementById('msgs');
-    var typing = document.getElementById('typing');
-    var cards = document.getElementById('cards');
-    var apprCount = document.getElementById('appr-count');
-    var fleetCount = document.getElementById('fleet-count');
-    var docNew = document.getElementById('doc-new');
-    var COMMENT = '@Researcher add EU pricing to the table, from our price list.';
-
-    function el(tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
-    function add(m) { msgs.appendChild(m); while (msgs.children.length > 9) msgs.removeChild(msgs.firstChild); return m; }
-    function act(color, who, text) { var m = el('div', 'msg act'); m.style.setProperty('--c', color); m.appendChild(el('b', null, null)).textContent = who; m.appendChild(document.createTextNode(' ' + text)); return add(m); }
-    function note(cls, who, text) { var m = el('div', 'msg ' + cls); m.setAttribute('data-who', who); m.textContent = text; return add(m); }
-    function sys(text) { var m = el('div', 'msg sys'); m.textContent = text; return add(m); }
-    function lane(k, status, pct, on) {
-      var li = board.querySelector('.lanes [data-k="' + k + '"]');
-      li.querySelector('small').textContent = status;
-      li.querySelector('.bar i').style.width = (pct || 0) + '%';
-      li.classList.toggle('on', !!on);
-      fleetCount.textContent = board.querySelectorAll('.lanes li.on').length + ' working';
-    }
-    function chip(cls, text) { return '<span class="chip' + (cls ? ' ' + cls : '') + '">' + text + '</span>'; }
-    function card(tier, title, sub, right) {
-      var c = el('div', 'card ' + tier, '<div class="card-t"><b></b><small></small></div><div class="card-r">' + right + '</div>');
-      c.querySelector('b').textContent = title; c.querySelector('small').textContent = sub;
-      cards.insertBefore(c, cards.firstChild);
-      var all = cards.querySelectorAll('.card:not(.leaving)');
-      for (var i = 3; i < all.length; i++) {
-        (function (old) { old.classList.add('leaving'); setTimeout(function () { old.remove(); }, 400); })(all[i]);
+  /* Home hero: messages arrive, Aiden sets the noise aside and the rest lands under "Needs you today".
+     Without JS, or with reduced motion, the finished state shows. */
+  var demo = document.getElementById('demo');
+  if (demo && !reduce) (function () {
+    var rows = demo.querySelectorAll('.h-stream li'), items = demo.querySelectorAll('.h-items li');
+    var say = demo.querySelector('.h-say'), seen = document.getElementById('d-seen'), kept = document.getElementById('d-kept');
+    var wait = waiter(demo);
+    demo.classList.add('play');
+    (async function loop() {
+      for (;;) {
+        var n = 0, k = 0;
+        seen.textContent = '0'; kept.textContent = '0';
+        await wait(500);
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          r.classList.add('on'); seen.textContent = String(++n);
+          await wait(420);
+          r.classList.add('sorted');
+          if (r.classList.contains('keep')) {
+            items[+r.getAttribute('data-item')].classList.add('on'); kept.textContent = String(++k);
+            await wait(520);
+          } else await wait(220);
+        }
+        await wait(300); say.classList.add('on');
+        await wait(6500);
+        demo.style.opacity = '.0'; demo.style.transition = 'opacity .4s';
+        await wait(420);
+        rows.forEach(function (r) { r.classList.remove('on', 'sorted'); });
+        items.forEach(function (it) { it.classList.remove('on'); }); say.classList.remove('on');
+        demo.style.opacity = '';
+        await wait(400);
       }
-      return c;
-    }
-    function setRight(c, html) { c.querySelector('.card-r').innerHTML = html; }
+    })();
+  })();
 
-    function initial() {
-      msgs.innerHTML = ''; cards.innerHTML = ''; typing.textContent = ''; docNew.classList.remove('on');
-      sys('Overnight');
-      act('var(--teal)', 'DevOps Engineer', 'rolled back a bad release and shipped the fix');
-      act('var(--pink)', 'Follow-up Tracker', 'chased Sam: launch date confirmed');
-      lane('eng', 'Building the sign-up flow', 40, true); lane('ops', 'Watching 6 apps', 0); lane('fu', 'Chasing 2 replies', 55, true); lane('res', 'Comparing regional prices', 30, true);
-      card('t0', 'Update the launch checklist', 'Safe, ran by itself', chip('', 'Ran'));
-      card('t1', 'Merge PR #42, checks green', 'Checked by a second AI', chip('', 'Approved'));
-      apprCount.textContent = 'All clear';
+  /* Home: example agents as tabs (arrow keys move between them). */
+  var jobs = document.querySelector('.h-jobs');
+  if (jobs) (function () {
+    var tabs = Array.prototype.slice.call(jobs.querySelectorAll('[role="tab"]'));
+    function pick(t, focus) {
+      tabs.forEach(function (x) {
+        var on = x === t;
+        x.setAttribute('aria-selected', String(on)); x.tabIndex = on ? 0 : -1;
+        document.getElementById(x.getAttribute('aria-controls')).classList.toggle('on', on);
+      });
+      if (focus) t.focus();
     }
-    function finalFrame() {
-      initial();
-      sys('Today');
-      note('cmt', 'You', COMMENT);
-      note('rep', 'Researcher', 'Added EU at €11 from the price list. Resolved.');
-      docNew.classList.add('on');
-      act('var(--violet)', 'Engineer', 'shipped the sign-up flow');
-      lane('eng', 'Shipped the sign-up flow', 100); lane('ops', 'Watching 7 apps', 100, true); lane('fu', 'Waiting on 1 reply', 80, true); lane('res', 'Table updated', 100);
-      card('t1', 'Deploy signup v1', 'Checked by a second AI', chip('', 'Approved'));
-      card('t2', 'Email the launch note to 14 customers', 'You decide', chip('', 'You approved'));
-    }
-
-    if (reduce) { finalFrame(); return; }
-    var wait = waiter(board);
-    async function type(text) {
-      for (var i = 1; i <= text.length; i++) { typing.textContent = text.slice(0, i); await wait(text[i - 1] === ' ' ? 34 : 22); }
-    }
-    async function review(c) {
-      apprCount.textContent = '1 in review';
-      await wait(1400);
-      setRight(c, chip('', 'Approved'));
-      apprCount.textContent = 'All clear';
-    }
-
-    async function run() {
-      initial();
-      await wait(1600);
-      lane('eng', 'Opened PR #43: sign-up flow', 100, true);
-      await wait(1000);
-      sys('Today');
-      await type(COMMENT);
-      await wait(300);
-      typing.textContent = '';
-      note('cmt', 'You', COMMENT);
-      await wait(700);
-      lane('res', 'Editing Launch plan', 70, true);
-      await wait(1500);
-      docNew.classList.add('on');
-      note('rep', 'Researcher', 'Added EU at €11 from the price list. Resolved.');
-      lane('res', 'Table updated', 100, false);
-      await wait(1000);
-      lane('eng', 'Shipped the sign-up flow', 100, false);
-      lane('ops', 'Deploying signup v1', 100, true);
-      await review(card('t1', 'Deploy signup v1', 'Checked by a second AI', chip('shimmer', 'Reviewing')));
-      act('var(--violet)', 'Engineer', 'shipped the sign-up flow');
-      lane('ops', 'Watching 7 apps', 100, true);
-      await wait(700);
-      var c = card('t2', 'Email the launch note to 14 customers', 'You decide', '<span class="tap-btn">Approve</span>');
-      apprCount.textContent = '1 needs you';
-      lane('fu', 'Drafted the launch note', 100, true);
-      await wait(1900);
-      c.querySelector('.tap-btn').classList.add('tapped');
-      await wait(600);
-      setRight(c, chip('', 'You approved'));
-      apprCount.textContent = 'All clear';
-      act('var(--pink)', 'Follow-up Tracker', 'sent the launch note; tracking replies');
-      lane('fu', 'Waiting on 1 reply', 80, true);
-      await wait(5000);
-      board.classList.add('resetting');
-      await wait(500);
-      board.classList.remove('resetting');
-      run();
-    }
-    run();
-  }
+    tabs.forEach(function (t, i) {
+      t.tabIndex = i ? -1 : 0;
+      t.addEventListener('click', function () { pick(t); });
+      t.addEventListener('keydown', function (e) {
+        var d = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        if (d) { e.preventDefault(); pick(tabs[(i + d + tabs.length) % tabs.length], true); }
+      });
+    });
+  })();
 })();
 
 /* Modules marketplace: filter by search and category tab, and open a module's detail dialog. */
