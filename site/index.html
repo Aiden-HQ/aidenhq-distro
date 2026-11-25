@@ -162,7 +162,7 @@
 
     <div class="h-forge" id="forge" role="img" aria-label="Example: you type 'Take every pull request to merged: fix conflicts, chase failing checks, and merge when it's safe.' AidenHQ writes the agent's instructions, picks its tools, tries it on real pull requests and adds Ship to your team, where it joins Aiden, Roadmap Keeper, Fleet Steward and Security Watch, all working.">
       <div class="h-col h-new">
-        <div class="h-col-head"><b>New agent</b><small>From one sentence</small></div>
+        <div class="h-col-head"><b>New agent</b><button class="h-pause" type="button" aria-pressed="false" aria-controls="forge">Pause</button></div>
         <div class="h-prompt" aria-hidden="true"><span class="h-av h-you-av">You</span><p id="f-say">Take every pull request to merged: fix conflicts, chase failing checks, and merge when it's safe.</p></div>
         <ol class="h-make" aria-hidden="true">
           <li><i class="h-tick"></i><span id="f-s1">Wrote its instructions and what counts as done</span></li>
@@ -194,7 +194,7 @@
     </div>
     <div class="h-demo" id="demo" role="img" aria-label="Example day: a stream of Slack messages, emails and meeting notes comes in. Aiden sets aside bot alerts, newsletters and chatter, and turns four messages into action items: sign off the Q3 budget, send the pricing doc to Sam, reply to Sam about the contract, and a reminder about the hiring numbers Lee promised.">
       <div class="h-col h-in">
-        <div class="h-col-head"><b>Coming in</b><small><span id="d-seen">9</span> today</small></div>
+        <div class="h-col-head"><b>Coming in</b><span class="h-head-r"><small><span id="d-seen">9</span> today</small><button class="h-pause" type="button" aria-pressed="false" aria-controls="demo">Pause</button></span></div>
         <ul class="h-stream" aria-hidden="true">
           <li class="noise" data-why="Bot alert"><i class="src s-slack">#</i><div><b>#eng-alerts</b><span>Deploy 4812 to staging succeeded</span></div><em>Bot alert</em></li>
           <li class="keep" data-item="0"><i class="src s-slack">#</i><div><b>Dana</b><span>Can you sign off the Q3 budget by Friday?</span></div><em>Needs you</em></li>

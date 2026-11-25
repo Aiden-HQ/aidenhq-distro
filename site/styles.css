@@ -1025,6 +1025,10 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-q code { font-size: .88em; padding: 1px 5px; border-radius: 4px; background: var(--bg-2); }
 
 /* Polish pass */
+.h-pause { border: 1px solid var(--line-2); background: var(--surface); color: var(--text-2); border-radius: 6px; padding: 2px 9px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.h-pause:hover { color: var(--text); border-color: var(--text-3); }
+.h-head-r { display: inline-flex; align-items: center; gap: 10px; }
+.h-demo[data-paused] .h-stream li, .h-forge[data-paused] .h-caret { animation-play-state: paused; }
 .h-new { display: flex; flex-direction: column; }
 .h-done { margin-top: auto; padding-top: 16px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: color-mix(in srgb, var(--teal) 70%, var(--text)); }
 .h-done span { padding: 8px 12px; border-radius: 9px; background: var(--t0-soft); }

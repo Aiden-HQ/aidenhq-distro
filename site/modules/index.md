@@ -29,6 +29,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 | Codex engine | The coding engine behind Engineer jobs. Engines are modules, so another can be added. | OpenRouter, Agent computer |  |
 | Code review | Reviews pull requests on the repos you list, or a whole repository on request. | GitHub, Credential-free box |  |
 | Maintainer | Watches your repos, validates labelled issues, hands fixes to an engineer and sees them to a merged PR. | GitHub |  |
+| Ship | Takes every pull request from opened to merged: fixes conflicts, chases failing checks and merges once review and CI pass. | GitHub |  |
 | Design | A UI/UX designer drafts mockups and a reviewer checks every UI pull request with screenshots. | Design system, Screenshots |  |
 | Self-hosted CI | GitHub Actions runners on your server: one fresh container per job. | GitHub Actions |  |
 | Local code host | Repositories on your own server, with an atomic squash merge. No GitHub needed. | Bare repos |  |

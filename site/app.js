@@ -104,7 +104,7 @@
       return new Promise(function (res) {
         var left = ms, last = performance.now();
         (function tick(now) {
-          if (!document.hidden && visible.v) left -= (now - last);
+          if (!document.hidden && visible.v && !el.hasAttribute('data-paused')) left -= (now - last);
           last = now;
           if (left <= 0) res(); else requestAnimationFrame(tick);
         })(last);
@@ -164,6 +164,17 @@
       }
     })();
   })();
+
+  /* Pause buttons for the looping home demos (WCAG 2.2.2). The waiter stops counting while data-paused is set. */
+  document.querySelectorAll('.h-pause').forEach(function (b) {
+    if (reduce) { b.hidden = true; return; }
+    var target = document.getElementById(b.getAttribute('aria-controls'));
+    b.addEventListener('click', function () {
+      var paused = !target.hasAttribute('data-paused');
+      if (paused) target.setAttribute('data-paused', ''); else target.removeAttribute('data-paused');
+      b.setAttribute('aria-pressed', String(paused)); b.textContent = paused ? 'Play' : 'Pause';
+    });
+  });
 
   /* Home hero: a sentence is typed, the agent gets built, and it joins the team. Two examples take turns. */
   var forge = document.getElementById('forge');
