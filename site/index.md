@@ -62,7 +62,8 @@ can step in whenever you like. An example day:
 - **18:20** Follow-up Tracker drafted nudges for two replies that slipped.
 
 Work moves between agents with the goal, the history and a clear definition of done. A grader checks the work before a
-task counts as done, and a second AI reviews anything that changes the outside world. Agents remember people, decisions
+task counts as done. Safe steps run on their own, a second AI reviews merges, deploys and messages, and you decide
+anything that matters. Agents remember people, decisions
 and how you like things; correct one once and the whole team learns it.
 [Agents and teams](https://aidenhq.ai/agents/index.md)
 
