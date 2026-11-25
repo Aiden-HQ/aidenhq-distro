@@ -76,19 +76,30 @@ jobs:
             and ((has("upgrade_from_previous") | not) or .upgrade_from_previous == "manual")' "$f" >/dev/null \
             || { echo "::error::$f has a placeholder or malformed sha, isn't release $TAG, pins modules apart from the product (marketplace/modules), its notes aren't an array of strings, or it sets upgrade_from_previous to anything but \"manual\""; exit 1; }
       # Product CI already ran every suite on this exact commit: the kernel must be on product main with its `ci-required`
-      # check green there (two reads of the commit through the API; nothing fetched runs).
+      # check green there (two reads of the commit through the API; nothing fetched runs). Both reads go through
+      # gh-get.sh, which retries a transient failure (curl --retry 3 --retry-all-errors: a rate limit, a 5xx, a network
+      # error) and then stops the step naming the status and body: an empty answer must never read as "isn't on main" or
+      # "not success" and cost this release its tag.
       - name: The kernel is on product main and its CI passed
         env:
           GH_TOKEN: ${{ secrets.RELEASE_READ_TOKEN }}
         run: |
-          api() { { [ -z "$GH_TOKEN" ] || printf 'Authorization: Bearer %s\n' "$GH_TOKEN"; echo 'Accept: application/vnd.github+json'; } | curl -fsS -H @- "$@"; }
           repo=$(jq -er '.kernel_repo // "Aiden-HQ/AidenHQ"' "releases/$TAG.json") sha=$(jq -er .kernel "releases/$TAG.json")
-          st=$(api "$GITHUB_API_URL/repos/$repo/compare/$sha...main" | jq -r .status)
+          # Each read is its own assignment, guarded: a failed read fails the step here (gh-get names the status and body)
+          # instead of dissolving into jq's empty input and then reading as "isn't on main" or "not success", which would
+          # cost this release its tag for an API blip.
+          compare=$(sh .github/release/gh-get.sh "$GITHUB_API_URL/repos/$repo/compare/$sha...main" compare) \
+            || { echo "::error::the compare read of $repo $sha failed (status and body above): not judging the kernel"; exit 1; }
+          st=$(printf '%s\n' "$compare" | jq -r .status) \
+            || { echo "::error::the compare read of $repo $sha wasn't JSON: $(printf '%s' "$compare" | head -c 300)"; exit 1; }
           # compare base...head reports head relative to base: with base=sha, "ahead" (main is ahead of the sha) or "identical"
           # means the sha is on main; "behind" or "diverged" means it isn't.
           case "$st" in identical|ahead) ;; *) echo "::error::kernel $sha isn't on $repo's main ($st)"; exit 1 ;; esac
-          ci=$(api "$GITHUB_API_URL/repos/$repo/commits/$sha/check-runs?check_name=ci-required&per_page=20" \
-            | jq -r '.check_runs | sort_by(.started_at) | last | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end')
+          runs=$(sh .github/release/gh-get.sh "$GITHUB_API_URL/repos/$repo/commits/$sha/check-runs?check_name=ci-required&per_page=20" checks) \
+            || { echo "::error::the check-runs read of $repo $sha failed (status and body above): not judging its ci-required"; exit 1; }
+          ci=$(printf '%s\n' "$runs" \
+            | jq -r '(.check_runs // []) | sort_by(.started_at) | last | if . == null then "missing" elif .status != "completed" then "pending" else .conclusion end') \
+            || { echo "::error::the check-runs read of $repo $sha wasn't JSON: $(printf '%s' "$runs" | head -c 300)"; exit 1; }
           [ "$ci" = success ] || { echo "::error::$repo's ci-required on $sha is $ci, not success"; exit 1; }
           echo "kernel $sha is on main, ci-required passed"
       # The steps that see the read token: this one (install.sh's fetch and verify, which runs nothing it fetched) and the CI read above.
