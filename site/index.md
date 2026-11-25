@@ -35,18 +35,27 @@ Also: a morning brief on Telegram or Slack, decisions and action items filed fro
 
 ## Build any agent in a sentence
 
-Describe the job. Aiden designs the agent, gives it the tools it needs, tries it on real work and adds it to your team.
-Agents can build their own tools and apps too. For example:
+Agents that merge code, run a roadmap or defend your systems all started as a description. Describe yours and Aiden
+designs it, gives it tools, tries it on real work and adds it to your team.
 
-- **Follow-up chaser:** "Chase anyone who hasn't answered me in two days." Runs every two hours on workdays; checks
-  with you before writing to anyone outside your team.
-- **Sales follow-up:** "Every morning, draft follow-ups for leads that went quiet in HubSpot." Drafts wait for your OK.
-- **Weekly digest:** "Every Friday, tell me what each team shipped and what slipped." Reads GitHub, Jira and Slack.
-- **Hiring tracker:** "Build a hiring tracker for the team and keep it running." An app your team can open.
-- **Support triage:** "Watch #support and file a Jira ticket for every real bug." A second AI reviews each ticket.
-- **Build fixer:** "When the build breaks on main, find the cause and open a fix." A second AI reviews the fix.
+These run today, each built on AidenHQ:
 
-Agents you build join the same team: Aiden hands them work, and they learn from every correction you make.
+- **Ship:** Takes every pull request from opened to merged. Repairs conflicts, updates branches that fall behind, wakes the engineer when a check goes red, and merges once review and CI pass. Hand it any PR with one label.
+- **Maintainer:** Looks after your open-source repos. Checks each issue you label for a fix, hands it to an Engineer and sees it through to a merged PR that closes the issue. Labels feature requests, builds the ones you pick, and closes contributor PRs that went quiet.
+- **Roadmap Keeper:** Keeps a live product roadmap your team actually trusts. Three times a day it updates every major feature's milestones and ETA history, links the evidence that it shipped, and flags slips on a dashboard your team opens. A second agent acts on reader feedback within a minute.
+- **Code review:** Reviews every pull request with several AI models. Runs Codex and Claude Code reviews with the models and effort you choose, posts the findings on GitHub, and keeps score of which findings turned out to be real and what each review cost.
+- **Fleet Steward:** Runs operations for the agent team itself. Unsticks stuck work, restarts failed services and rolls back a bad update, then fixes why it happened. Every evening it reviews each message that reached you and fixes the needless ones at their source.
+- **Security team:** Hunts vulnerabilities and attacks your own setup. Security Watch scans everything you run for known vulnerabilities, verifies them and files fixes. The Red Teamer attacks your own apps and agents and reports each hole with a proof of concept.
+- **Executive assistant:** A fast front door for everyday asks. Quick answers with sources from your calendar, email, Slack and docs, reminders that actually fire, and calendar changes on request.
+
+Ideas you can describe:
+
+- **Incident commander:** "When an alert fires, find the cause, open a fix and post status updates until it's resolved."
+- **Deal desk:** "Watch every deal in HubSpot. When one stalls, find out why from email and Slack and propose the next step."
+- **Investor update:** "On the first of each month, draft our investor update from metrics, wins, hires and asks."
+- **Competitor watch:** "Every Friday, check our competitors' sites, changelogs and docs and tell me what changed and why it matters."
+
+Yours join the same team: Aiden hands them work, and they learn from every correction you make.
 [How agents get built](https://aidenhq.ai/agents/index.md)
 
 ## A team that works together, 24/7

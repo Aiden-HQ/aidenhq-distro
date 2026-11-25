@@ -208,43 +208,92 @@
   <div class="wrap">
     <div class="h-head">
       <h2>Build any agent in a sentence.</h2>
-      <p>Describe the job. Aiden designs the agent, gives it the tools it needs, tries it on real work and adds it to your team. Agents can build their own tools and apps too.</p>
+      <p>Agents that merge code, run a roadmap or defend your systems all started as a description. Describe yours and Aiden designs it, gives it tools, tries it on real work and adds it to your team.</p>
     </div>
     <div class="h-build">
-      <div class="h-jobs" role="tablist" aria-label="Example agents">
-        <button role="tab" id="t-chase" aria-controls="p-chase" aria-selected="true" style="--c: var(--pink)">Follow-up chaser</button>
-        <button role="tab" id="t-sales" aria-controls="p-sales" aria-selected="false" style="--c: var(--teal)">Sales follow-up</button>
-        <button role="tab" id="t-digest" aria-controls="p-digest" aria-selected="false" style="--c: var(--violet)">Weekly digest</button>
-        <button role="tab" id="t-app" aria-controls="p-app" aria-selected="false" style="--c: var(--amber)">Hiring tracker</button>
-        <button role="tab" id="t-support" aria-controls="p-support" aria-selected="false" style="--c: var(--blue)">Support triage</button>
-        <button role="tab" id="t-ci" aria-controls="p-ci" aria-selected="false" style="--c: var(--sky)">Build fixer</button>
+      <div class="h-jobs">
+        <p class="h-group">Running today</p>
+        <div role="tablist" aria-label="Agents built with AidenHQ">
+          <button role="tab" id="t-ship" aria-controls="p-ship" aria-selected="true" style="--c: var(--teal)">Ship</button>
+          <button role="tab" id="t-maint" aria-controls="p-maint" aria-selected="false" style="--c: var(--violet)">Maintainer</button>
+          <button role="tab" id="t-roadmap" aria-controls="p-roadmap" aria-selected="false" style="--c: var(--amber)">Roadmap Keeper</button>
+          <button role="tab" id="t-review" aria-controls="p-review" aria-selected="false" style="--c: var(--blue)">Code review</button>
+          <button role="tab" id="t-steward" aria-controls="p-steward" aria-selected="false" style="--c: var(--pink)">Fleet Steward</button>
+          <button role="tab" id="t-sec" aria-controls="p-sec" aria-selected="false" style="--c: var(--sky)">Security team</button>
+          <button role="tab" id="t-ea" aria-controls="p-ea" aria-selected="false" style="--c: var(--teal)">Executive assistant</button>
+        </div>
+        <p class="h-group">Describe your own</p>
+        <div role="tablist" aria-label="Agent ideas">
+          <button role="tab" id="t-incident" aria-controls="p-incident" aria-selected="false" style="--c: var(--pink)">Incident commander</button>
+          <button role="tab" id="t-revops" aria-controls="p-revops" aria-selected="false" style="--c: var(--teal)">Deal desk</button>
+          <button role="tab" id="t-investor" aria-controls="p-investor" aria-selected="false" style="--c: var(--violet)">Investor update</button>
+          <button role="tab" id="t-intel" aria-controls="p-intel" aria-selected="false" style="--c: var(--amber)">Competitor watch</button>
+        </div>
       </div>
       <div class="h-panels">
-        <article class="h-panel on" role="tabpanel" tabindex="0" id="p-chase" aria-labelledby="t-chase" style="--c: var(--pink)">
-          <p class="h-ask">Chase anyone who hasn't answered me in two days.</p>
-          <dl class="h-spec"><div><dt>Runs</dt><dd>Every two hours on workdays</dd></div><div><dt>Uses</dt><dd>Slack and Gmail, read and draft</dd></div><div><dt>Checks with you</dt><dd>Before writing to anyone outside your team</dd></div></dl>
+        <article class="h-panel on" role="tabpanel" tabindex="0" id="p-ship" aria-labelledby="t-ship" style="--c: var(--teal)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">Takes every pull request from opened to merged.</h3>
+          <p class="h-what">Repairs conflicts, updates branches that fall behind, wakes the engineer when a check goes red, and merges once review and CI pass. Hand it any PR with one label.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Whenever a PR opens, changes or a check finishes</dd></div><div><dt>Uses</dt><dd>GitHub, your CI and the Engineers</dd></div><div><dt>Checks with you</dt><dd>An AI approves each merge; code owners' PRs wait for a person</dd></div></dl>
         </article>
-        <article class="h-panel" role="tabpanel" tabindex="0" id="p-sales" aria-labelledby="t-sales" style="--c: var(--teal)">
-          <p class="h-ask">Every morning, draft follow-ups for leads that went quiet in HubSpot.</p>
-          <dl class="h-spec"><div><dt>Runs</dt><dd>Weekdays at 09:00</dd></div><div><dt>Uses</dt><dd>HubSpot and Gmail drafts</dd></div><div><dt>Checks with you</dt><dd>Drafts wait for your OK before sending</dd></div></dl>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-maint" aria-labelledby="t-maint" style="--c: var(--violet)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">Looks after your open-source repos.</h3>
+          <p class="h-what">Checks each issue you label for a fix, hands it to an Engineer and sees it through to a merged PR that closes the issue. Labels feature requests, builds the ones you pick, and closes contributor PRs that went quiet.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>When issues and pull requests change</dd></div><div><dt>Uses</dt><dd>GitHub and the Engineers</dd></div><div><dt>Checks with you</dt><dd>Merges go through Ship's review gates</dd></div></dl>
         </article>
-        <article class="h-panel" role="tabpanel" tabindex="0" id="p-digest" aria-labelledby="t-digest" style="--c: var(--violet)">
-          <p class="h-ask">Every Friday, tell me what each team shipped and what slipped.</p>
-          <dl class="h-spec"><div><dt>Runs</dt><dd>Fridays at 16:00</dd></div><div><dt>Uses</dt><dd>GitHub, Jira and Slack, read only</dd></div><div><dt>Checks with you</dt><dd>Nothing to approve: it only reads</dd></div></dl>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-roadmap" aria-labelledby="t-roadmap" style="--c: var(--amber)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">Keeps a live product roadmap your team actually trusts.</h3>
+          <p class="h-what">Three times a day it updates every major feature's milestones and ETA history, links the evidence that it shipped, and flags slips on a dashboard your team opens. A second agent acts on reader feedback within a minute.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Morning, midday and evening</dd></div><div><dt>Uses</dt><dd>Your messages, repos, docs and a dashboard app</dd></div><div><dt>Checks with you</dt><dd>Dashboard code changes are reviewed before they ship</dd></div></dl>
         </article>
-        <article class="h-panel" role="tabpanel" tabindex="0" id="p-app" aria-labelledby="t-app" style="--c: var(--amber)">
-          <p class="h-ask">Build a hiring tracker for the team and keep it running.</p>
-          <dl class="h-spec"><div><dt>Runs</dt><dd>Always on, as an app your team can open</dd></div><div><dt>Uses</dt><dd>Your shared data store and the app builder</dd></div><div><dt>Checks with you</dt><dd>You pick the layout; a second AI checks each release</dd></div></dl>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-review" aria-labelledby="t-review" style="--c: var(--blue)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">Reviews every pull request with several AI models.</h3>
+          <p class="h-what">Runs Codex and Claude Code reviews with the models and effort you choose, posts the findings on GitHub, and keeps score of which findings turned out to be real and what each review cost.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>When a PR opens and on each push</dd></div><div><dt>Uses</dt><dd>An isolated computer per review</dd></div><div><dt>Checks with you</dt><dd>Each posted review is approved by a second AI</dd></div></dl>
         </article>
-        <article class="h-panel" role="tabpanel" tabindex="0" id="p-support" aria-labelledby="t-support" style="--c: var(--blue)">
-          <p class="h-ask">Watch #support and file a Jira ticket for every real bug.</p>
-          <dl class="h-spec"><div><dt>Runs</dt><dd>On every new message in #support</dd></div><div><dt>Uses</dt><dd>Slack and Jira</dd></div><div><dt>Checks with you</dt><dd>A second AI reviews each ticket before it's filed</dd></div></dl>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-steward" aria-labelledby="t-steward" style="--c: var(--pink)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">Runs operations for the agent team itself.</h3>
+          <p class="h-what">Unsticks stuck work, restarts failed services and rolls back a bad update, then fixes why it happened. Every evening it reviews each message that reached you and fixes the needless ones at their source.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Around the clock, on every fleet event</dd></div><div><dt>Uses</dt><dd>The fleet's own controls and your standing decisions</dd></div><div><dt>Checks with you</dt><dd>Only for a sign-in, a security signal or a real decision</dd></div></dl>
         </article>
-        <article class="h-panel" role="tabpanel" tabindex="0" id="p-ci" aria-labelledby="t-ci" style="--c: var(--sky)">
-          <p class="h-ask">When the build breaks on main, find the cause and open a fix.</p>
-          <dl class="h-spec"><div><dt>Runs</dt><dd>When a build fails</dd></div><div><dt>Uses</dt><dd>GitHub and its own computer to run the code</dd></div><div><dt>Checks with you</dt><dd>A second AI reviews the fix before it merges</dd></div></dl>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-sec" aria-labelledby="t-sec" style="--c: var(--sky)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">Hunts vulnerabilities and attacks your own setup.</h3>
+          <p class="h-what">Security Watch scans everything you run for known vulnerabilities, verifies them and files fixes. The Red Teamer attacks your own apps and agents and reports each hole with a proof of concept.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Daily scans and scheduled attacks</dd></div><div><dt>Uses</dt><dd>Image and dependency scanners, the web, your apps</dd></div><div><dt>Checks with you</dt><dd>Fixes land as reviewed pull requests</dd></div></dl>
         </article>
-        <p class="h-built"><i class="h-tick"></i><span>Agents you build join the same team: Aiden hands them work, and they learn from every correction you make. <a class="lnk" href="/agents/#build">How agents get built</a></span></p>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-ea" aria-labelledby="t-ea" style="--c: var(--teal)">
+          <p class="h-kind h-live">Running today</p>
+          <h3 class="h-ask">A fast front door for everyday asks.</h3>
+          <p class="h-what">Quick answers with sources from your calendar, email, Slack and docs, reminders that actually fire, and calendar changes on request.</p>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Whenever you message it</dd></div><div><dt>Uses</dt><dd>Calendar, email, Slack, docs and your data</dd></div><div><dt>Checks with you</dt><dd>Every calendar change is reviewed by a second AI</dd></div></dl>
+        </article>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-incident" aria-labelledby="t-incident" style="--c: var(--pink)">
+          <p class="h-kind">An idea you can describe</p>
+          <h3 class="h-ask h-you">When an alert fires, find the cause, open a fix and post status updates until it's resolved.</h3>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>On every alert</dd></div><div><dt>Uses</dt><dd>Grafana, logs, GitHub and Slack</dd></div><div><dt>Checks with you</dt><dd>Status posts and the fix are reviewed first</dd></div></dl>
+        </article>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-revops" aria-labelledby="t-revops" style="--c: var(--teal)">
+          <p class="h-kind">An idea you can describe</p>
+          <h3 class="h-ask h-you">Watch every deal in HubSpot. When one stalls, find out why from email and Slack and propose the next step.</h3>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Every weekday morning</dd></div><div><dt>Uses</dt><dd>HubSpot, Gmail and Slack</dd></div><div><dt>Checks with you</dt><dd>Drafts wait for your OK before sending</dd></div></dl>
+        </article>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-investor" aria-labelledby="t-investor" style="--c: var(--violet)">
+          <p class="h-kind">An idea you can describe</p>
+          <h3 class="h-ask h-you">On the first of each month, draft our investor update from metrics, wins, hires and asks.</h3>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Monthly</dd></div><div><dt>Uses</dt><dd>Your data warehouse, docs and Slack</dd></div><div><dt>Checks with you</dt><dd>You approve the draft before it goes out</dd></div></dl>
+        </article>
+        <article class="h-panel" role="tabpanel" tabindex="0" id="p-intel" aria-labelledby="t-intel" style="--c: var(--amber)">
+          <p class="h-kind">An idea you can describe</p>
+          <h3 class="h-ask h-you">Every Friday, check our competitors' sites, changelogs and docs and tell me what changed and why it matters.</h3>
+          <dl class="h-spec"><div><dt>Runs</dt><dd>Fridays at 16:00</dd></div><div><dt>Uses</dt><dd>The web and your product docs</dd></div><div><dt>Checks with you</dt><dd>Nothing to approve: it only reads</dd></div></dl>
+        </article>
+        <p class="h-built"><i class="h-tick"></i><span>Every agent here was built on AidenHQ from a description. Yours join the same team: Aiden hands them work, and they learn from every correction you make. <a class="lnk" href="/agents/#build">How agents get built</a></span></p>
       </div>
     </div>
   </div>
