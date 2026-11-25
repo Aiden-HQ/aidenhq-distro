@@ -87,8 +87,14 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    authority, read approximately from `modules/<name>/module.yaml` diffs. They end with a flag when it touches
    host setup (`ops/setup.sh` or `ops/vm/`). A day's second cut waits until product main's kernel accepts four-part
    names.
-2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. They build and
-   push every image the product checkout builds (its kernel and its `modules/`) for amd64 and arm64.
+2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. Together they give
+   every image the product checkout builds (its kernel and its `modules/`) for amd64 and arm64, but build only what
+   changed. Each image has a content key ([`.github/release/image-key.mjs`](.github/release/image-key.mjs)): a hash of
+   its build context (Dockerfile included), its parent image's key, the ISO week and `KEY_VERSION`. The registry tag
+   `k-<key>` is that multi-arch image, so plan skips every image whose tag exists and the release file takes its
+   digest. A changed image builds each platform on its own native runner (`ubuntu-latest` for amd64,
+   `ubuntu-24.04-arm` for arm64, no emulation) and collect merges the two. A new week rebuilds everything once, so
+   unpinned base images and apt packages pick up security updates; bump `KEY_VERSION` to force a full rebuild.
 3. **Cut.** It commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
    on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
    A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a

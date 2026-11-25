@@ -5,7 +5,7 @@
 # Prebuilt images: the release file may carry `images` (name -> ghcr.io/aiden-hq/<name>@sha256:<digest>), which apply pulls
 # instead of building. The apply reads the release file from git at the pinned commit, so the digests are in the file before
 # the tag: run this workflow by hand first (Actions > release > Run workflow, release = the name), which builds every image
-# the release's product checkout (its kernel and its modules/) builds locally for amd64 and arm64, pushes them, and prints the `images` block (and keeps it
+# the release's product checkout (its kernel and its modules/) builds locally for amd64 and arm64 (only the ones whose content key, .github/release/image-key.mjs, isn't in the registry yet; each platform on its native runner), pushes them, and prints the `images` block (and keeps it
 # as the `images.json` artifact) to paste into releases/<release>.json. The tag run then checks that each digest is there for
 # both platforms and names an image this release builds. A release file without `images` installs by building, as before.
 # RELEASE_READ_TOKEN (contents: read) is optional: only a private product repo needs it; public repos fetch
@@ -164,6 +164,7 @@ jobs:
     outputs:
       go: ${{ steps.has.outputs.go }}
       chains: ${{ steps.list.outputs.chains }}
+      todo: ${{ steps.todo.outputs.todo }}
     env:
       REL: ${{ github.ref_type == 'tag' && github.ref_name || inputs.release }}
     steps:
@@ -219,10 +220,33 @@ jobs:
           for c in $(echo "$chains" | jq -r '.[][].context'); do
             case "$(realpath -e "$set/kernel/$c")" in "$(realpath "$set/kernel")"/*) ;; *) echo "::error::context $c leaves the kernel checkout"; exit 1 ;; esac
           done
+          # Each image's content key (image-key.mjs): its build inputs, hashed, once, for every later job.
+          chains=$(printf '%s' "$chains" | node .github/release/image-key.mjs "$set/kernel")
           echo "chains=$chains" >> "$GITHUB_OUTPUT"
           echo "$chains" | jq -r '.[][].name' | sort > "$RUNNER_TEMP/names-out.txt"
           cat "$RUNNER_TEMP/names-out.txt"
           tar -C "$set" --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/kernel.tgz" kernel
+      # The chains with an image the registry has no build of yet, for either platform (public pulls: a miss, even an
+      # unreadable package, only means a build). The other chains are reused as they are.
+      - id: todo
+        if: steps.has.outputs.go == 'true' && github.ref_type != 'tag'
+        env:
+          CHAINS: ${{ steps.list.outputs.chains }}
+        run: |
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          todo='[]'
+          while read -r chain; do
+            missing=0
+            for row in $(jq -r '.[] | "\(.name):\(.key)"' <<<"$chain"); do
+              for arch in amd64 arm64; do
+                docker buildx imagetools inspect "ghcr.io/$owner/${row%%:*}:k-${row##*:}-$arch" >/dev/null 2>&1 || missing=1
+              done
+            done
+            [ "$missing" = 0 ] || todo=$(jq -c --argjson c "$chain" '. + [$c]' <<<"$todo")
+          done < <(jq -c '.[]' <<<"$CHAINS")
+          echo "todo=$todo" >> "$GITHUB_OUTPUT"
+          echo "chains to build: $(jq -r '[.[][].name] | join(" ")' <<<"$todo")"
+          echo "images reused: $(jq -n --argjson a "$CHAINS" --argjson t "$todo" '($a | flatten | length) - ($t | flatten | length)') of $(jq '[.[][]] | length' <<<"$CHAINS")"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.has.outputs.go == 'true'
         with:
@@ -236,11 +260,15 @@ jobs:
           path: ${{ runner.temp }}/names-out.txt
           retention-days: 1
 
-  # By hand on a branch or from the nightly, never on a tag: builds and pushes every chain for amd64 and arm64 (one job per chain, in parallel).
+  # By hand on a branch or from the nightly, never on a tag: builds what the registry lacks, each platform on its own native
+  # runner (one job per chain and platform, in parallel). An image is tagged `k-<key>-<arch>` (its content key, plan) and a
+  # hit on that tag is reused, so an unchanged image is never rebuilt. A chain builds in order (a child builds FROM its
+  # parent's digest for the same platform).
   images:
-    if: github.ref_type != 'tag'
+    if: github.ref_type != 'tag' && needs.plan.outputs.todo != '[]'
     needs: plan
-    runs-on: ubuntu-latest
+    name: images (${{ matrix.chain[0].name }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     timeout-minutes: 180
     permissions:
       contents: read
@@ -248,76 +276,100 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        chain: ${{ fromJSON(needs.plan.outputs.chains) }}
+        chain: ${{ fromJSON(needs.plan.outputs.todo) }}
+        arch: [amd64, arm64]
     env:
-      REL: ${{ inputs.release }}
       CHAIN: ${{ toJSON(matrix.chain) }}
+      ARCH: ${{ matrix.arch }}
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: kernel-set
           path: ${{ runner.temp }}
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      - name: Build and push the chain
+      - name: Build and push the chain for this platform
         run: |
           tar -C "$RUNNER_TEMP" -xzf "$RUNNER_TEMP/kernel.tgz"
           cd "$RUNNER_TEMP/kernel"
           owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
           out='{}'
           # Again, on the unpacked copy, before anything is built.
-          jq -e 'all(.[]; (.name | test("^[a-z0-9][a-z0-9._-]*$")) and (.context | test("^[A-Za-z0-9._/-]+$") and (startswith("/") | not) and (split("/") | index("..") | not)) and ((.base // "x") | test("^[a-z0-9][a-z0-9._-]*$")))' <<<"$CHAIN" >/dev/null \
-            || { echo "::error::unsafe image name or context"; exit 1; }
+          jq -e 'all(.[]; (.name | test("^[a-z0-9][a-z0-9._-]*$")) and (.key | test("^[0-9a-f]{32}$")) and (.context | test("^[A-Za-z0-9._/-]+$") and (startswith("/") | not) and (split("/") | index("..") | not)) and ((.base // "x") | test("^[a-z0-9][a-z0-9._-]*$")))' <<<"$CHAIN" >/dev/null \
+            || { echo "::error::unsafe image name, key or context"; exit 1; }
           for c in $(jq -r '.[].context' <<<"$CHAIN"); do
             case "$(realpath -e "$c")" in "$PWD"/*) ;; *) echo "::error::context $c leaves the kernel checkout"; exit 1 ;; esac
           done
           for i in $(seq 0 $(( $(jq length <<<"$CHAIN") - 1 ))); do
-            name=$(jq -r ".[$i].name" <<<"$CHAIN"); ctx=$(jq -r ".[$i].context" <<<"$CHAIN"); parent=$(jq -r ".[$i].base // empty" <<<"$CHAIN")
+            name=$(jq -r ".[$i].name" <<<"$CHAIN"); ctx=$(jq -r ".[$i].context" <<<"$CHAIN"); key=$(jq -r ".[$i].key" <<<"$CHAIN")
+            parent=$(jq -r ".[$i].base // empty" <<<"$CHAIN")
             base=()
             [ -z "$parent" ] || base=(--build-arg "BASE=$(jq -er --arg p "$parent" '.[$p]' <<<"$out")")
-            img="ghcr.io/$owner/$name"
-            docker buildx build --platform linux/amd64,linux/arm64 --provenance=false --push -t "$img:$REL" \
-              --metadata-file "$RUNNER_TEMP/meta.json" "${base[@]}" "$ctx"
-            digest=$(jq -er '."containerimage.digest"' "$RUNNER_TEMP/meta.json")
+            img="ghcr.io/$owner/$name"; ref="$img:k-$key-$ARCH"
+            if digest=$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' 2>/dev/null | jq -er .digest); then
+              echo "reused $name ($ARCH): $ref"
+            else
+              docker buildx build --platform "linux/$ARCH" --provenance=false --push -t "$ref" \
+                --metadata-file "$RUNNER_TEMP/meta.json" "${base[@]}" "$ctx"
+              digest=$(jq -er '."containerimage.digest"' "$RUNNER_TEMP/meta.json")
+              echo "built $name ($ARCH): $ref"
+            fi
             out=$(jq -c --arg n "$name" --arg r "$img@$digest" '. + {($n): $r}' <<<"$out")
-            echo "$name -> $img@$digest"
           done
-          echo "$out" > "$RUNNER_TEMP/images-part.json"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: images-${{ matrix.chain[0].name }}
-          path: ${{ runner.temp }}/images-part.json
-          retention-days: 7
 
-  # The `images` block for releases/<release>.json: every image the plan named, each by digest.
+  # One multi-arch image per name: the registry's `k-<key>` if it has one (reused), else the two platforms merged under
+  # `k-<key>`. Either way `:<release>` is pointed at it, and the `images` block for releases/<release>.json is every image
+  # the plan named, each by the multi-arch digest.
   collect:
+    if: ${{ !cancelled() && github.ref_type != 'tag' && needs.plan.result == 'success' && (needs.images.result == 'success' || needs.images.result == 'skipped') }}
     needs: [plan, images]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     permissions:
       contents: read
+      packages: write
+    env:
+      REL: ${{ inputs.release }}
+      CHAINS: ${{ needs.plan.outputs.chains }}
     steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: images-*
-          merge-multiple: false
-          path: parts
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: image-names
           path: names
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
       - run: |
-          jq -S -s '{ images: (map(.) | add) }' parts/*/images-part.json > images.json
+          owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          digest_of() { docker buildx imagetools inspect "$1" --format '{{json .Manifest}}' 2>/dev/null | jq -er .digest; }
+          # One image: its multi-arch digest, printed as a JSON object. Eight at a time (each is a few registry calls).
+          merge() {
+            name=${1%%:*}; key=${1##*:}; img="ghcr.io/$owner/$name"
+            if digest=$(digest_of "$img:k-$key"); then
+              docker buildx imagetools create -t "$img:$REL" "$img@$digest" >&2
+              echo "reused $name" >&2
+            else
+              docker buildx imagetools create -t "$img:k-$key" -t "$img:$REL" "$img:k-$key-amd64" "$img:k-$key-arm64" >&2
+              digest=$(digest_of "$img:k-$key")
+              echo "merged $name" >&2
+            fi
+            jq -cn --arg n "$name" --arg r "$img@$digest" '{($n): $r}'
+          }
+          export -f merge digest_of; export owner REL
+          # shellcheck disable=SC2016  # $0 expands in the inner bash
+          jq -r '.[][] | "\(.name):\(.key)"' <<<"$CHAINS" | xargs -P 8 -n 1 bash -ec 'merge "$0"' > parts.jsonl
+          out=$(jq -sc 'add' parts.jsonl)
+          jq -S -n --argjson i "$out" '{ images: $i }' > images.json
           jq -r '.images | keys[]' images.json | cmp - names/names-out.txt || { echo "::error::the built images aren't the planned ones"; exit 1; }
           cat images.json
           { echo "Paste into releases/$REL.json, then tag:"; echo '```json'; cat images.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-        env:
-          REL: ${{ inputs.release }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: images.json
