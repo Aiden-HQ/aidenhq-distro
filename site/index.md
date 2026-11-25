@@ -1,11 +1,10 @@
-# AidenHQ: your work life, on autopilot
+# AidenHQ: powerful agents, made easy
 
-> Aiden is an open-source AI chief of staff on your own server. It reads your Slack, email and meetings, turns what needs you into action items, follows up with people, and builds new agents for everything else.
+> AidenHQ is the open-source Agent OS for building the most powerful agents. Describe who you need in a sentence and get an AI teammate that works 24/7, or install agents others built, just like apps.
 
-Meet Aiden, your AI chief of staff, and a team of agents that works for you 24/7. Aiden cuts the noise in your Slack,
-email and meetings and follows up on what matters. Describe any agent in a sentence, and Aiden builds it and puts it
-to work. Open source, on your own server, with any AI model. Install it with one command on a fresh Ubuntu or Debian
-server (or a Mac):
+AidenHQ is the Agent OS for building the most powerful agents. Describe who you need in a sentence and get an AI
+teammate that works 24/7. Or install agents someone else built, just like apps. Open source, on your own server or Mac,
+with any AI model. Install it with one command on a fresh Ubuntu or Debian server (or a Mac):
 
 ```sh
 curl -fsSL https://get.aidenhq.ai | sh
@@ -17,25 +16,32 @@ curl -fsSL https://get.aidenhq.ai | sh
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
 ```
 
-## Cut the noise. Focus on what matters
+## Meet Aiden, your chief of staff
 
-Most of what reaches you doesn't need you. Aiden reads it all, keeps what does, and makes sure nothing slips.
+Your work life, on autopilot. Aiden cuts the noise in your Slack, email and meetings, turns what needs you into action
+items and follows up until they're done: a morning brief, meeting action items from each transcript or your notes,
+answers to "where does this stand?", and apps that keep themselves running. It's the agent you talk to, and it hands
+work to the rest of your team.
 
-1. **Reads everything:** your Slack channels and DMs, the email you hand it, your meeting transcripts and notes, and
-   anything you forward on Telegram.
-2. **Keeps what needs you:** asks, promises and deadlines become one action item each, linked to where they came from.
-   The rest stays out of your way.
-3. **Follows up until it's done:** Aiden tracks what people owe you, drafts the nudge when something slips, and tells you
-   when it's settled.
-   Only urgent things interrupt you.
+## Install agents like apps
 
-Also: a morning brief on Telegram or Slack, decisions and action items filed from each meeting transcript or your notes, answers to
-"where does this stand?" from your messages, docs and tasks, and apps that agents build and keep running.
-[Apps](https://aidenhq.ai/apps/index.md)
+Add agents others built in one message to Aiden. Built a great one? Publish it so anyone can install it too.
 
-## Build any agent in a sentence
+Agents to add: Ship (takes pull requests to merged), Maintainer (turns issues into merged fixes), Code review (reviews
+every PR with several models), Security team (finds holes and files the fixes), Follow-up chaser (tracks what people
+owe you), Designer and reviewer (mockups and screenshot reviews) and Engineer (builds apps and fixes code).
 
-Agents that merge code, run a roadmap or defend your systems all started as a description. Describe yours and Aiden
+- **Add one in a sentence:** tell Aiden "add Ship for our main repo". Aiden adds the agent and tells you if anything
+  needs connecting.
+- **Publish yours:** every agent is a module you can share from your own repository, under the licence you choose.
+- **Swap anytime:** turn agents on and off, or replace one with a better one. Every change is in your history and rolls
+  back in a step.
+
+[Browse all agents and modules](https://aidenhq.ai/modules/index.md)
+
+## Build agents without code
+
+Agents that merge code, run a roadmap or defend your systems all started as a description. Describe yours and AidenHQ
 designs it, gives it tools, tries it on real work and adds it to your team.
 
 These run today, each built on AidenHQ:
@@ -55,13 +61,9 @@ Ideas you can describe:
 - **Investor update:** "On the first of each month, draft our investor update from metrics, wins, hires and asks."
 - **Competitor watch:** "Every Friday, check our competitors' sites, changelogs and docs and tell me what changed and why it matters."
 
-Yours join the same team: Aiden hands them work, and they learn from every correction you make.
-[How agents get built](https://aidenhq.ai/agents/index.md)
+## AI teammates that work 24/7, together
 
-## A team that works together, 24/7
-
-Your agents hand work to each other, check each other's work and keep going while you sleep. You see every handoff and
-can step in whenever you like. An example day:
+Your agents hand work to each other, check each other's work and keep going while you sleep. An example day:
 
 - **02:10** DevOps Engineer saw the hiring tracker fail, rolled it back and filed the bug.
 - **02:40** Engineer fixed the cause. A second AI reviewed the fix, and it shipped.
@@ -70,20 +72,28 @@ can step in whenever you like. An example day:
 - **14:00** Agent Architect built the sales follow-up agent you described and added it to the team.
 - **18:20** Follow-up Tracker drafted nudges for two replies that slipped.
 
-Work moves between agents with the goal, the history and a clear definition of done. A grader checks the work before a
-task counts as done. Safe steps run on their own, a second AI reviews merges, deploys and messages, and you decide
-anything that matters. Agents remember people, decisions
-and how you like things; correct one once and the whole team learns it.
-[Agents and teams](https://aidenhq.ai/agents/index.md)
+## Teammates you can trust with real work
 
-## Autonomous, and still yours
+- **Checked before it counts:** a grader checks each finished task, and a second AI reviews every message, merge and
+  deploy.
+- **Its own computer:** each agent works in its own isolated computer.
+- **Only the tools you allow:** granted agent by agent and enforced in code, not in a prompt.
+- **You decide what matters:** anything that speaks for you or spends more waits for one tap from your phone.
+  [Approvals](https://aidenhq.ai/safety/index.md)
+- **No surprise bills:** spend is capped per agent, per task and per day.
 
-- **Nothing speaks for you unchecked:** a second AI reviews every message, merge and deploy, and anything that matters
-  waits for one tap from your phone. [Approvals](https://aidenhq.ai/safety/index.md)
-- **Your server, your data:** it runs on a machine you own. Open source, with every agent and instruction in your own
-  repository. [Source](https://github.com/Aiden-HQ/AidenHQ)
-- **Any model, a budget you set:** pick the model for each agent, open-weight included. Spend is capped per agent, per
-  task and per day. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
+## Why an Agent OS
+
+Every agent product makes the same promises. AidenHQ is built as an operating system for agents, so the promises hold
+up, and agents can do far more.
+
+- **AI teammates:** each agent has its own computer, memory of people and decisions, and a team to hand work to and get
+  reviews from.
+- **Works 24/7:** agents wake on schedules and events, and Fleet Steward keeps the whole team running.
+- **Build without code:** the Agent Architect writes the agent, gives it tools, tries it on real work and adds it only
+  once it holds up. Every correction you make becomes a rule.
+- **And more:** agents build and run apps for your team, share as installable modules, use any model, and live on your
+  server with every change in your own git history.
 
 Works with Slack, Gmail, Calendar, Drive, Telegram, GitHub, Jira, Glean and more.
 [Integrations](https://aidenhq.ai/integrations/index.md)
@@ -92,7 +102,11 @@ Works with Slack, Gmail, Calendar, Drive, Telegram, GitHub, Jira, Glean and more
 
 ### What is AidenHQ?
 
-AidenHQ is an open-source AI chief of staff and agent team that runs on your own server. Aiden reads your Slack, the email you hand it and your meeting notes, turns what needs you into action items and follows up with people. For anything else you want off your plate, describe an agent and Aiden builds it. You talk to Aiden on Telegram, Slack or the web.
+AidenHQ is an open-source Agent OS: the place to build, run and share AI agents. Describe an agent in a sentence and AidenHQ builds it, tries it on real work and adds it to your team, where it works 24/7 alongside agents like Aiden, your chief of staff. Or install agents someone else built. It runs on your own server, with any AI model.
+
+### What is an Agent OS?
+
+Everything an agent needs to do real work, built in: its own computer, memory, only the tools you allow, schedules and events that wake it, a team to hand work to, a grader and a second AI that check its work, your approvals, spend caps, and a history you can roll back. You describe the agent; the OS takes care of the rest. No code needed. [Agents and teams](https://aidenhq.ai/agents/)
 
 ### Will it send messages without asking?
 
