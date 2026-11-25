@@ -104,7 +104,7 @@
       return new Promise(function (res) {
         var left = ms, last = performance.now();
         (function tick(now) {
-          if (!document.hidden && visible.v) left -= (now - last);
+          if (!document.hidden && visible.v && !el.hasAttribute('data-paused')) left -= (now - last);
           last = now;
           if (left <= 0) res(); else requestAnimationFrame(tick);
         })(last);
@@ -135,32 +135,70 @@
   var demo = document.getElementById('demo');
   if (demo && !reduce) (function () {
     var rows = demo.querySelectorAll('.h-stream li'), items = demo.querySelectorAll('.h-items li');
-    var say = demo.querySelector('.h-say'), seen = document.getElementById('d-seen'), kept = document.getElementById('d-kept');
+    var aside = demo.querySelector('.h-aside'), say = demo.querySelector('.h-say'), seen = document.getElementById('d-seen'), kept = document.getElementById('d-kept');
     var wait = waiter(demo);
-    demo.classList.add('play');
     (async function loop() {
+      await wait(1); demo.classList.add('play');
       for (;;) {
         var n = 0, k = 0;
         seen.textContent = '0'; kept.textContent = '0';
-        await wait(500);
+        await wait(250);
         for (var i = 0; i < rows.length; i++) {
           var r = rows[i];
           r.classList.add('on'); seen.textContent = String(++n);
-          await wait(420);
+          await wait(200);
           r.classList.add('sorted');
           if (r.classList.contains('keep')) {
             items[+r.getAttribute('data-item')].classList.add('on'); kept.textContent = String(++k);
-            await wait(520);
-          } else await wait(220);
+            await wait(260);
+          } else await wait(110);
         }
-        await wait(300); say.classList.add('on');
-        await wait(6500);
+        await wait(150); say.classList.add('on'); aside.classList.add('on');
+        await wait(4500);
         demo.style.opacity = '.0'; demo.style.transition = 'opacity .4s';
         await wait(420);
         rows.forEach(function (r) { r.classList.remove('on', 'sorted'); });
-        items.forEach(function (it) { it.classList.remove('on'); }); say.classList.remove('on');
+        items.forEach(function (it) { it.classList.remove('on'); }); say.classList.remove('on'); aside.classList.remove('on');
         demo.style.opacity = '';
         await wait(400);
+      }
+    })();
+  })();
+
+  /* Pause buttons for the looping home demos (WCAG 2.2.2). The waiter stops counting while data-paused is set. */
+  document.querySelectorAll('.h-pause').forEach(function (b) {
+    if (reduce) { b.hidden = true; return; }
+    var target = document.getElementById(b.getAttribute('aria-controls'));
+    b.addEventListener('click', function () {
+      var paused = !target.hasAttribute('data-paused');
+      if (paused) target.setAttribute('data-paused', ''); else target.removeAttribute('data-paused');
+      b.setAttribute('aria-pressed', String(paused)); b.textContent = paused ? 'Play' : 'Pause';
+    });
+  });
+
+  /* Home hero: a sentence is typed, the agent gets built, and it joins the team. Two examples take turns. */
+  var forge = document.getElementById('forge');
+  if (forge && !reduce) (function () {
+    var say = document.getElementById('f-say'), steps = forge.querySelectorAll('.h-make li'), fresh = forge.querySelector('.h-fresh');
+    var live = document.getElementById('f-live'), done = forge.querySelector('.h-done'), ini = document.getElementById('f-ini'), name = document.getElementById('f-name'), did = document.getElementById('f-did');
+    var EX = [
+      { say: say.textContent, steps: ['Wrote its instructions and what counts as done', 'Gave it GitHub, your CI and the Engineers', 'Tried it on 3 real pull requests', 'Added Ship to your team'], ini: 'SH', name: 'Ship', did: 'Merged PR #214 after review', c: 'var(--teal)', live: 'Ship is live and working on your pull requests' },
+      { say: "Every Friday, check our competitors' sites and changelogs and tell me what changed and why it matters.", steps: ['Wrote its instructions and what counts as done', 'Gave it the web and your product docs', "Tried it on last week's changes", 'Added Competitor Watch to your team'], ini: 'CW', name: 'Competitor Watch', did: 'Sent the Friday report: 3 changes', c: 'var(--violet)', live: 'Competitor Watch is live and runs every Friday' }
+    ];
+    var wait = waiter(forge);
+    forge.classList.add('play');
+    var caret = document.createElement('i'); caret.className = 'h-caret';
+    (async function loop() {
+      for (var n = 0; ; n = (n + 1) % EX.length) {
+        var ex = EX[n];
+        steps.forEach(function (s) { s.classList.remove('on'); }); fresh.classList.remove('on'); done.classList.remove('on');
+        say.textContent = ''; say.appendChild(caret);
+        for (var i = 0; i < ex.say.length; i++) { caret.insertAdjacentText('beforebegin', ex.say[i]); await wait(18); }
+        await wait(250); caret.remove();
+        for (var k = 0; k < steps.length; k++) { steps[k].querySelector('span').textContent = ex.steps[k]; steps[k].classList.add('on'); await wait(380); }
+        ini.textContent = ex.ini; name.textContent = ex.name; did.textContent = ex.did; fresh.style.setProperty('--c', ex.c);
+        fresh.classList.add('on'); live.textContent = ex.live; done.classList.add('on');
+        await wait(3800);
       }
     })();
   })();

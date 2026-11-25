@@ -325,6 +325,21 @@
     <h4>Try asking</h4><ul class="mc-prompts"><li>Triage the new issues on acme/web.</li><li>Which fixes are still waiting on review?</li></ul>
   </div>
 </li>
+<li class="mc" id="m-ship" data-cat="eng" data-q="ship takes every pull request from opened to merged. repairs conflicts, updates branches, chases failing checks and merges once review and ci pass. github merge pull request" style="--c: var(--teal)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Ship: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v12M18 9v12M6 15a6 6 0 0 0 6 6h6M18 9a6 6 0 0 0-6-6H6"/></svg></span></span>
+    <h3>Ship</h3>
+    <p class="mc-pitch">Takes every pull request from opened to merged: fixes conflicts, chases failing checks and merges once review and CI pass.</p>
+    <span class="mc-conn"><span class="tag r">GitHub</span></span>
+    <span class="mc-ex">Ship the open PRs on acme/web.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Owns the lifecycle of every pull request on the repos it covers. It repairs conflicts, updates a branch that falls behind, wakes the engineer when a required check goes red, and merges once review and CI pass. Hand it any PR with a <code>ship</code> label or a <code>/ship</code> comment.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">GitHub</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Ship</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Ship the open PRs on acme/web.</li><li>Which pull requests are waiting to merge, and why?</li></ul>
+  </div>
+</li>
 <li class="mc" id="m-design" data-cat="eng" data-q="design a ui/ux designer drafts mockups and a reviewer checks every ui pull request with screenshots. design system screenshots ui designer ui reviewer" style="--c: var(--pink)">
   <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Design: details">
     <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-5L16 4l4 4L9 19l-5 1Z"/><path d="m14 6 4 4"/></svg></span></span>

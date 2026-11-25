@@ -894,7 +894,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 /* Played by app.js: rows arrive, each is sorted, kept ones land on the right. Without JS (or with reduced motion) the
    finished state shows. */
 .h-demo.play .h-stream li { opacity: 0; transform: translateY(-8px); }
-.h-demo.play .h-stream li.on { opacity: 1; transform: none; transition: opacity .35s var(--ease), transform .35s var(--ease); }
+.h-demo.play .h-stream li.on { opacity: 1; transform: none; transition: opacity .22s var(--ease), transform .22s var(--ease); }
 .h-demo.play .h-stream li.on:not(.sorted) { border-style: solid; background: var(--surface); box-shadow: none; border-color: var(--line); }
 .h-demo.play .h-stream li.on:not(.sorted) > div, .h-demo.play .h-stream li.on:not(.sorted) .src { opacity: 1; }
 .h-demo.play .h-stream li:not(.sorted) em { visibility: hidden; }
@@ -910,11 +910,6 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-head h2, .h-faq h2 { font-size: clamp(28px, 2.6vw, 44px); line-height: 1.05; letter-spacing: -.035em; font-weight: 750; max-width: 18ch; text-wrap: balance; }
 .h-head p { font-size: clamp(16px, .2vw + 14.5px, 18px); color: var(--text-2); max-width: 50ch; line-height: 1.5; }
 
-.h-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 2.5vw, 40px); }
-.h-steps li { border-top: 2px solid var(--text); padding-top: 18px; }
-.h-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: #2B50FF; color: #fff; font-weight: 700; font-size: 14px; }
-.h-steps h3 { margin-top: 14px; font-size: clamp(18px, .4vw + 15px, 22px); letter-spacing: -.02em; font-weight: 700; }
-.h-steps p { margin-top: 8px; color: var(--text-2); max-width: 42ch; }
 .h-wins { margin-top: clamp(40px, 4.5vw, 72px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .h-wins li { background: var(--surface); padding: clamp(18px, 1.6vw, 26px); display: grid; gap: 6px; align-content: start; }
 .h-wins b { font-size: 16.5px; letter-spacing: -.01em; }
@@ -930,9 +925,12 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-jobs button:hover { color: var(--text); background: var(--bg); }
 .h-jobs button[aria-selected="true"] { color: var(--text); background: var(--bg); border-color: var(--line); }
 .h-panel { border: 1px solid var(--line); border-radius: 14px; background: var(--bg); padding: clamp(22px, 2.6vw, 40px); }
-.js .h-panel:not(.on) { display: none; }
 .h-panel + .h-panel { margin-top: 12px; }
-.js .h-panel + .h-panel { margin-top: 0; }
+/* With JS every panel shares one grid cell, so the tallest sets the height and switching never moves the page. */
+.js .h-panels { display: grid; }
+.js .h-panels > .h-panel { grid-area: 1 / 1; margin: 0; }
+.js .h-panels > .h-built { grid-area: 2 / 1; }
+.js .h-panel:not(.on) { visibility: hidden; }
 .h-ask { font-size: clamp(20px, .8vw + 13px, 28px); line-height: 1.2; letter-spacing: -.025em; font-weight: 650; padding-left: 18px; border-left: 4px solid var(--c); max-width: 32ch; }
 .h-you::before { content: "You"; display: block; font-size: 13px; letter-spacing: 0; font-weight: 600; color: var(--text-3); margin-bottom: 6px; }
 .h-kind { display: inline-block; margin-bottom: 14px; padding: 3px 9px; border-radius: 6px; font-size: 12.5px; font-weight: 650; color: color-mix(in srgb, var(--violet) 75%, var(--text)); background: color-mix(in srgb, var(--violet) 14%, transparent); }
@@ -944,6 +942,55 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-spec dd { margin: 4px 0 0; font-size: 15.5px; font-weight: 500; }
 .h-built { margin-top: 18px; display: flex; gap: 10px; align-items: flex-start; color: var(--text-2); font-size: 15px; }
 .h-built .h-tick { border-color: var(--teal); background: var(--t0-soft); margin-top: 2px; }
+
+/* Hero: one sentence becomes a teammate on the right. */
+.h-forge { margin: clamp(32px, 3.4vw, 60px) auto 0; max-width: 1120px; display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); overflow: hidden; text-align: left; }
+.h-crew { background: var(--surface-2); border-left: 1px solid var(--line); }
+.h-prompt { display: flex; gap: 10px; align-items: flex-start; }
+.h-prompt p { flex: 1; min-height: 4.4em; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg); font-size: 15.5px; line-height: 1.45; font-weight: 500; }
+.h-you-av { background: var(--brand-soft); color: color-mix(in srgb, var(--brand) 80%, var(--text)); font-size: 10.5px; }
+.h-make { margin-top: 14px; display: grid; gap: 8px; }
+.h-make li { display: flex; gap: 10px; align-items: center; font-size: 14.5px; color: var(--text-2); }
+.h-make .h-tick { border-color: var(--teal); background: var(--t0-soft); position: relative; }
+.h-make .h-tick::after { content: ""; position: absolute; left: 5px; top: 1.5px; width: 4px; height: 8px; border: solid color-mix(in srgb, var(--teal) 80%, var(--text)); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.h-live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 0 3px var(--t0-soft); }
+.h-roster { display: grid; gap: 6px; }
+.h-roster li { display: flex; align-items: center; gap: 12px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); font-size: 14px; line-height: 1.3; }
+.h-roster li > div { flex: 1; min-width: 0; display: grid; }
+.h-roster b { font-weight: 650; }
+.h-roster span:not(.h-who) { color: var(--text-3); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-roster em { font-style: normal; font-size: 12px; font-weight: 650; padding: 3px 8px; border-radius: 6px; color: color-mix(in srgb, var(--teal) 70%, var(--text)); background: var(--t0-soft); }
+.h-roster .h-fresh { border-color: color-mix(in srgb, var(--teal) 50%, var(--line)); box-shadow: inset 3px 0 0 var(--teal); }
+.h-forge.play .h-make li { opacity: 0; transform: translateX(-6px); }
+.h-forge.play .h-make li.on { opacity: 1; transform: none; transition: opacity .25s var(--ease), transform .25s var(--ease); }
+.h-forge.play .h-fresh { opacity: 0; transform: translateY(-8px); }
+.h-forge.play .h-fresh.on { opacity: 1; transform: none; transition: opacity .3s var(--ease), transform .3s var(--ease); }
+.h-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 1px; background: var(--brand); vertical-align: -2px; animation: h-blink 1s steps(1) infinite; }
+@keyframes h-blink { 50% { opacity: 0; } }
+
+/* Aiden and the agent shelf */
+#aiden .h-demo { margin: 0; max-width: none; }
+.h-demo + .h-wins { margin-top: 16px; }
+.h-share { margin-top: clamp(28px, 3vw, 44px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 2.5vw, 40px); }
+.h-share h3 { font-size: 17px; letter-spacing: -.015em; }
+.h-share p { margin-top: 6px; color: var(--text-2); font-size: 15px; max-width: 44ch; }
+.h-shelf { margin-top: clamp(32px, 3.5vw, 56px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.h-shelf li { display: flex; gap: 12px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.h-shelf li > div { display: grid; min-width: 0; }
+.h-shelf b { font-size: 15px; }
+.h-shelf span:not(.h-who) { font-size: 13.5px; color: var(--text-2); }
+.h-shelf .h-who { width: 38px; height: 38px; border-radius: 10px; font-size: 13px; flex: none; }
+.h-shelf-note { margin-top: 14px; color: var(--text-2); font-size: 15px; }
+.h-trust5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(18px, 2vw, 32px); }
+.h-trust5 h3 { font-size: 17px; }
+.h-trust5 p { font-size: 14.5px; }
+
+/* Why an Agent OS: what everyone says, and what is underneath here. */
+.h-os { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.h-os-row { display: grid; grid-template-columns: minmax(160px, 1fr) 3fr; gap: 24px; padding: 18px clamp(16px, 2vw, 28px); border-top: 1px solid var(--line); align-items: baseline; }
+.h-os-head { border-top: 0; padding-block: 12px; background: var(--surface-2); font-size: 13px; font-weight: 600; color: var(--text-3); }
+.h-os-row b { font-size: clamp(17px, .4vw + 14px, 20px); letter-spacing: -.015em; }
+.h-os-row p { color: var(--text-2); max-width: 70ch; }
 
 /* A day for the team: a real timeline, so times and a rail. */
 .h-team { display: grid; grid-template-columns: 1.35fr 1fr; gap: clamp(28px, 4vw, 72px); align-items: start; }
@@ -977,18 +1024,52 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-q p { padding: 0 2px 22px; color: var(--text-2); max-width: 68ch; }
 .h-q code { font-size: .88em; padding: 1px 5px; border-radius: 4px; background: var(--bg-2); }
 
+/* Polish pass */
+.h-pause { border: 1px solid var(--line-2); background: var(--surface); color: var(--text-2); border-radius: 6px; padding: 2px 9px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.h-pause:hover { color: var(--text); border-color: var(--text-3); }
+.h-head-r { display: inline-flex; align-items: center; gap: 10px; }
+.h-demo[data-paused] .h-stream li, .h-forge[data-paused] .h-caret { animation-play-state: paused; }
+.h-new { display: flex; flex-direction: column; }
+.h-done { margin-top: auto; padding-top: 16px; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: color-mix(in srgb, var(--teal) 70%, var(--text)); }
+.h-done span { padding: 8px 12px; border-radius: 9px; background: var(--t0-soft); }
+.h-done .h-live-dot { display: none; }
+.h-forge.play .h-done { opacity: 0; }
+.h-forge.play .h-done.on { opacity: 1; transition: opacity .3s var(--ease); }
+.h-out .h-aside { margin-top: auto; padding-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
+.h-aside b { width: 100%; font-size: 13px; color: var(--text-3); font-weight: 600; }
+.h-aside span { padding: 3px 8px; border-radius: 6px; border: 1px dashed var(--line-2); color: var(--text-3); }
+.h-demo.play .h-aside { opacity: 0; }
+.h-demo.play .h-aside.on { opacity: 1; transition: opacity .4s var(--ease); }
+.h-trust.h-trust5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.h-ic { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; background: color-mix(in srgb, var(--c) 15%, transparent); }
+.h-trust .h-ic svg { width: 22px; height: 22px; stroke: color-mix(in srgb, var(--c) 80%, var(--text)); }
+.h-build { grid-template-columns: minmax(300px, 400px) 1fr; }
+.h-jobs [role="tablist"] { grid-template-columns: 1fr 1fr; }
+.h-jobs button { padding: 9px 12px; font-size: 15px; }
+.h-os-row { grid-template-columns: minmax(200px, 1fr) 2.6fr; }
+.h-os-row b { display: flex; align-items: center; gap: 10px; }
+.h-os-row:not(.h-os-head) b::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+.h-os-row p { max-width: none; }
+.h-os-head span + span { color: color-mix(in srgb, var(--brand) 75%, var(--text)); }
+.cta h2 { max-width: 22ch; }
+
 @media (max-width: 1080px) {
   .h-wins { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .h-build, .h-team { grid-template-columns: 1fr; }
+  .h-shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .h-trust.h-trust5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .h-jobs [role="tablist"] { display: flex; flex-wrap: wrap; }
   .h-group { margin: 10px 0 4px; }
   .h-jobs button { padding: 9px 12px; font-size: 15px; }
 }
 @media (max-width: 820px) {
-  .h-demo { grid-template-columns: 1fr; }
+  .h-demo, .h-forge { grid-template-columns: 1fr; }
+  .h-crew { border-left: 0; border-top: 1px solid var(--line); }
+  .h-os-row { grid-template-columns: 1fr; gap: 6px; }
   .h-out { border-left: 0; border-top: 1px solid var(--line); }
   .h-head, .h-faq { grid-template-columns: 1fr; }
-  .h-steps, .h-trust { grid-template-columns: 1fr; }
+  .h-trust, .h-share { grid-template-columns: 1fr; }
+  .h-trust.h-trust5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .h-spec { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
@@ -996,6 +1077,6 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
   .h-stream li { padding: 8px 10px; gap: 10px; }
   .h-day li { grid-template-columns: 30px 1fr; }
   .h-day time { grid-column: 2; }
-  .h-wins { grid-template-columns: 1fr; }
+  .h-wins, .h-shelf, .h-trust.h-trust5, .h-share { grid-template-columns: 1fr; }
   .h-actions > * { width: 100%; }
 }

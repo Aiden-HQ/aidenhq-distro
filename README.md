@@ -1,8 +1,9 @@
 # AidenHQ
 
-**Your work life, on autopilot.** Aiden cuts the noise so you can focus on what matters.
+**Powerful agents, made easy.**
 
-AidenHQ is an open-source AI chief of staff and agent team that runs on your own server. Website:
+AidenHQ is the open-source Agent OS for building the most powerful agents. Describe who you need in a sentence and get
+an AI teammate that works 24/7. Or install agents someone else built, just like apps. Website:
 **[aidenhq.ai](https://aidenhq.ai)**.
 
 ```sh
@@ -12,16 +13,17 @@ curl -fsSL https://get.aidenhq.ai | sh
 One line on a fresh Ubuntu or Debian server, or a Mac; it installs Docker and Node itself. Using Claude Code, Codex or
 another coding agent? Paste: `Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md`.
 
-## What it does for you
+## What you get
 
-- **Cut the noise.** Aiden reads your Slack, the email you hand it and your meeting notes, turns what
-  needs you into one action item each, follows up with people until it's done, and sends you a morning brief.
-- **An agent for anything else.** Describe it in a sentence ("chase anyone who hasn't answered me in two days") and
-  Aiden designs the agent, gives it tools, tries it on real work and adds it to your team.
-- **Apps that keep themselves running.** Ask for a tracker or a dashboard; agents build it, watch it and fix it when it
-  breaks.
-- **Autonomous, and still yours.** A second AI reviews every message, merge and deploy, and anything that matters waits
-  for one tap from your phone. Your server, any model, spend capped per agent, task and day.
+- **Install agents like apps.** Start with Aiden, your chief of staff: it cuts the noise in your Slack, email and
+  meetings, turns what needs you into action items and follows up. Add Ship (pull requests to merged), Maintainer
+  (issues to merged fixes), code review, a security team and more, or publish your own for others.
+- **Build agents without code.** Describe the job in a sentence. The Agent Architect writes the agent, gives it tools,
+  tries it on real work and adds it to your team.
+- **AI teammates that work 24/7, together.** Agents wake on schedules and events, hand work to each other, review each
+  other, and Fleet Steward keeps the whole team running.
+- **Teammates you can trust with real work.** Each agent has its own computer and only the tools you allow; a grader and
+  a second AI check its work; anything that matters waits for your tap; spend is capped per agent, task and day.
 
 More on [aidenhq.ai](https://aidenhq.ai): [agents](https://aidenhq.ai/agents/), [apps](https://aidenhq.ai/apps/),
 [approvals and safety](https://aidenhq.ai/safety/), [integrations](https://aidenhq.ai/integrations/) and the
