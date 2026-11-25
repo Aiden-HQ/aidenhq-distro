@@ -475,8 +475,13 @@ jobs:
             200) title="Release $TAG: its run failed after it was published" body="Release $TAG is published, so its tag stays. Run: $run" ;;
             404)
               for id in $(api "$R/releases?per_page=100" | jq -r --arg t "$TAG" '.[] | select(.draft and .tag_name == $t) | .id'); do api -X DELETE "$R/releases/$id"; done
-              api -X DELETE "$R/git/refs/tags/$TAG" || echo "tag $TAG is already gone"
-              title="Release $TAG failed" body="Release $TAG didn't pass its install-and-test or publish: its tag is deleted and nothing was released. Run: $run" ;;
+              # 204/404 means the ref is gone (deleted now, or never there); anything else, or a read that didn't answer,
+              # leaves the tag in place and says so, rather than reporting a cleanup that didn't happen.
+              dcode=$(api -X DELETE -o /dev/null -w '%{http_code}' "$R/git/refs/tags/$TAG" 2>/dev/null) || true
+              case "${dcode:-000}" in
+                204|404|0) title="Release $TAG failed" body="Release $TAG didn't pass its install-and-test or publish: its tag is deleted and nothing was released. Run: $run" ;;
+                *) title="Release $TAG failed: its tag could not be deleted" body="Release $TAG didn't pass its install-and-test or publish, and it isn't published, but deleting its tag failed (HTTP ${dcode:-no status}). Delete the tag by hand so it can be re-cut. Run: $run" ;;
+              esac ;;
             *)
               title="Release $TAG failed: its publication isn't known" body="Release $TAG's run didn't publish, but reading whether a release exists for the tag failed (HTTP ${code:-no status}). Its tag is left in place so a published cut is never deleted: check the run and the tag by hand. Run: $run" ;;
           esac
