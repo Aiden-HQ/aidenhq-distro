@@ -28,7 +28,7 @@ Offline, no token or key needed. Node 24.
 
 ```sh
 sh installer/test.sh && dash installer/test.sh   # installer release checks (CI also runs shellcheck on every .sh)
-node --test .github/release/graduate.test.mjs
+node --test .github/release/*.test.mjs
 sh web/build.sh && node --test web/worker.test.mjs   # site build + web/check-site.mjs (tags, links, twins, sitemap)
 ```
 
