@@ -41,27 +41,27 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #070D1A; --bg-2: #0A1222; --surface: #0E172A; --surface-2: #121D33; --line: #1D2943; --line-2: #2A3959;
-    --text: #EAF0FA; --text-2: #A9B6CC; --text-3: #8392AA;
-    --brand: #5C7BFF; --brand-2: #7B93FF; --brand-soft: rgba(92, 123, 255, .15);
-    --blue: #6A86FF; --violet: #A08BFF; --pink: #FF6F9F; --teal: #2ACDB8; --amber: #FFB133; --sky: #3CB8F5; --bad: #FF6670;
-    --t0-soft: rgba(42, 205, 184, .13);
+    --bg: #000000; --bg-2: #0A0B0E; --surface: #0C0D11; --surface-2: #121419; --line: #23262F; --line-2: #343946;
+    --text: #FFFFFF; --text-2: #D2D8E3; --text-3: #A3ADBD;
+    --brand: #7491FF; --brand-2: #95ABFF; --brand-soft: rgba(116, 145, 255, .2);
+    --blue: #7C98FF; --violet: #B9A3FF; --pink: #FF7BAA; --teal: #3BEBD0; --amber: #FFC24D; --sky: #55CCFF; --bad: #FF707A;
+    --t0-soft: rgba(59, 235, 208, .16);
     --grad: linear-gradient(95deg, #7C94FF 0%, #B09CFF 45%, #FF7CA8 100%);
-    --code-bg: #060C19; --code-text: #DCE5F3;
-    --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .03), 0 30px 70px -20px rgba(0, 0, 0, .7), 0 10px 24px -12px rgba(0, 0, 0, .5);
+    --code-bg: #0C0D11; --code-text: #E8EDF5;
+    --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .06), 0 30px 80px -24px rgba(116, 145, 255, .22);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #070D1A; --bg-2: #0A1222; --surface: #0E172A; --surface-2: #121D33; --line: #1D2943; --line-2: #2A3959;
-  --text: #EAF0FA; --text-2: #A9B6CC; --text-3: #8392AA;
-  --brand: #5C7BFF; --brand-2: #7B93FF; --brand-soft: rgba(92, 123, 255, .15);
-  --blue: #6A86FF; --violet: #A08BFF; --pink: #FF6F9F; --teal: #2ACDB8; --amber: #FFB133; --sky: #3CB8F5; --bad: #FF6670;
-  --t0-soft: rgba(42, 205, 184, .13);
+  --bg: #000000; --bg-2: #0A0B0E; --surface: #0C0D11; --surface-2: #121419; --line: #23262F; --line-2: #343946;
+  --text: #FFFFFF; --text-2: #D2D8E3; --text-3: #A3ADBD;
+  --brand: #7491FF; --brand-2: #95ABFF; --brand-soft: rgba(116, 145, 255, .2);
+  --blue: #7C98FF; --violet: #B9A3FF; --pink: #FF7BAA; --teal: #3BEBD0; --amber: #FFC24D; --sky: #55CCFF; --bad: #FF707A;
+  --t0-soft: rgba(59, 235, 208, .16);
   --grad: linear-gradient(95deg, #7C94FF 0%, #B09CFF 45%, #FF7CA8 100%);
-  --code-bg: #060C19; --code-text: #DCE5F3;
-  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .03), 0 30px 70px -20px rgba(0, 0, 0, .7), 0 10px 24px -12px rgba(0, 0, 0, .5);
+  --code-bg: #0C0D11; --code-text: #E8EDF5;
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .06), 0 30px 80px -24px rgba(116, 145, 255, .22);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
   color-scheme: dark;
 }
@@ -778,16 +778,13 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .duo figure { margin: 0; }
 @media (max-width: 900px) { .duo { grid-template-columns: minmax(0, 1fr); } }
 
-/* Large screens: past 1920px the whole layout scales up with the window (in small steps), so a 2560px or 4K display
+/* Large screens: past 2304px the whole layout scales up gently with the window (in small steps), so a 2560px or 4K display
    gets the same proportions as a 1920px one instead of a fixed-size column. */
-@media (min-width: 2048px) { :root { zoom: 1.0667; } }
-@media (min-width: 2176px) { :root { zoom: 1.1333; } }
-@media (min-width: 2304px) { :root { zoom: 1.2; } }
-@media (min-width: 2432px) { :root { zoom: 1.2667; } }
-@media (min-width: 2560px) { :root { zoom: 1.3333; } }
-@media (min-width: 2880px) { :root { zoom: 1.5; } }
-@media (min-width: 3200px) { :root { zoom: 1.6667; } }
-@media (min-width: 3840px) { :root { zoom: 2; } }
+@media (min-width: 2304px) { :root { zoom: 1.0667; } }
+@media (min-width: 2560px) { :root { zoom: 1.1333; } }
+@media (min-width: 2880px) { :root { zoom: 1.25; } }
+@media (min-width: 3200px) { :root { zoom: 1.4; } }
+@media (min-width: 3840px) { :root { zoom: 1.6667; } }
 
 /* Modules marketplace: search, category tabs, featured row, card grid, detail dialog. */
 .mk-bar { display: grid; gap: 12px; margin-bottom: 20px; }
@@ -849,20 +846,24 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .mc-btn:focus-visible { outline-offset: -3px; border-radius: var(--r-lg); }
 .mt[aria-current="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
 
+/* Product icons (modules marketplace cards and dialog) */
+.pi { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; background: color-mix(in srgb, var(--c) 14%, transparent); color: color-mix(in srgb, var(--c) 80%, var(--text)); }
+.pi svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
 /* ===== Home. One loud thing (the hero's noise-to-action demo); every section below stays quiet: a headline beside a
    short paragraph, then plain columns. Sequence numbers appear only where the content is a sequence. */
-.btn-lg { height: 48px; padding: 0 22px; font-size: 16px; }
-.h-hero { padding: clamp(32px, 3.6vw, 72px) 0 clamp(56px, 6vw, 104px); }
+.btn-lg { height: 44px; padding: 0 20px; font-size: 15.5px; }
+.h-hero { padding: clamp(28px, 3vw, 56px) 0 clamp(56px, 6vw, 104px); }
 .h-intro { text-align: center; display: grid; justify-items: center; }
-.h-intro h1 { font-size: clamp(40px, 5.2vw, 92px); line-height: .96; letter-spacing: -.048em; font-weight: 800; text-wrap: balance; }
-.h-lede { margin-top: clamp(18px, 1.8vw, 28px); max-width: 60ch; font-size: clamp(17px, .5vw + 14.5px, 21px); line-height: 1.5; color: var(--text-2); text-wrap: pretty; }
+.h-intro h1 { font-size: clamp(38px, 4.1vw, 68px); line-height: 1; letter-spacing: -.042em; font-weight: 800; text-wrap: balance; }
+.h-lede { margin-top: clamp(16px, 1.4vw, 22px); max-width: 62ch; font-size: clamp(16px, .3vw + 14px, 18.5px); line-height: 1.5; color: var(--text-2); text-wrap: pretty; }
 .h-actions { margin-top: clamp(22px, 2vw, 32px); display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.h-actions .agent-btn { height: 48px; padding: 0 18px; font-size: 15px; }
+.h-actions .agent-btn { height: 44px; padding: 0 18px; font-size: 15px; }
 .h-note { margin-top: 14px; font-size: 14px; color: var(--text-3); }
 
 /* The demo: what came in on the left, what needs you on the right. */
 .h-demo {
-  margin: clamp(32px, 3.4vw, 60px) auto 0; max-width: 1240px; display: grid; grid-template-columns: 1.15fr 1fr;
+  margin: clamp(32px, 3.4vw, 60px) auto 0; max-width: 1120px; display: grid; grid-template-columns: 1.15fr 1fr;
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); overflow: hidden; text-align: left;
 }
 .h-col { padding: clamp(16px, 1.6vw, 24px); min-width: 0; }
@@ -870,7 +871,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-col-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 4px 12px; font-size: 14.5px; }
 .h-col-head small { color: var(--text-3); font-size: 13px; font-variant-numeric: tabular-nums; }
 .h-stream, .h-items { display: grid; gap: 6px; }
-.h-stream li, .h-items li { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; line-height: 1.3; }
+.h-stream li, .h-items li { display: flex; align-items: center; gap: 12px; padding: 7px 11px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; line-height: 1.3; }
 .h-stream li > div, .h-items li > div { min-width: 0; flex: 1; display: grid; }
 .h-stream b, .h-items b { font-weight: 650; }
 .h-stream span, .h-items span { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -887,7 +888,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-tick { flex: none; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--line-2); font-style: normal; }
 .h-items .wait .h-tick { border-color: var(--amber); border-style: dashed; }
 .h-say { margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; }
-.h-say p { padding: 10px 14px; border-radius: 4px 12px 12px 12px; background: var(--brand); color: #fff; font-size: 14px; line-height: 1.4; }
+.h-say p { padding: 10px 14px; border-radius: 4px 12px 12px 12px; background: #2B50FF; color: #fff; font-size: 14px; line-height: 1.4; }
 .h-av { flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--text); color: var(--bg); font-weight: 700; font-size: 13px; }
 
 /* Played by app.js: rows arrive, each is sorted, kept ones land on the right. Without JS (or with reduced motion) the
@@ -903,16 +904,16 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-demo.play .h-items li.on, .h-demo.play .h-say.on { opacity: 1; transform: none; transition: opacity .4s var(--ease), transform .4s var(--ease); }
 
 /* Sections */
-.h-sec { padding: clamp(64px, 7vw, 128px) 0; }
+.h-sec { padding: clamp(56px, 5.5vw, 96px) 0; }
 .h-alt { background: var(--surface); border-block: 1px solid var(--line); }
 .h-head { display: grid; grid-template-columns: 1fr 1fr; gap: 24px clamp(32px, 6vw, 120px); align-items: end; margin-bottom: clamp(36px, 4vw, 64px); }
-.h-head h2, .h-faq h2 { font-size: clamp(32px, 3.4vw, 58px); line-height: 1.02; letter-spacing: -.04em; font-weight: 750; max-width: 16ch; text-wrap: balance; }
-.h-head p { font-size: clamp(17px, .35vw + 15px, 20px); color: var(--text-2); max-width: 50ch; line-height: 1.5; }
+.h-head h2, .h-faq h2 { font-size: clamp(28px, 2.6vw, 44px); line-height: 1.05; letter-spacing: -.035em; font-weight: 750; max-width: 18ch; text-wrap: balance; }
+.h-head p { font-size: clamp(16px, .2vw + 14.5px, 18px); color: var(--text-2); max-width: 50ch; line-height: 1.5; }
 
 .h-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 2.5vw, 40px); }
 .h-steps li { border-top: 2px solid var(--text); padding-top: 18px; }
-.h-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--brand); color: #fff; font-weight: 700; font-size: 14px; }
-.h-steps h3 { margin-top: 16px; font-size: clamp(20px, .6vw + 16px, 26px); letter-spacing: -.02em; font-weight: 700; }
+.h-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: #2B50FF; color: #fff; font-weight: 700; font-size: 14px; }
+.h-steps h3 { margin-top: 14px; font-size: clamp(18px, .4vw + 15px, 22px); letter-spacing: -.02em; font-weight: 700; }
 .h-steps p { margin-top: 8px; color: var(--text-2); max-width: 42ch; }
 .h-wins { margin-top: clamp(40px, 4.5vw, 72px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .h-wins li { background: var(--surface); padding: clamp(18px, 1.6vw, 26px); display: grid; gap: 6px; align-content: start; }
@@ -930,7 +931,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .js .h-panel:not(.on) { display: none; }
 .h-panel + .h-panel { margin-top: 12px; }
 .js .h-panel + .h-panel { margin-top: 0; }
-.h-ask { font-size: clamp(22px, 1.2vw + 14px, 34px); line-height: 1.2; letter-spacing: -.025em; font-weight: 650; padding-left: 18px; border-left: 4px solid var(--c); max-width: 32ch; }
+.h-ask { font-size: clamp(20px, .8vw + 13px, 28px); line-height: 1.2; letter-spacing: -.025em; font-weight: 650; padding-left: 18px; border-left: 4px solid var(--c); max-width: 32ch; }
 .h-ask::before { content: "You"; display: block; font-size: 13px; letter-spacing: 0; font-weight: 600; color: var(--text-3); margin-bottom: 6px; }
 .h-spec { margin-top: clamp(22px, 2.4vw, 36px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .h-spec div { padding-top: 12px; border-top: 1px solid var(--line-2); }
@@ -938,6 +939,19 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .h-spec dd { margin: 4px 0 0; font-size: 15.5px; font-weight: 500; }
 .h-built { margin-top: 18px; display: flex; gap: 10px; align-items: flex-start; color: var(--text-2); font-size: 15px; }
 .h-built .h-tick { border-color: var(--teal); background: var(--t0-soft); margin-top: 2px; }
+
+/* A day for the team: a real timeline, so times and a rail. */
+.h-team { display: grid; grid-template-columns: 1.35fr 1fr; gap: clamp(28px, 4vw, 72px); align-items: start; }
+.h-day { position: relative; display: grid; gap: 6px; padding: clamp(16px, 1.6vw, 24px); border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-lg); }
+.h-day li { display: grid; grid-template-columns: 48px 30px 1fr; gap: 12px; align-items: center; padding: 8px 6px; border-radius: 9px; }
+.h-day li + li { border-top: 1px dashed var(--line); border-radius: 0; }
+.h-day time { font: 500 13px/1 var(--mono); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.h-who { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 18%, transparent); color: color-mix(in srgb, var(--c) 78%, var(--text)); font-weight: 700; font-size: 11.5px; }
+.h-day p { font-size: 15px; color: var(--text-2); }
+.h-day b { color: var(--text); font-weight: 650; }
+.h-traits { display: grid; gap: clamp(22px, 2.4vw, 34px); }
+.h-traits h3 { font-size: 18px; letter-spacing: -.015em; }
+.h-traits p { margin-top: 6px; color: var(--text-2); max-width: 46ch; }
 
 .h-trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 3vw, 48px); }
 .h-trust svg { width: 28px; height: 28px; fill: none; stroke: var(--brand); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
@@ -960,7 +974,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 
 @media (max-width: 1080px) {
   .h-wins { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .h-build { grid-template-columns: 1fr; }
+  .h-build, .h-team { grid-template-columns: 1fr; }
   .h-jobs { display: flex; flex-wrap: wrap; }
   .h-jobs button { padding: 9px 12px; font-size: 15px; }
 }
@@ -974,7 +988,8 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 @media (max-width: 560px) {
   .h-stream span, .h-items span { white-space: normal; }
   .h-stream li { padding: 8px 10px; gap: 10px; }
+  .h-day li { grid-template-columns: 30px 1fr; }
+  .h-day time { grid-column: 2; }
   .h-wins { grid-template-columns: 1fr; }
   .h-actions > * { width: 100%; }
-  .h-stream li:nth-child(n+7) { display: none; }
 }

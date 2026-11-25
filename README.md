@@ -1,6 +1,6 @@
 # AidenHQ
 
-**Cut the noise. Focus on what matters.**
+**Your work life, on autopilot.** Aiden cuts the noise so you can focus on what matters.
 
 AidenHQ is an open-source AI chief of staff and agent team that runs on your own server. Website:
 **[aidenhq.ai](https://aidenhq.ai)**.
@@ -14,7 +14,7 @@ another coding agent? Paste: `Set up AidenHQ on my server by following https://a
 
 ## What it does for you
 
-- **Your work life, on autopilot.** Aiden reads your Slack, the email you hand it and your meeting notes, turns what
+- **Cut the noise.** Aiden reads your Slack, the email you hand it and your meeting notes, turns what
   needs you into one action item each, follows up with people until it's done, and sends you a morning brief.
 - **An agent for anything else.** Describe it in a sentence ("chase anyone who hasn't answered me in two days") and
   Aiden designs the agent, gives it tools, tries it on real work and adds it to your team.

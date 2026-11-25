@@ -1,10 +1,10 @@
-# AidenHQ: cut the noise, focus on what matters
+# AidenHQ: your work life, on autopilot
 
 > Aiden is an open-source AI chief of staff on your own server. It reads your Slack, email and meetings, turns what needs you into action items, follows up with people, and builds new agents for everything else.
 
-Meet Aiden, an AI chief of staff that runs on your own server. Aiden reads your Slack, email and meetings, turns what
-needs you into action items and follows up until they are done. For anything else you want off your plate, describe
-an agent and Aiden builds it. Open source, with any AI model. Install it with one command on a fresh Ubuntu or Debian
+Meet Aiden, your AI chief of staff, and a team of agents that works for you 24/7. Aiden cuts the noise in your Slack,
+email and meetings and follows up on what matters. Describe any agent in a sentence, and Aiden builds it and puts it
+to work. Open source, on your own server, with any AI model. Install it with one command on a fresh Ubuntu or Debian
 server (or a Mac):
 
 ```sh
@@ -17,35 +17,54 @@ curl -fsSL https://get.aidenhq.ai | sh
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
 ```
 
-## Your work life, on autopilot
+## Cut the noise. Focus on what matters
 
 Most of what reaches you doesn't need you. Aiden reads it all, keeps what does, and makes sure nothing slips.
 
-1. **Reads everything:** your Slack channels and DMs, the email you hand it, notes from every meeting, and anything
-   you forward on Telegram.
+1. **Reads everything:** your Slack channels and DMs, the email you hand it, your meeting transcripts and notes, and
+   anything you forward on Telegram.
 2. **Keeps what needs you:** asks, promises and deadlines become one action item each, linked to where they came from.
    The rest stays out of your way.
-3. **Follows up until it's done:** Aiden tracks what people owe you, nudges them, and tells you when it's settled.
+3. **Follows up until it's done:** Aiden tracks what people owe you, drafts the nudge when something slips, and tells you
+   when it's settled.
    Only urgent things interrupt you.
 
-Also: a morning brief on Telegram or Slack, meeting notes and action items filed after every meeting, answers to
+Also: a morning brief on Telegram or Slack, decisions and action items filed from each meeting transcript or your notes, answers to
 "where does this stand?" from your messages, docs and tasks, and apps that agents build and keep running.
 [Apps](https://aidenhq.ai/apps/index.md)
 
-## Need more help? Describe an agent
+## Build any agent in a sentence
 
-Say what you want off your plate in one sentence. Aiden designs the agent, gives it the tools it needs, tries it on
-real work and adds it to your team. For example:
+Describe the job. Aiden designs the agent, gives it the tools it needs, tries it on real work and adds it to your team.
+Agents can build their own tools and apps too. For example:
 
 - **Follow-up chaser:** "Chase anyone who hasn't answered me in two days." Runs every two hours on workdays; checks
   with you before writing to anyone outside your team.
 - **Sales follow-up:** "Every morning, draft follow-ups for leads that went quiet in HubSpot." Drafts wait for your OK.
 - **Weekly digest:** "Every Friday, tell me what each team shipped and what slipped." Reads GitHub, Jira and Slack.
 - **Hiring tracker:** "Build a hiring tracker for the team and keep it running." An app your team can open.
+- **Support triage:** "Watch #support and file a Jira ticket for every real bug." A second AI reviews each ticket.
 - **Build fixer:** "When the build breaks on main, find the cause and open a fix." A second AI reviews the fix.
 
 Agents you build join the same team: Aiden hands them work, and they learn from every correction you make.
 [How agents get built](https://aidenhq.ai/agents/index.md)
+
+## A team that works together, 24/7
+
+Your agents hand work to each other, check each other's work and keep going while you sleep. You see every handoff and
+can step in whenever you like. An example day:
+
+- **02:10** DevOps Engineer saw the hiring tracker fail, rolled it back and filed the bug.
+- **02:40** Engineer fixed the cause. A second AI reviewed the fix, and it shipped.
+- **07:30** Aiden sent your morning brief: four things need you, the rest is handled.
+- **10:15** Researcher compared vendor prices and added a table to the launch plan.
+- **14:00** Agent Architect built the sales follow-up agent you described and added it to the team.
+- **18:20** Follow-up Tracker drafted nudges for two replies that slipped.
+
+Work moves between agents with the goal, the history and a clear definition of done. A grader checks the work before a
+task counts as done, and a second AI reviews anything that changes the outside world. Agents remember people, decisions
+and how you like things; correct one once and the whole team learns it.
+[Agents and teams](https://aidenhq.ai/agents/index.md)
 
 ## Autonomous, and still yours
 
