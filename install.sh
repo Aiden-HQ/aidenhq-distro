@@ -722,7 +722,7 @@ finish() {
   else
     printf '  The setup link is in the log (search for "Done."): %s\n' "$LOG"
   fi
-  printf '  Install log: %s    Service logs: journalctl --user -u aidenhq-runner; docker compose logs (in %s)\n' "$LOG" "$DIR"
+  printf '  Install log: %s    Service logs: journalctl --user -u aidenhq-kernel; docker compose logs (in %s)\n' "$LOG" "$DIR"
   if $SUDO test -e /root/aidenhq-vault-recovery.txt 2>/dev/null; then
     printf '  Vault recovery key: sudo cat /root/aidenhq-vault-recovery.txt, store it, then sudo shred -u it.\n'
   fi
