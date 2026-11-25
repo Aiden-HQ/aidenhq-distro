@@ -349,19 +349,22 @@ jobs:
       - run: |
           owner=$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
           digest_of() { docker buildx imagetools inspect "$1" --format '{{json .Manifest}}' 2>/dev/null | jq -er .digest; }
-          out='{}'
-          for row in $(jq -r '.[][] | "\(.name):\(.key)"' <<<"$CHAINS"); do
-            name=${row%%:*}; key=${row##*:}; img="ghcr.io/$owner/$name"
+          # One image: its multi-arch digest, printed as a JSON object. Eight at a time (each is a few registry calls).
+          merge() {
+            name=${1%%:*}; key=${1##*:}; img="ghcr.io/$owner/$name"
             if digest=$(digest_of "$img:k-$key"); then
-              docker buildx imagetools create -t "$img:$REL" "$img@$digest"
-              echo "reused $name"
+              docker buildx imagetools create -t "$img:$REL" "$img@$digest" >&2
+              echo "reused $name" >&2
             else
-              docker buildx imagetools create -t "$img:k-$key" -t "$img:$REL" "$img:k-$key-amd64" "$img:k-$key-arm64"
+              docker buildx imagetools create -t "$img:k-$key" -t "$img:$REL" "$img:k-$key-amd64" "$img:k-$key-arm64" >&2
               digest=$(digest_of "$img:k-$key")
-              echo "merged $name"
+              echo "merged $name" >&2
             fi
-            out=$(jq -c --arg n "$name" --arg r "$img@$digest" '. + {($n): $r}' <<<"$out")
-          done
+            jq -cn --arg n "$name" --arg r "$img@$digest" '{($n): $r}'
+          }
+          export -f merge digest_of; export owner REL
+          jq -r '.[][] | "\(.name):\(.key)"' <<<"$CHAINS" | xargs -P 8 -n 1 bash -c 'merge "$0"' > parts.jsonl
+          out=$(jq -sc 'add' parts.jsonl)
           jq -S -n --argjson i "$out" '{ images: $i }' > images.json
           jq -r '.images | keys[]' images.json | cmp - names/names-out.txt || { echo "::error::the built images aren't the planned ones"; exit 1; }
           cat images.json
