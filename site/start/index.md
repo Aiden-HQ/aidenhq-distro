@@ -1,15 +1,22 @@
 # From one line to talking with Aiden.
 
-> Install AidenHQ by pasting one line into your AI assistant, open the link it gives you, take three quick steps and start talking to Aiden.
+> Install AidenHQ by asking your AI coding agent or running one command, open the link it gives you, take three quick steps and start talking to Aiden.
 
-Your AI assistant installs AidenHQ and shows its progress as it goes. Then you open one link and take three quick steps.
+Your AI coding agent installs AidenHQ for you, or you run one command. Then you open one link and take three quick steps.
 
-### 1. Install with your AI
+### 1. Install
 
-Paste this into Claude Code, Codex or any coding assistant. It asks for a server (or uses this machine) and your email, then does the rest.
+**Ask your AI agent.** Paste this into Claude Code, Codex or any coding agent. It sets up the server, installs
+AidenHQ, checks every step and hands you your link:
 
 ```text
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
+```
+
+**Or run one command** on a fresh Ubuntu or Debian server, or on your Mac:
+
+```sh
+curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 ### 2. Open your link

@@ -4,16 +4,19 @@
 
 AidenHQ is the Agent OS for building the most powerful agents. Describe who you need in a sentence and get an AI
 teammate that works 24/7. Or install agents someone else built, just like apps. Open source, on your own server or Mac,
-with any AI model. Install it with one command on a fresh Ubuntu or Debian server (or a Mac):
+with any AI model. Two ways to install, both first-class:
 
-```sh
-curl -fsSL https://get.aidenhq.ai | sh
-```
-
-**Using Claude Code, Codex or another coding agent?** Paste this into it:
+**Ask your AI agent.** Paste this into Claude Code, Codex or any coding agent. It sets up the server, installs
+AidenHQ, checks every step and hands you your link:
 
 ```text
 Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md
+```
+
+**Or run one command** on a fresh Ubuntu or Debian server, or on your Mac:
+
+```sh
+curl -fsSL https://get.aidenhq.ai | sh
 ```
 
 ## Meet Aiden, your chief of staff

@@ -2,18 +2,32 @@
   <div class="wrap">
     <div class="cta-card reveal">
       <h2>Get your AI team running today.</h2>
-      <p>One command on a Linux server or Mac you own. It ends with a one-time setup link: open it, create your account and add your model key, and Aiden is ready for its first job.</p>
-      <div class="install-row install-row-cta">
-        <div class="cmd cmd-lg" role="group" aria-label="Install command">
-          <span class="prompt" aria-hidden="true">$</span>
-          <pre><code>curl -fsSL https://get.aidenhq.ai | sh</code></pre>
-          <button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.ai | sh" aria-label="Copy install command">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
-            <span class="copy-label">Copy</span>
-          </button>
-        </div>
-      </div>
-      <p class="agent-note agent-note-light">Using Claude Code, Codex or another coding agent? Paste: <code>Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md</code></p>
+      <p>Two ways, same result: AidenHQ on a Linux server or Mac you own. Both end with a one-time setup link: open it, create your account and add your model key, and Aiden is ready for its first job.</p>
+<div class="ic">
+  <div class="ic-card">
+    <p class="ic-t"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>Ask your AI agent</p>
+    <p class="ic-d">Paste this into Claude Code, Codex or any coding agent. It sets up the server, installs AidenHQ, checks every step and hands you your link.</p>
+    <div class="cmd ic-cmd ic-wrap" role="group" aria-label="Prompt for your AI agent">
+      <pre><code>Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md</code></pre>
+      <button class="copy" type="button" data-copy="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md" aria-label="Copy prompt for your AI agent">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+        <span class="copy-label">Copy</span>
+      </button>
+    </div>
+  </div>
+  <div class="ic-card">
+    <p class="ic-t"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 8 4 4-4 4M12 16h7"/></svg>Run one command</p>
+    <p class="ic-d">Run it on a fresh Ubuntu or Debian server, or on your Mac. It installs everything it needs and prints your one-time setup link.</p>
+    <div class="cmd ic-cmd" role="group" aria-label="Install command">
+      <span class="prompt" aria-hidden="true">$</span>
+      <pre><code>curl -fsSL https://get.aidenhq.ai | sh</code></pre>
+      <button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.ai | sh" aria-label="Copy install command">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+        <span class="copy-label">Copy</span>
+      </button>
+    </div>
+  </div>
+</div>
       <div class="cta-links">
         <a class="btn btn-light" href="/install/">Read the install guide</a>
         <a class="btn btn-ghost btn-clear" href="https://github.com/Aiden-HQ/AidenHQ">View on GitHub</a>

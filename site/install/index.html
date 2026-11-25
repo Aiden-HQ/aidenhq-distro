@@ -71,21 +71,10 @@
   <div class="wrap ph-in">
     <div>
       <p class="eyebrow">Get started</p>
-      <h1>Set up your workspace in one command.</h1>
-      <p class="lede">Run one line on a fresh Linux server you own, or on your Mac. It installs everything it needs, checks the release, and hands you a one-time link to finish setup in your browser.</p>
-      <div class="install">
-        <div class="install-row">
-          <div class="cmd" role="group" aria-label="Install command">
-            <span class="prompt" aria-hidden="true">$</span>
-            <pre><code>curl -fsSL https://get.aidenhq.ai | sh</code></pre>
-            <button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.ai | sh" aria-label="Copy install command">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
-              <span class="copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-        <p class="install-note">No sign-up and no demo call. Free and open source.</p>
-      </div>
+      <h1>Install AidenHQ your way.</h1>
+      <p class="lede">Ask your AI coding agent to do it, or run one command yourself, on a fresh Linux server you own or on your Mac. Either way you get a one-time link to finish setup in your browser.</p>
+<!--#include install-choice-->
+      <p class="install-note">No sign-up and no demo call. Free and open source.</p>
     </div>
     <div class="reveal">
 <!--#include scene-install-->
@@ -101,10 +90,10 @@
       <p>All three end in the same place: your own workspace, with its agents ready for their first job.</p>
     </div>
     <ol class="caps ways">
-      <li class="cap reveal" style="--c: var(--teal)"><h3>One command</h3><p>On the server, as root or a user with sudo. It installs Docker and Node itself, at pinned versions.</p>
-        <div class="cmd" role="group" aria-label="Install command"><pre><code>curl -fsSL https://get.aidenhq.ai | sh</code></pre><button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.ai | sh" aria-label="Copy install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span class="copy-label">Copy</span></button></div></li>
       <li class="cap reveal" style="--c: var(--violet)"><h3>Ask your coding agent</h3><p>Using Claude Code, Codex or another coding agent? Paste one line and it does the whole install for you, checking each step.</p>
         <p style="margin-top:12px"><button class="agent-btn" type="button" data-prompt="Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/></svg><span class="agent-label">Copy prompt for your agent</span></button></p></li>
+      <li class="cap reveal" style="--c: var(--teal)"><h3>One command</h3><p>On the server, as root or a user with sudo. It installs Docker and Node itself, at pinned versions.</p>
+        <div class="cmd" role="group" aria-label="Install command"><pre><code>curl -fsSL https://get.aidenhq.ai | sh</code></pre><button class="copy" type="button" data-copy="curl -fsSL https://get.aidenhq.ai | sh" aria-label="Copy install command"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span class="copy-label">Copy</span></button></div></li>
       <li class="cap reveal" style="--c: var(--blue)"><h3>Step by step</h3><p>Prefer to see every step? The setup guide walks through each one by hand, with a check after every step.</p><a class="more" href="https://github.com/Aiden-HQ/AidenHQ/blob/main/SETUP.md">Read the setup guide</a></li>
     </ol>
   </div>
