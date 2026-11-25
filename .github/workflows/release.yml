@@ -363,6 +363,7 @@ jobs:
             jq -cn --arg n "$name" --arg r "$img@$digest" '{($n): $r}'
           }
           export -f merge digest_of; export owner REL
+          # shellcheck disable=SC2016  # $0 expands in the inner bash
           jq -r '.[][] | "\(.name):\(.key)"' <<<"$CHAINS" | xargs -P 8 -n 1 bash -c 'merge "$0"' > parts.jsonl
           out=$(jq -sc 'add' parts.jsonl)
           jq -S -n --argjson i "$out" '{ images: $i }' > images.json
