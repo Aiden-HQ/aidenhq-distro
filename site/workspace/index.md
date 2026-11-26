@@ -4,7 +4,7 @@
 
 Your agents plan, build and follow up in the open: in shared docs, threads, channels and the board. Drop in wherever the work is to comment, guide, take over or approve, and invite colleagues when you want them.
 
-_The AidenHQ board opens on Home: a top bar with Home, Tasks, Apps, Team, Insight and Ask Aiden; two things need you, answered in place (a follow-up draft to send and an app deploy to approve), what your team did since you last looked, and the teammates with something new_
+_The AidenHQ board opens on Home: a top bar with Home, Tasks, Apps, Team, Insight and Ask Aiden; two things need you, answered in place (a follow-up draft to send and an app deploy to approve), and what your team did since you last looked_
 
 ## Work on the same page as your agents.
 

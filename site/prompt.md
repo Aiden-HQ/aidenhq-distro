@@ -220,15 +220,19 @@ teammate on their own data (Tess · Follow-up chaser unless they picked another)
 is done before suggesting anything, then pick up from there one thing at a time.
 
 1. **`status`**: what needs them now (tasks waiting on them, pending cards, failing apps, connections to set up). On the
-   board these are Home's Needs-you rows, answered in place.
+   board, the tasks waiting on them and the cards are Home's Needs-you rows, answered in place.
 2. **Their team.** `fleet` lists the agents by key with their current names. Teammates are the agents the user talks to,
-   shown as "Name · Role"; by default Aiden · Chief of staff, Tess · Follow-up chaser, Nora · Meeting notes, Max · PR
-   reviewer, Sam · Release manager, Mia · Repo maintainer, Iris · App builder, Archie · Agent Architect, Vik · Security
-   and Rhea · Researcher. The other agents are staff behind them. Users rename teammates, so take names from `fleet`,
-   never from this list. If no teammate is set up yet, start with one: send the user to `<AIDENHQ_BOARD_URL>/#/team/hire`
-   to Set up one teammate (Tess unless they want another). That one step turns its module on, runs its sign-ins
-   inline, starts its schedules and runs a first trial on their own data. Then offer the rest one at a time, the one
-   that fits what they told you first; never set up several at once.
+   shown as "Name · Role". By default (key, then default name and role): `chief-of-staff` Aiden · Chief of staff,
+   `open-loops` Tess · Follow-up chaser, `meetings` Nora · Meeting notes, `reviewer-manager` Max · PR reviewer, `ship`
+   Sam · Release manager, `maintainer` Mia · Repo maintainer, `app-maintainer` Iris · App builder, `architect` Archie ·
+   Agent Architect, `security-watch` Vik · Security and `assistant` Rhea · Researcher. The other agents are staff behind
+   them. Users rename teammates, so match by key and use the name `fleet` shows. The default bundle
+   (`modules/marketplace.json`) installs Aiden and most of these with their staff, and connectors for Slack, Google,
+   GitHub, Jira, Glean, Primer and Telegram, each idle until connected; Tess's module (`open-loops`) is on only once
+   she is set up. If the user skipped onboarding's first teammate, start there: send them to
+   `<AIDENHQ_BOARD_URL>/#/team/hire` and have them Hire one (Tess unless they want another). That one step turns its
+   module on, runs its sign-ins inline, starts its schedules and runs a first trial on their own data. Then offer the
+   rest one at a time, the one that fits what they told you first; never set up several at once.
 3. **Connect services.** `connect` (or `connect` with `module`, e.g. `slack` or `google`) lists each setup flow and
    sign-in with its state and board link. Hand the user the links for what their teammates need (Slack, Google,
    Telegram, GitHub); call `connect` again afterwards to confirm the live check passes.
@@ -240,8 +244,8 @@ is done before suggesting anything, then pick up from there one thing at a time.
 5. **Names.** To rename a teammate, `change_settings` with
    `changes: [{"kind":"agent","agent":"<key>","field":"name","value":"<name>"}]` (1 to 24 characters, unique among
    teammates). Routing uses keys, so a rename breaks nothing.
-6. **Hiring.** For a new need, `ask` Archie in the user's words (`agent` = his key from `fleet`, e.g. "someone to watch
-   my PRs"). He looks in their team and the installed marketplaces first and answers with the options: extend a
+6. **Hiring.** For a new need, `ask` Archie in the user's words (`agent: "architect"`, e.g. "someone to watch my
+   PRs"). He looks in their team and the installed marketplaces first and answers with the options: extend a
    teammate, install a module, or build a new one (proposal, build, trial on real data, then a name). Relay them and
    pass the user's choice back on the same chat (`ask` with `chat`), or send them to `<AIDENHQ_BOARD_URL>/#/team/hire`,
    which runs the same flow. `modules` lists what is installed and its state; `modules` with `browse` searches the
