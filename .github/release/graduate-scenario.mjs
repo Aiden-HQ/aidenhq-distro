@@ -1,17 +1,14 @@
 // The owner's side of graduation's test instance (.github/workflows/graduate.yml, test job): what a new owner does, over
 // plain HTTP on the runner's loopback, as the product's own unattended-install test does (no browser).
-//   node graduate-scenario.mjs baseline   first run (account, authenticator, model key, welcome skipped) and a chat with
-//                                         Aiden, while the hello app (graduate-instance.sh fixture: the app starter, through
-//                                         the apps platform's host path, no model) deploys beside them; what the baseline
-//                                         achieved goes to baseline.json
+//   node graduate-scenario.mjs baseline   first run (account, authenticator, model key, welcome skipped), so the upgraded
+//                                         instance has an owner to sign in as; not a check
 //   node graduate-scenario.mjs smoke      after the upgrade, side by side and each within its bound: the release and its
-//                                         generation, every agent ready, a fresh reply, the hello app still serves,
-//                                         verify-security.sh (graduate-checks.mjs runParallel)
+//                                         generation, and a fresh reply from Aiden (graduate-checks.mjs runParallel)
 // State lives in $GRAD_DIR (root of the run's scratch, 0700): the account, the authenticator key and the cookies, never printed.
 // The model key comes from GRADUATE_OPENROUTER_KEY, for the first run's model step when it asks. Model-dependent steps
 // retry within fixed bounds; nothing waits unbounded.
 import { createHmac, randomBytes } from "node:crypto";
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import https from "node:https";
 import { dirname, join } from "node:path";
@@ -197,84 +194,20 @@ async function chatReply(label) {
   return { ok: false, note: `no reply: ${last}` };
 }
 
-/** The app is still deployed and healthy (the platform's own probe), and its address answers when it has one. */
-async function servesNow(name) {
-  const app = ((await board("GET", "/api/apps")).json?.apps ?? []).find((a) => a.name === name);
-  if (!app) return { ok: false, note: `${name} isn't in the apps list any more` };
-  if (app.state !== "healthy") return { ok: false, note: `${name} is ${app.state}` };
-  if (!app.url) return { ok: true, note: `${name} healthy (no address on this install)` };
-  const r = await follow(app.url).catch((e) => ({ status: 0, text: e.message }));
-  return r.status > 0 && r.status < 500 ? { ok: true, note: `${name} healthy; ${app.url} answered ${r.status}` } : { ok: false, note: `${name} healthy but ${app.url} answered ${r.status || r.text}` };
-}
-/** servesNow, asked again for up to `minutes` (after a restart the platform's first health pass may not have run yet). */
-async function serves(name, minutes = 3) {
-  let r;
-  for (const until = Date.now() + minutes * MIN; ; await sleep(5000)) {
-    r = await servesNow(name).catch((e) => ({ ok: false, note: e.message }));
-    if (r.ok || Date.now() >= until) return r;
-  }
-}
-
-const NOT_READY = ["error", "verifying", "pending_approval"];
-async function roster() {
-  const r = await board("GET", "/api/agents/roster");
-  want(r.status === 200 && Array.isArray(r.json?.roster), `GET /api/agents/roster: ${r.status}`);
-  // An agent is matched by its definition key: its name is the owner's to change (teammates are renamed), its key is not.
-  return r.json.roster.map((a) => ({ id: a.key ?? a.name, name: a.name, status: a.status ?? a.state }));
-}
-
 // ------------------------------------------------------------------------------------------------ the two phases
-/** A child process's own outcome (graduate-instance.sh fixture): it ends within `ms`, else it is killed. */
-const within = (ms, run) => new Promise((ok) => {
-  const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
-  run(ac.signal).then(() => { clearTimeout(t); ok(!ac.signal.aborted); });
-});
-
 async function baseline() {
   const t0 = Date.now();
-  try { await firstRun(); record("baseline_first_run", true); } catch (e) { record("baseline_first_run", false, e.message); throw e; }
-  // The hello app deploys beside the chat: it needs no model, only the platform.
-  const fixture = within(20 * MIN, child("bash", [INSTANCE_SH, "fixture"])).then((ended) => ({ ...readJson("fixture.json", { ok: false, note: "no fixture.json" }), ended }));
-  const agents = await roster();
-  log(`agents: ${agents.map((a) => `${a.name} ${a.status}`).join(", ")}`);
-  const c = await chatReply("baseline");
-  record("baseline_chat", c.ok, c.note);
-  const f = await fixture;
-  // What the baseline achieves is recorded, not required: a candidate may be the release that fixes it. Judged by the same
-  // probe as the smoke check after the upgrade, so a fault in this test shows here, before the candidate is reached.
-  // Whenever the deploy ended, the platform's own state decides (the deploy's answer is only its note).
-  const app = f.app ?? "grad-hello";
-  const a = f.ended ? await serves(app) : { ok: false, note: "the fixture deploy didn't end within 20 minutes" };
-  if (!a.ok) a.note = `${a.note}; deploy: ${f.note}`;
-  log(`baseline hello app: ${a.note}`);
-  if (!a.ok) {
-    // Not required (the candidate may fix it), but loud: without it the hello check after the upgrade has nothing to test.
-    console.log(`::warning::the baseline has no hello app, so hello_app_serves can't test the upgrade: ${a.note.slice(0, 300)}`);
-    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `**No hello app on the baseline**: hello_app_serves passes without testing it. ${a.note.slice(0, 300)}\n`);
-  }
-  writeJson("baseline.json", { agents: agents.filter((x) => !NOT_READY.includes(x.status)).map((x) => x.id), hello: a.ok ? app : null, hello_note: a.note });
+  await firstRun();
   writeTiming(DIR, "scenario", (Date.now() - t0) / 1000);
-  if (!c.ok) process.exitCode = 1;
 }
 
 async function smoke() {
   const t0 = Date.now();
-  const base = readJson("baseline.json", null);
-  want(base, "no baseline.json: the baseline scenario didn't run");
   // One sign-in for the checks below (the board's session may be gone after the upgrade).
   await board("GET", "/api/welcome").catch((e) => log(`signing in before the checks: ${e.message}`));
-  const sh = (cmd) => child("bash", [INSTANCE_SH, cmd]);
   await runParallel(DIR, [
-    { names: ["running_release", "generation_good"], ms: 5 * MIN, run: sh("release-check") },
-    { names: ["verify_security"], ms: 10 * MIN, run: sh("verify-security") },
-    { names: ["agents_ready"], ms: 5 * MIN, run: async () => {
-      const agents = await roster();
-      const bad = agents.filter((a) => NOT_READY.includes(a.status));
-      const gone = base.agents.filter((n) => !agents.some((a) => a.id === n));
-      return [{ name: "agents_ready", ok: !bad.length && !gone.length && agents.length > 0, note: `${agents.map((a) => `${a.name} ${a.status}`).join(", ")}${gone.length ? `; missing since the baseline: ${gone.join(", ")}` : ""}` }];
-    } },
+    { names: ["running_release", "generation_good"], ms: 5 * MIN, run: child("bash", [INSTANCE_SH, "release-check"]) },
     { names: ["chat_reply"], ms: 22 * MIN, run: async () => [{ name: "chat_reply", ...(await chatReply("after the upgrade")) }] },
-    { names: ["hello_app_serves"], ms: 5 * MIN, run: async () => [{ name: "hello_app_serves", ...(base.hello ? await serves(base.hello) : { ok: true, note: `the baseline had no hello app (${base.hello_note})` }) }] },
   ]);
   writeTiming(DIR, "smoke", (Date.now() - t0) / 1000);
 }

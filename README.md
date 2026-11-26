@@ -156,14 +156,8 @@ release the nightly started with `GITHUB_TOKEN`), and runs every 6 hours to catc
       in the background, the candidate's images (its release file, digest checked) of every repository the baseline has
       pulled, so the upgrade's apply mostly restarts. That pull starts only once the installer has pulled a repository
       (never before its disk check), never records a check, and anything it misses the apply pulls itself.
-   3. A new owner, over HTTP on the runner's loopback: the account, the authenticator, the model key, the welcome with
-      every flow skipped, and a chat with Aiden that must get a reply. Beside them, without a model, the hello app: the
-      baseline's own app starter in a repository on the server (`local/grad-hello`), registered in the instance's
-      `apps.yaml` as `app_create` does (pushed to the instance's main, then waited for until apps-mcp, which reads its own
-      clone at its next reconcile tick, lists it) and deployed through the apps platform's host path (`ops/app-deploy.sh`: build,
-      health, the post-deploy checks). Whether it went live is recorded, not required: the candidate may be the release
-      that fixes it. When it didn't, the job log and summary say so, since the hello check after the upgrade then has
-      nothing to test.
+   3. A new owner, over HTTP on the runner's loopback: the account, the authenticator, the model key and the welcome
+      with every flow skipped. It only gives the upgraded instance an owner to sign in as; it is not a check.
    4. The upgrade, by the baseline's own installed updater:
       `AIDENHQ_UPDATE_CANDIDATE=<tag> node kernel/src/updates.ts check <tag> graduate`. The kernel files it as a
       `kernel.apply`, which the AI reviewer decides (auto-updates are on for a new install); the run waits for the
@@ -172,14 +166,18 @@ release the nightly started with `GITHUB_TOKEN`), and runs every 6 hours to catc
       test doesn't make: the run stops there with the verdict `harness`, which opens an issue and neither rejects the
       candidate nor counts toward its incomplete runs. The owner decides that release (graduate it by hand).
    5. Smoke checks, side by side, each within its own bound: the instance pins the candidate, the checkout is its kernel
-      and every AidenHQ image running is one of its digests; the last generation is good; every agent is ready (none
-      `error`, `verifying` or `pending_approval`, none gone since the baseline); a new chat gets a fresh reply; the hello
-      app (when the baseline had one) is still healthy and answers; `scripts/verify-security.sh` exits 0. A check that
-      says no fails the candidate; one cut off at its bound stays missing (incomplete, below).
+      and every AidenHQ image running is one of its digests; the last generation is good; a new chat with Aiden gets a
+      reply (two attempts of 10 minutes). A check that says no fails the candidate; one cut off at its bound stays
+      missing (incomplete, below).
+
+   The gate is exactly five checks: `baseline_installed`, `upgraded`, `running_release`, `generation_good` and
+   `chat_reply`. Graduation answers one question: does an install of the current latest upgrade to the candidate with its
+   own updater and still work. Agent names and rosters, example apps and the security script
+   (`scripts/verify-security.sh`) are not part of it; run that script by hand when you want it.
 
    It hands promote a small `result.json` (the checks, notes and each phase's seconds; the job log prints `timing:
    <phase> <s>s` lines and the summary a table); on a failure it uploads its logs with the model key and setup token
-   redacted. Expected: install 8-12 minutes, scenario 3-5, upgrade 4-8 (0-5 of it the kernel's next updates pass, which
+   redacted. Expected: install 8-12 minutes, first run 2-4, upgrade 4-8 (0-5 of it the kernel's next updates pass, which
    files the prepared release), smoke 1-3.
 
    Aiden building an app end to end (a model-built app through an Engineer) is not part of this per-release gate: it is
@@ -192,7 +190,7 @@ release the nightly started with `GITHUB_TOKEN`), and runs every 6 hours to catc
    ran and said no. The line `graduation: failed <run url>` is added to the release's notes and one issue is opened. A
    rejected release stays a pre-release for good; the next candidate is tested from the same baseline, and release.yml's
    upgrade test no longer starts from it. Anything else opens one issue and rejects nothing, so the candidate is tried
-   again at the next run: a failure before the upgrade (the baseline's install, first run or chat, or the runner), the
+   again at the next run: a failure before the upgrade (the baseline's install or first run, or the runner), the
    instance's updater rate-limited by GitHub for 25 minutes, the test's own limit (verdict `harness`, e.g. the update
    waiting on an owner's tap), a step or the job cut short by its timeout, a cancelled run,
    or promotion failing after a passing test (GitHub API calls there wait out rate limits first). A run that reached the

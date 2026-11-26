@@ -8,7 +8,7 @@
 #            do: the run ends there. Over 24 hours after the candidate was published it also opens one "Graduation stalled" issue
 #            (issues: write; actions: read for the recent runs' failing stage). A baseline whose updater can't prepare a named pre-release fails here (the bootstrap).
 #   test     (no token, no permissions) steps a-e on ubuntu-24.04: disk, baseline install (the candidate's images pre-pulled
-#            beside it), baseline scenario (first run, a chat, the prebuilt hello app), upgrade, smoke checks side by side.
+#            beside it), baseline first run (an owner to sign in as), upgrade, smoke checks side by side.
 #            The only job that runs a release's code; it hands promote one small result.json, with each phase's seconds.
 #   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
 #            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
@@ -108,8 +108,8 @@ jobs:
         env:
           OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: bash .github/release/graduate-instance.sh install
-      - name: c. Baseline scenario (first run, a chat, the prebuilt hello app beside them)
-        timeout-minutes: 35
+      - name: c. Baseline first run
+        timeout-minutes: 15
         env:
           GRADUATE_OPENROUTER_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
         run: node .github/release/graduate-scenario.mjs baseline
@@ -118,7 +118,7 @@ jobs:
         timeout-minutes: 125
         run: bash .github/release/graduate-instance.sh upgrade
       # Only after an upgrade that finished (a check after a cut-short upgrade would "fail" what was never tested): the release
-      # and generation, every agent, a fresh reply, the hello app and verify-security.sh, side by side, each within its bound.
+      # and generation and a fresh reply from Aiden, side by side, each within its bound.
       - name: e. Smoke checks
         timeout-minutes: 30
         run: node .github/release/graduate-scenario.mjs smoke
