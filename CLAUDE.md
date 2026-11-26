@@ -45,6 +45,10 @@ Run them before a PR that touches what they cover; CI (`.github/workflows/ci.yml
   deploy by hand (`sh web/build.sh && npx -y wrangler@4.160.0 deploy`); releases need no site deploy.
 - **Supply chain**: actions by SHA, tools by version and checksum, nothing under 7 days old unless a security fix.
   Exceptions live in `.github/supply-chain-exceptions.yaml`.
+- **Keep in sync with the product**: `site/prompt.md` (its owner MCP tool names and setup steps) and the pages that
+  describe the board (`index`, `start/`, `install/`, `workspace/`, `agents/`, `apps/`, `modules/`,
+  `_partials/board-mock.html`, `llms.txt`) follow the product's board layout, onboarding and owner MCP tools. What to
+  check is in the product `CLAUDE.md` "Keep in sync".
 - **Neutral examples** (`acme`, `example.com`); no real names, emails, hostnames or IPs.
 - **PRs**: branch, PR against `main`, Conventional Commit title (`fix(installer): …`, `feat(release): …`,
   `docs(site): …`); squash-only. A change spanning both repos lands the product PR first, then the distro one.

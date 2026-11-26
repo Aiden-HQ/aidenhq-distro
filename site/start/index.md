@@ -1,8 +1,8 @@
-# From one line to talking with Aiden.
+# From one line to your AI team.
 
-> Install AidenHQ by asking your AI coding agent or running one command, open the link it gives you, take three quick steps and start talking to Aiden.
+> Install AidenHQ by asking your AI coding agent or running one command, open the link it gives you, set up your first teammate and land on Home.
 
-Your AI coding agent installs AidenHQ for you, or you run one command. Then you open one link and take three quick steps.
+Your AI coding agent installs AidenHQ for you, or you run one command. Then you open one link, set up your first teammate and land on Home.
 
 ### 1. Install
 
@@ -23,13 +23,13 @@ curl -fsSL https://get.aidenhq.ai | sh
 
 When the install reaches 100% your assistant gives you one setup link. Open it, then create your password and authenticator and connect your model key.
 
-### 3. Three quick steps
+### 3. Your first teammate
 
-Save your recovery key, connect Telegram, connect Slack. Each takes a minute, and the board explains it as you go.
+Save your recovery key, then set up one teammate on your own data (Tess, who chases what people owe you, unless you pick another) and see its first result. Everyone else Aiden can bring in is listed, to add one at a time.
 
-### 4. Talk to Aiden
+### 4. Home
 
-Aiden says hello, learns how you work and takes your first job. Everything after this happens in conversation.
+Pick where your team reaches you (Telegram, Slack or only the board) and send a test. Then Home shows what needs you and what your team did, and ⌘J asks Aiden anything.
 
 On a Mac, keep it awake and on power so your agents keep working. Prefer a plain command? [See every way to install](https://aidenhq.ai/install/index.md).
 

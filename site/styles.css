@@ -739,14 +739,19 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 @media (max-width: 720px) { .hero h1, .ph h1 { font-size: clamp(27px, 7.8vw, 32px); } }
 /* Static board mock (workspace) */
 .bm { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); overflow: hidden; font-size: 13px; line-height: 1.4; }
-.bm-body { display: grid; grid-template-columns: 160px minmax(0, 1fr); min-height: 360px; }
-.bm-nav { display: flex; flex-direction: column; gap: 2px; padding: 12px 10px; border-right: 1px solid var(--line); background: var(--surface-2); }
-.bm-nav b { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); margin: 6px 6px 4px; }
-.bm-nav b + span { margin-top: 0; }
-.bm-nav span { padding: 6px 8px; border-radius: 6px; color: var(--text-2); display: flex; justify-content: space-between; }
-.bm-nav span.cur { background: var(--brand-soft); color: var(--text); font-weight: 600; }
-.bm-nav em { font-style: normal; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; background: color-mix(in srgb, var(--amber) 20%, transparent); color: color-mix(in srgb, var(--amber) 70%, var(--text)); }
-.bm-main { padding: 12px 12px; min-width: 0; }
+.bm-top { display: flex; align-items: center; gap: 2px; padding: 6px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.bm-top span { padding: 5px 9px; border-radius: 6px; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.bm-top span.cur { background: var(--brand-soft); color: var(--text); font-weight: 600; }
+.bm-top .bm-ask { margin-left: auto; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-weight: 600; }
+.bm-top kbd { font-family: var(--mono); font-size: 10.5px; color: var(--text-3); }
+.bm em { font-style: normal; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; background: color-mix(in srgb, var(--amber) 20%, transparent); color: color-mix(in srgb, var(--amber) 70%, var(--text)); }
+.bm-main { padding: 14px 12px; min-width: 0; }
+.bm-cols { display: grid; gap: 10px; }
+.bm-card { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--surface-2); min-width: 0; }
+.bm-ct { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); }
+.bm-acts { display: inline-flex; gap: 4px; }
+.bm-acts i { font-style: normal; font-size: 11px; font-weight: 600; padding: 3px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--text-2); background: var(--surface); white-space: nowrap; }
+.bm-acts i.pri { background: var(--brand); border-color: var(--brand); color: #fff; }
 .bm-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
 .bm-h small { color: var(--text-3); font-size: 12px; }
 .bm-list { display: grid; gap: 6px; }
@@ -754,7 +759,7 @@ html:not(.js) .sc [class*="off"] { display: none !important; }
 .bm-list li.need { border-color: color-mix(in srgb, var(--amber) 45%, var(--line)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 12%, transparent); }
 .bm-list b { display: block; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bm-list small { display: block; font-size: 11.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 720px) { .bm-body { grid-template-columns: minmax(0, 1fr); } .bm-nav { display: none; } }
+@media (max-width: 720px) { .bm-top span:nth-child(3), .bm-top span:nth-child(5), .bm-top kbd, .bm-acts i:not(.pri) { display: none; } }
 .team .row > span:not(.chip):not(.avatar) b { display: block; font-size: 12.5px; }
 .team .row > span:not(.chip):not(.avatar) small { display: block; font-size: 11.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .team .row { padding: 4px 0; }

@@ -85,22 +85,22 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <p class="eyebrow c-violet">Your team</p>
-      <h2>Specialists, each with clear instructions.</h2>
-      <p>Every agent has a role, a short set of instructions you can read, the tools it is allowed to use and a model picked for the job. Start with the core team and add the rest as add-ons.</p>
+      <h2>Named teammates, each with clear instructions.</h2>
+      <p>Every capability has one teammate you talk to: a face, a name and a role, a short set of instructions you can read, the tools it is allowed to use and a model picked for the job. Start with one and add the rest one at a time.</p>
     </div>
     <ul class="roster reveal">
-      <li><span class="avatar a-aiden">A</span><b>Aiden</b><span>Chief of staff. Routes any request to the right agent and chases it.</span></li>
-      <li><span class="avatar" style="background:#0B8FD6">R</span><b>Researcher</b><span>Finds and checks facts across the web and your tools.</span></li>
-      <li><span class="avatar a-arch">AA</span><b>Agent Architect</b><span>Designs new agents from your description and tries them out.</span></li>
-      <li><span class="avatar" style="background:#C9466F">AC</span><b>Agent Coach</b><span>Reviews agents' work and proposes better instructions.</span></li>
-      <li><span class="avatar a-ops">DO</span><b>DevOps Engineer</b><span>Deploys apps, watches their health and rolls back bad releases.</span></li>
-      <li><span class="avatar" style="background:#435069">PE</span><b>Platform Engineer</b><span>Applies approved changes to your setup, with full history.</span></li>
-      <li><span class="avatar a-fu">FT</span><b>Follow-up Tracker</b><span>Spots promises in Slack and email and chases them.</span></li>
-      <li><span class="avatar" style="background:#7553F2">ML</span><b>Meeting Librarian</b><span>Keeps notes, decisions and follow-ups from your meetings.</span></li>
-      <li><span class="avatar a-eng">EN</span><b>Engineers</b><span>Write code in a locked-down workspace and open changes for review.</span></li>
-      <li><span class="avatar" style="background:#D2457E">UI</span><b>UI Designer and Reviewer</b><span>Draft layouts, then check screenshots of every change.</span></li>
-      <li><span class="avatar" style="background:#2F7BE0">SW</span><b>Security Watch</b><span>Hunts known vulnerabilities and ships the fixes.</span></li>
-      <li><span class="avatar" style="background:#B4373E">RT</span><b>Red Teamer</b><span>Stress-tests your setup the way an attacker would.</span></li>
+      <li><span class="avatar a-aiden">A</span><b>Aiden &middot; Chief of staff</b><span>Triages your inbox, routes any request to the right teammate and chases it.</span></li>
+      <li><span class="avatar a-fu">T</span><b>Tess &middot; Follow-up chaser</b><span>Spots what people owe you in Slack and email and drafts the nudges.</span></li>
+      <li><span class="avatar" style="background:#7553F2">N</span><b>Nora &middot; Meeting notes</b><span>Keeps notes, decisions and actions from your meetings.</span></li>
+      <li><span class="avatar" style="background:#0B8FD6">R</span><b>Rhea &middot; Researcher</b><span>Finds and checks facts across the web and your tools.</span></li>
+      <li><span class="avatar a-eng">M</span><b>Max &middot; PR reviewer</b><span>Reviews every pull request with several AI models.</span></li>
+      <li><span class="avatar" style="background:#0B9C8B">S</span><b>Sam &middot; Release manager</b><span>Takes pull requests from opened to merged.</span></li>
+      <li><span class="avatar" style="background:#435069">M</span><b>Mia &middot; Repo maintainer</b><span>Turns the issues you label into merged fixes.</span></li>
+      <li><span class="avatar a-ops">I</span><b>Iris &middot; App builder</b><span>Builds the apps you ask for, ships them and keeps them healthy.</span></li>
+      <li><span class="avatar a-arch">A</span><b>Archie &middot; Agent Architect</b><span>Hires for you: finds the right teammate or builds a new one.</span></li>
+      <li><span class="avatar" style="background:#B4373E">V</span><b>Vik &middot; Security</b><span>Hunts vulnerabilities, attacks your own setup and files the fixes.</span></li>
+      <li><span class="avatar" style="background:#D2457E">+</span><b>The staff behind them</b><span>Engineers, UI Designer and Reviewer, Red Teamer, Intake and the Fleet Steward work behind your teammates.</span></li>
+      <li><span class="avatar" style="background:#2F7BE0">Aa</span><b>Names are yours</b><span>Rename any teammate. Their faces show who is working and who needs you.</span></li>
     </ul>
   </div>
 </section>
@@ -110,7 +110,7 @@
     <div class="reveal">
       <p class="eyebrow c-blue">Multi-agent orchestration</p>
       <h2>Agents that work as a team, not in silos.</h2>
-      <p class="lede-sm">Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it to the right specialist. Specialists delegate to each other, hand off with full context, call in reviewers and pass finished work to DevOps to ship. You see every handoff in the open, and can step into any of them.</p>
+      <p class="lede-sm">Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it to the right specialist. Specialists delegate to each other, hand off with full context, call in reviewers and pass finished work to Iris, the app builder, to ship. You see every handoff in the open, and can step into any of them.</p>
       <ul class="ticks" style="--c: var(--blue)">
         <li><b>Routing:</b> Aiden reads your messages and forwards and picks who does what.</li>
         <li><b>Agent-to-agent handoffs</b> carry the goal, the context and a definition of done.</li>
@@ -134,7 +134,7 @@
     <ul class="caps">
       <li class="cap reveal" style="--c: var(--teal)"><h3>On a schedule</h3><p>The morning brief at 08:00, a weekly metrics review on Mondays, a health check every hour.</p></li>
       <li class="cap reveal" style="--c: var(--blue)"><h3>On events</h3><p>A new email, a failed deploy, a Slack mention or a comment on a doc wakes the right agent instantly.</p></li>
-      <li class="cap reveal" style="--c: var(--violet)"><h3>Self-scheduled</h3><p>Agents set their own reminders: "check back on Thursday if Sam has not replied".</p></li>
+      <li class="cap reveal" style="--c: var(--violet)"><h3>Self-scheduled</h3><p>Agents set their own reminders: "check back on Thursday if Dana has not replied".</p></li>
     </ul>
   </div>
 </section>
@@ -144,9 +144,9 @@
     <div class="reveal">
       <p class="eyebrow c-pink">Build your own agent</p>
       <h2>Describe the agent you wish you had.</h2>
-      <p class="lede-sm">Agents build agents. Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.</p>
+      <p class="lede-sm">Open Team &rsaquo; Hire and say who you need in plain words. Archie, the Agent Architect, looks in your team and your marketplaces first: often a teammate you have can take it on, or one is ready to install. Only when nothing fits does he design a new one: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, you name it, and once the work holds up it joins your team.</p>
       <ul class="ticks" style="--c: var(--pink)">
-        <li><b>No prompt writing.</b> You describe the outcome; the Architect writes the instructions.</li>
+        <li><b>No prompt writing.</b> You describe the outcome; Archie writes the instructions.</li>
         <li><b>Proven on trial.</b> New agents earn their full reach once their work is graded.</li>
         <li><b>Tools on demand.</b> When an agent needs a tool that does not exist, the team builds it as an MCP connection.</li>
         <li><b>One tap to keep it.</b> You approve the new agent like any other change, and can undo it later.</li>
@@ -180,7 +180,7 @@
     <div class="reveal">
       <p class="eyebrow c-sky">Memory and self-improvement</p>
       <h2>Agents that remember, and get better every week.</h2>
-      <p class="lede-sm">Agents keep long-term memory of people, decisions and your preferences, and carry it into every task. Each correction you make becomes a rule and an eval. The Agent Coach studies how the team works, proposes sharper handbooks and skills, and prunes what no longer helps. Evals gate every change, so the team only ever levels up.</p>
+      <p class="lede-sm">Agents keep long-term memory of people, decisions and your preferences, and carry it into every task. Each correction you make becomes a rule and an eval. Archie, the Agent Architect, studies how the team works, proposes sharper handbooks and skills, and prunes what no longer helps. Evals gate every change, so the team only ever levels up.</p>
       <ul class="ticks" style="--c: var(--sky)">
         <li><b>Long-term memory</b> of people, projects, decisions and preferences.</li>
         <li><b>Learn once:</b> corrections turn into rules and automatic checks.</li>

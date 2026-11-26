@@ -61,7 +61,7 @@ An OpenRouter key. Setup asks for it in the browser and sets your monthly budget
 
 ### Your tools, when you want them
 
-Telegram, Slack and Google are optional. Connect them later, from the board, with your own accounts.
+Telegram, Slack and Google are optional. Connect each one when a teammate needs it, from the board, with your own accounts.
 
 ### Private access
 
@@ -69,12 +69,12 @@ The board is on your server's own HTTPS address, behind your password and a one-
 
 ## Your workspace opens.
 
-The installer ends with a one-time setup link. Open it in your browser, create your account with a password and a one-time code, and add your model key. Your workspace opens with its agents ready, and Aiden says hello.
+The installer ends with a one-time setup link. Open it in your browser, create your account with a password and a one-time code, and add your model key. Then set up your first teammate on your own data, choose where your team reaches you, and land on Home.
 
-- **Day one:** hand the agents something real: a doc to research, a follow-up, an app.
-- **Week one:** connect Slack or Google, and describe the first agent you want.
+- **Day one:** your first teammate shows what it found, and Home shows what needs you. Ask Aiden for anything real: a doc to research, a follow-up, an app.
+- **Week one:** add the next teammate from Team › Hire, or describe the one you need: Archie, the Agent Architect, looks in your team and the marketplaces first and builds only what is missing.
 - **Ongoing:** new releases arrive as tested distros. You choose when to update.
-- **From your Claude:** add the board's `/mcp` address to Claude Code or Codex and manage AidenHQ from there.
+- **From your Claude:** add the board's `/mcp` address to Claude Code or Codex (Settings shows how) and manage AidenHQ from there.
 **What it costs**
 AidenHQ is free and open source. You bring a server and a model key, set the monthly budget you want, and the Costs page shows exactly where every cent goes. [Spend limits](https://aidenhq.ai/safety/index.md#costs)
 

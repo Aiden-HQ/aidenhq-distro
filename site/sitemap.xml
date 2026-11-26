@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://aidenhq.ai/</loc><lastmod>2026-11-25</lastmod></url>
-  <url><loc>https://aidenhq.ai/start/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/install/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/workspace/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/agents/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/apps/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://aidenhq.ai/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/start/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/install/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/workspace/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/agents/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/apps/</loc><lastmod>2026-11-26</lastmod></url>
   <url><loc>https://aidenhq.ai/safety/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/integrations/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/modules/</loc><lastmod>2026-11-22</lastmod></url>
-  <url><loc>https://aidenhq.ai/prompt.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/start/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/install/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/workspace/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/agents/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/apps/index.md</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://aidenhq.ai/integrations/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/modules/</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/prompt.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/start/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/install/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/workspace/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/agents/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/apps/index.md</loc><lastmod>2026-11-26</lastmod></url>
   <url><loc>https://aidenhq.ai/safety/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/integrations/index.md</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/modules/index.md</loc><lastmod>2026-11-22</lastmod></url>
-  <url><loc>https://aidenhq.ai/llms.txt</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://aidenhq.ai/llms-full.txt</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://aidenhq.ai/integrations/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/modules/index.md</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/llms.txt</loc><lastmod>2026-11-26</lastmod></url>
+  <url><loc>https://aidenhq.ai/llms-full.txt</loc><lastmod>2026-11-26</lastmod></url>
 </urlset>

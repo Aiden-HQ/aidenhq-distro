@@ -50,7 +50,7 @@ Connections use the tool's official sign-in with your account, so access matches
 
 ### Granted tool by tool
 
-The Researcher reads Slack; the Follow-up Tracker posts. Change it any time, with one approval.
+Rhea, the researcher, reads Slack; Tess, the follow-up chaser, posts. Change it any time, with one approval.
 
 ### Writes go through approvals
 
