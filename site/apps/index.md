@@ -24,7 +24,7 @@ An Engineer builds it, automatic checks run, a preview goes up, and a second AI 
 
 ### Live
 
-The DevOps Engineer deploys it. Your team signs in with your company login.
+Iris, the app builder, deploys it. Your team signs in with your company login.
 
 ## Apps that look after themselves.
 
@@ -55,7 +55,7 @@ Each change gets its own preview link, so you can click through it before it goe
 
 ### Pinned to your board
 
-Any app can become a panel on your board, so the views you asked for sit next to your tasks.
+Any app can become a panel under Apps on your board, so the views you asked for are one click from Home.
 
 ### One design system
 

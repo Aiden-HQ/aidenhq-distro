@@ -15,7 +15,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 | Module | What it does | Connects to | Always installed |
 |---|---|---|---|
 | Chief of staff | Aiden takes any request, hands it to the right agent and follows up until it is done. | Board, Telegram | Core |
-| Board | Your daily view: tasks, chats, approvals, apps, costs and the panels you pin. | Tasks, Approvals, Apps, Costs | Core |
+| Board | Your daily view: Home with what needs you, your named teammates, tasks, apps and insight. | Tasks, Approvals, Apps, Costs | Core |
 | Open loops | Tracks what others owe you and turns Slack and labelled email into your tasks. | Slack, Gmail, Calendar, Drive |  |
 | Meetings | Meeting memory: transcripts and an Obsidian vault your agents can search. | Obsidian vault, Transcripts |  |
 | Tasks | Every agent can read, create, delegate, comment on and close tasks as itself. | Paperclip tasks |  |

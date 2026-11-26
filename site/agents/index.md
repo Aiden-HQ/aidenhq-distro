@@ -6,26 +6,26 @@ An AI workforce of specialists that plan, build, ship, maintain and follow up on
 
 _Animation: the team at work: Aiden hands a task to the Researcher, the Follow-up Tracker chases a reply, the Meeting Librarian files notes, and the DevOps Engineer confirms every app is healthy_
 
-## Specialists, each with clear instructions.
+## Named teammates, each with clear instructions.
 
-Every agent has a role, a short set of instructions you can read, the tools it is allowed to use and a model picked for the job. Start with the core team and add the rest as add-ons.
+Every capability has one teammate you talk to: a face, a name and a role, a short set of instructions you can read, the tools it is allowed to use and a model picked for the job. Start with one and add the rest one at a time.
 
-- **Aiden:** Chief of staff. Routes any request to the right agent and chases it.
-- **Researcher:** Finds and checks facts across the web and your tools.
-- **Agent Architect:** Designs new agents from your description and tries them out.
-- **Agent Coach:** Reviews agents' work and proposes better instructions.
-- **DevOps Engineer:** Deploys apps, watches their health and rolls back bad releases.
-- **Platform Engineer:** Applies approved changes to your setup, with full history.
-- **Follow-up Tracker:** Spots promises in Slack and email and chases them.
-- **Meeting Librarian:** Keeps notes, decisions and follow-ups from your meetings.
-- **Engineers:** Write code in a locked-down workspace and open changes for review.
-- **UI Designer and Reviewer:** Draft layouts, then check screenshots of every change.
-- **Security Watch:** Hunts known vulnerabilities and ships the fixes.
-- **Red Teamer:** Stress-tests your setup the way an attacker would.
+- **Aiden · Chief of staff:** Triages your inbox, routes any request to the right teammate and chases it.
+- **Tess · Follow-up chaser:** Spots what people owe you in Slack and email and drafts the nudges.
+- **Nora · Meeting notes:** Keeps notes, decisions and actions from your meetings.
+- **Rhea · Researcher:** Finds and checks facts across the web and your tools.
+- **Max · PR reviewer:** Reviews every pull request with several AI models.
+- **Sam · Release manager:** Takes pull requests from opened to merged.
+- **Mia · Repo maintainer:** Turns the issues you label into merged fixes.
+- **Iris · App builder:** Builds the apps you ask for, ships them and keeps them healthy.
+- **Archie · Agent Architect:** Hires for you: finds the right teammate or builds a new one.
+- **Vik · Security:** Hunts vulnerabilities, attacks your own setup and files the fixes.
+- **The staff behind them:** Engineers, UI Designer and Reviewer, Red Teamer, Intake and the Fleet Steward work behind your teammates.
+- **Names are yours:** Rename any teammate. Their faces show who is working and who needs you.
 
 ## Agents that work as a team, not in silos.
 
-Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it to the right specialist. Specialists delegate to each other, hand off with full context, call in reviewers and pass finished work to DevOps to ship. You see every handoff in the open, and can step into any of them.
+Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it to the right specialist. Specialists delegate to each other, hand off with full context, call in reviewers and pass finished work to Iris, the app builder, to ship. You see every handoff in the open, and can step into any of them.
 
 - **Routing:** Aiden reads your messages and forwards and picks who does what.
 - **Agent-to-agent handoffs** carry the goal, the context and a definition of done.
@@ -48,13 +48,13 @@ A new email, a failed deploy, a Slack mention or a comment on a doc wakes the ri
 
 ### Self-scheduled
 
-Agents set their own reminders: "check back on Thursday if Sam has not replied".
+Agents set their own reminders: "check back on Thursday if Dana has not replied".
 
 ## Describe the agent you wish you had.
 
-Agents build agents. Say what you need in plain words. The Agent Architect asks a question or two, then designs the agent: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, and once the work holds up the agent joins your team.
+Open Team › Hire and say who you need in plain words. Archie, the Agent Architect, looks in your team and your marketplaces first: often a teammate you have can take it on, or one is ready to install. Only when nothing fits does he design a new one: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, you name it, and once the work holds up it joins your team.
 
-- **No prompt writing.** You describe the outcome; the Architect writes the instructions.
+- **No prompt writing.** You describe the outcome; Archie writes the instructions.
 - **Proven on trial.** New agents earn their full reach once their work is graded.
 - **Tools on demand.** When an agent needs a tool that does not exist, the team builds it as an MCP connection.
 - **One tap to keep it.** You approve the new agent like any other change, and can undo it later.

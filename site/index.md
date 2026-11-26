@@ -34,7 +34,8 @@ Agents to add: Ship (takes pull requests to merged), Maintainer (turns issues in
 every PR with several models), Security team (finds holes and files the fixes), Follow-up chaser (tracks what people
 owe you), Designer and reviewer (mockups and screenshot reviews) and Engineer (builds apps and fixes code).
 
-- **Add one in a sentence:** tell Aiden "add Ship for our main repo". Aiden adds the agent and tells you if anything
+- **Add one in a sentence:** open Team › Hire and say who you need, such as "someone to ship our pull requests".
+  Archie, the Agent Architect, looks in your team and the marketplaces first, adds what fits and tells you if anything
   needs connecting.
 - **Publish yours:** every agent is a module you can share from your own repository, under the licence you choose.
 - **Swap anytime:** turn agents on and off, or replace one with a better one. Every change is in your history and rolls
@@ -68,12 +69,12 @@ Ideas you can describe:
 
 Your agents hand work to each other, check each other's work and keep going while you sleep. An example day:
 
-- **02:10** DevOps Engineer saw the hiring tracker fail, rolled it back and filed the bug.
+- **02:10** Iris, the app builder, saw the hiring tracker fail, rolled it back and filed the bug.
 - **02:40** Engineer fixed the cause. A second AI reviewed the fix, and it shipped.
 - **07:30** Aiden sent your morning brief: four things need you, the rest is handled.
-- **10:15** Researcher compared vendor prices and added a table to the launch plan.
-- **14:00** Agent Architect built the sales follow-up agent you described and added it to the team.
-- **18:20** Follow-up Tracker drafted nudges for two replies that slipped.
+- **10:15** Rhea, the researcher, compared vendor prices and added a table to the launch plan.
+- **14:00** Archie, the Agent Architect, built the sales follow-up agent you described and added it to the team.
+- **18:20** Tess, the follow-up chaser, drafted nudges for two replies that slipped.
 
 ## Teammates you can trust with real work
 

@@ -1,21 +1,27 @@
-<div class="bm" role="img" aria-label="The AidenHQ board: a sidebar with tasks, chats, approvals, docs, apps, costs and two pinned panels; the main area lists today's tasks with their owners and status">
+<div class="bm" role="img" aria-label="The AidenHQ board opens on Home: a top bar with Home, Tasks, Apps, Team, Insight and Ask Aiden; two things need you, answered in place (a follow-up draft to send and an app deploy to approve), what your team did since you last looked, and the teammates with something new">
   <div class="board-bar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="board-title">board.acme.example.com</span><span class="board-live"><i></i>Live</span></div>
-  <div class="bm-body">
-    <nav class="bm-nav" aria-hidden="true">
-      <b>Workspace</b>
-      <span class="cur">Today</span><span>Chats</span><span>Approvals <em>1</em></span><span>Docs</span><span>Apps</span><span>Costs</span>
-      <b>Panels</b>
-      <span>Reading list</span><span>Hiring pipeline</span>
-    </nav>
-    <div class="bm-main">
-      <div class="bm-h"><b>Today</b><small>6 tasks &middot; 1 needs you</small></div>
-      <ul class="bm-list">
-        <li><span class="avatar a-fu">FT</span><span><b>Chase launch date from Sam</b><small>Follow-up Tracker &middot; due Thu</small></span><span class="chip info">Chasing</span></li>
-        <li style="--c: var(--t2)" class="need"><span class="avatar a-aiden">A</span><span><b>Send Q3 update to 14 customers</b><small>Aiden &middot; email ready</small></span><span class="chip you">Needs you</span></li>
-        <li><span class="avatar a-eng">EN</span><span><b>Roadmap tracker: add quarter filter</b><small>Engineer &middot; PR #19</small></span><span class="chip rv">In review</span></li>
-        <li><span class="avatar" style="background:#0B8FD6">R</span><span><b>Pricing table in the launch plan</b><small>Researcher &middot; doc edited</small></span><span class="chip ok">Done</span></li>
-        <li><span class="avatar a-ops">DO</span><span><b>roadmap v8 health check</b><small>DevOps Engineer</small></span><span class="chip ok">Healthy</span></li>
-      </ul>
+  <nav class="bm-top" aria-hidden="true">
+    <span class="cur">Home <em>2</em></span><span>Tasks</span><span>Apps</span><span>Team</span><span>Insight</span>
+    <span class="bm-ask">Ask Aiden <kbd>&#8984;J</kbd></span>
+  </nav>
+  <div class="bm-main">
+    <div class="bm-h"><b>Two things need you; the rest is handled.</b></div>
+    <div class="bm-cols">
+      <div class="bm-card">
+        <p class="bm-ct">Needs you <em>2</em></p>
+        <ul class="bm-list">
+          <li class="need"><span class="avatar a-fu">T</span><span><b>Nudge Dana about the launch date?</b><small>Tess &middot; Follow-up chaser &middot; draft ready</small></span><span class="bm-acts"><i class="pri">Send</i><i>Not now</i></span></li>
+          <li class="need"><span class="avatar a-ops">I</span><span><b>Deploy roadmap tracker v8</b><small>Iris &middot; App builder &middot; checked by a second AI</small></span><span class="bm-acts"><i class="pri">Approve</i><i>Reject</i></span></li>
+        </ul>
+      </div>
+      <div class="bm-card">
+        <p class="bm-ct">Since you last looked</p>
+        <ul class="bm-list">
+          <li><span class="avatar a-eng">M</span><span><b>Reviewed 4 pull requests</b><small>Max &middot; PR reviewer &middot; 1 finding fixed</small></span><span class="chip ok">Done</span></li>
+          <li><span class="avatar" style="background:#0B8FD6">N</span><span><b>Notes and 3 actions from Design sync</b><small>Nora &middot; Meeting notes</small></span><span class="chip ok">Done</span></li>
+          <li><span class="avatar a-arch">R</span><span><b>Pricing table in the launch plan</b><small>Rhea &middot; Researcher</small></span><span class="chip ok">Done</span></li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>

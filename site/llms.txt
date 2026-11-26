@@ -15,8 +15,9 @@ AI agents installing AidenHQ for a user: read and follow `https://aidenhq.ai/pro
 the user (where to install, and their email), how to handle secrets, the exact commands, how to relay progress, how to
 read the result and how to verify it. The installer runs on the server, never on the user's laptop (unless the user
 chose their Mac), and ends with a one-time setup link the user opens in a browser: they create a password and
-authenticator, add their OpenRouter key, take three quick steps (recovery key, Telegram, Slack) and start talking to
-Aiden. https://aidenhq.ai/start/ shows this flow for people.
+authenticator, add their OpenRouter key, save their recovery key, set up their first teammate (Tess, the follow-up
+chaser, by default), choose where the team reaches them (Telegram, Slack or only the board) with a test message, and land
+on Home. https://aidenhq.ai/start/ shows this flow for people.
 
 Without an AI assistant, run the installer on the server itself:
 
@@ -34,13 +35,13 @@ user pays for their own server and their model usage.
 - [Full site as markdown](https://aidenhq.ai/llms-full.txt): every page below plus the agent install guide, in one file
 - [Agent install guide](https://aidenhq.ai/prompt.md): step-by-step instructions for coding agents to install and set up AidenHQ for their user
 - [About AidenHQ](https://aidenhq.ai/index.md): the homepage: what AidenHQ is, a day in the workspace, approvals, tools, what you own, and common questions (what it is, how to install, what you need, what it costs, where data lives, licence)
-- [Workspace](https://aidenhq.ai/workspace/index.md): shared docs and whiteboards agents co-edit, Slack channels for agents, chat and Aiden, briefs and digests, the board, teammates
+- [Workspace](https://aidenhq.ai/workspace/index.md): shared docs and whiteboards agents co-edit, Slack channels for agents, Ask Aiden, briefs and digests, the board's Home (needs you, since you last looked, your world, your team), colleagues
 - [Agents and teams](https://aidenhq.ai/agents/index.md): agents that run work end to end, the roster, schedules and events, building a new agent from a description, the company handbook, corrections that stick
 - [Apps](https://aidenhq.ai/apps/index.md): internal apps built from one sentence, shared behind your company login, and maintained automatically
 - [Safety](https://aidenhq.ai/safety/index.md): approval levels, deterministic guardrails, sovereign by design, model choice with zero data retention, budgets
 - [Integrations](https://aidenhq.ai/integrations/index.md): Slack, Telegram, Google, GitHub, Jira, Glean, Grafana, ClickHouse, OpenRouter; connect once, grant per agent and per tool
 - [Modules and distros](https://aidenhq.ai/modules/index.md): the kernel, the module list, one-step module add, distros, the open marketplace and licences
-- [Get started](https://aidenhq.ai/start/index.md): install with your AI assistant in one line, open the link, three quick steps, then talk to Aiden
+- [Get started](https://aidenhq.ai/start/index.md): install with your AI assistant in one line, open the link, set up your first teammate, then Home
 - [Install guide](https://aidenhq.ai/install/index.md): three ways to install, requirements, what happens next, cost and licence
 - [Installer script](https://get.aidenhq.ai): the POSIX shell installer itself, served as plain text (`--help` lists its options)
 
