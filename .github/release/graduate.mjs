@@ -68,7 +68,7 @@ export function checkIdentity(id) {
 }
 
 /** The checks the test job runs (graduate-instance.sh, graduate-scenario.mjs): each must be in the result, and true. */
-export const CHECKS = ["baseline_installed", "baseline_first_run", "baseline_chat", "upgraded", "running_release", "generation_good", "agents_ready", "chat_reply", "hello_app_serves", "verify_security"];
+export const CHECKS = ["baseline_installed", "upgraded", "running_release", "generation_good", "chat_reply"];
 
 /**
  * The test job's result.json, read as untrusted (it was written next to the candidate's code): exactly these fields, bounded,

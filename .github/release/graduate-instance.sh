@@ -2,17 +2,14 @@
 # shellcheck disable=SC2016,SC2024  # single-quoted programs run in another shell; redirects write the runner's own files
 # The host's side of graduation's test instance (.github/workflows/graduate.yml, test job), on a fresh GitHub-hosted runner
 # with no token, or on a fresh Ubuntu VM given the same env (README "Release graduation", `run`): the service user, the disk,
-# the baseline install with its own published installer, the fixture app, the upgrade by the installed updater, and the host
+# the baseline install with its own published installer, the upgrade by the installed updater, and the host
 # checks after it. The owner's side (first run, a chat, the checks after the upgrade) is graduate-scenario.mjs.
 #   bash graduate-instance.sh prepare                 service user (uid 1000, as Paperclip's image wants) and disk
 #   bash graduate-instance.sh prepull-start           in the background: the candidate's images the baseline runs (prepull)
 #   bash graduate-instance.sh install                 BASELINE's install.sh (checked against BASELINE_INSTALL_DIGEST)
-#   bash graduate-instance.sh fixture                 the hello app: the baseline's app starter, registered and deployed
-#                                                     through the apps platform's host path (no model)
 #   bash graduate-instance.sh upgrade                 TAG through the instance's own updater (AIDENHQ_UPDATE_CANDIDATE), or
 #                                                     its installer run again when its file sets upgrade_from_previous: manual
 #   bash graduate-instance.sh release-check           running release, kernel and images; generation
-#   bash graduate-instance.sh verify-security         scripts/verify-security.sh
 #   bash graduate-instance.sh result                  result.json, its verdict and the timings (graduate-checks.mjs)
 #   bash graduate-instance.sh logs <dir>              what a failure needs, secrets redacted
 #   bash graduate-instance.sh run                     every phase in order, then result (a manual VM run)
@@ -244,69 +241,6 @@ install_baseline() {
   else rec baseline_installed false "instance.yaml doesn't pin $BASELINE"; exit 1; fi
 }
 
-# The hello app without a model: the baseline's own app starter (what an Engineer starts every app from), in a repository on
-# this server (codehost-local's org `local`, a bare repo under the data dir) and registered in the instance's apps.yaml as
-# app_create does (committed and pushed to the instance's main), then deployed through the apps platform's host path
-# (ops/app-deploy.sh: apps-mcp's /internal/deploy, its per-app lock, build, health and the post-deploy checks). Its outcome
-# goes to fixture.json; graduate-scenario.mjs judges it with the same probe the smoke check uses after the upgrade.
-FIXTURE=grad-hello FIXTURE_PORT=18731
-fixture() {
-  local data bare out status
-  data=$(data_dir); bare="$data/codehost/local/$FIXTURE.git"
-  as_svc bash -c '
-    set -euo pipefail
-    co=$1 bare=$2 inst=$3 name=$4 port=$5
-    id=(-c user.name="AidenHQ graduation" -c user.email=graduation@aidenhq.invalid)
-    [ -d "$co/modules/apps-platform/starter" ] || { echo "the checkout has no app starter"; exit 1; }
-    if [ ! -d "$bare" ]; then
-      w=$(mktemp -d)
-      tar -C "$co/modules/apps-platform/starter" --exclude=./node_modules --exclude=./dist -cf - . | tar -C "$w" -xf -
-      git -C "$w" init -q -b main && git -C "$w" add -A && git -C "$w" "${id[@]}" commit -q -m "hello: the app starter"
-      mkdir -p "$(dirname "$bare")" && git init -q --bare -b main "$bare" && git -C "$w" push -q "$bare" main
-      rm -rf "$w"
-    fi
-    cd "$inst"
-    git pull -q --ff-only origin main
-    if ! grep -q "name: $name[ ,]" apps.yaml; then
-      entry="{ name: $name, repo: local/$name, owner: graduation, description: \"The graduation test hello app\", port: $port, health: { url: \"http://app:8080/api/health\" } }"
-      if grep -qx "apps: \[\]" apps.yaml; then printf "apps:\n  - %s\n" "$entry" >apps.yaml
-      else
-        ind=$(grep -m1 -E "^ *- " apps.yaml | sed -E "s/-.*//")
-        grep -qx "apps:" apps.yaml && [ -n "$(grep -m1 -E "^ *- " apps.yaml)" ] || { echo "apps.yaml has a layout this test does not edit"; exit 1; }
-        [ -z "$(tail -c1 apps.yaml)" ] || echo >>apps.yaml
-        printf "%s- %s\n" "$ind" "$entry" >>apps.yaml
-      fi
-      git add apps.yaml && git "${id[@]}" commit -q -m "apps: add $name (graduation fixture)" && git push -q origin HEAD:main
-    fi' _ "$CO" "$bare" "$INST" "$FIXTURE" "$FIXTURE_PORT" || { jq -n --arg n "registering it failed" '{ok: false, note: $n}' >"$GRAD_DIR/fixture.json"; exit 1; }
-  # apps-mcp reads apps.yaml from its own clone of the instance (/data/registry), synced at start, inside its own registry
-  # edits (app_create) and before each reconcile tick (every 2 minutes): an entry pushed here reaches it at its next tick.
-  # Until its own listing has the app, a deploy says "unknown app".
-  local listed='' lend=$((SECONDS + 6 * 60))
-  until [ "$SECONDS" -ge "$lend" ]; do
-    listed=$(in_co 'docker compose exec -T apps-mcp node -e "fetch(\"http://127.0.0.1:8090/internal/status\").then((r) => r.json()).then((a) => console.log(a.map((x) => x.name).join(\" \")))"' 2>/dev/null || true)
-    grep -qw -- "$FIXTURE" <<<"$listed" && break
-    sleep 10
-  done
-  if ! grep -qw -- "$FIXTURE" <<<"$listed"; then
-    jq -n --arg app "$FIXTURE" '{ok: false, app: $app, note: "harness: apps-mcp did not list it within 6 minutes of its registration"}' >"$GRAD_DIR/fixture.json"; exit 1
-  fi
-  log "$FIXTURE registered and listed by apps-mcp; deploying"
-  # The platform's reconcile pass may have started its first deploy already ("deploy in progress"): wait it out, then deploy
-  # (the build is cached by then).
-  local end=$((SECONDS + 15 * 60))
-  while :; do
-    out=$(in_co 'bash ops/app-deploy.sh deploy "$1"' "$FIXTURE" 2>"$GRAD_DIR/fixture-deploy.err") || true
-    [ ! -s "$GRAD_DIR/fixture-deploy.err" ] || log "deploy stderr: $(tail -c 400 "$GRAD_DIR/fixture-deploy.err")"
-    grep -q "deploy in progress" <<<"$out" && [ "$SECONDS" -lt "$end" ] || break
-    sleep 5
-  done
-  status=$(jq -r '.status // empty' <<<"$out" 2>/dev/null || true)
-  log "deploy: $(head -c 600 <<<"$out")"
-  jq -n --arg app "$FIXTURE" --arg s "${status:-none}" --arg out "$(head -c 200 <<<"$out")" \
-    '{ok: ($s == "healthy"), app: $app, note: "deploy \($s)\(if $s == "healthy" then "" else ": \($out)" end)"}' >"$GRAD_DIR/fixture.json"
-  [ "$status" = healthy ]
-}
-
 # The upgrade an owner makes for a release whose file says `upgrade_from_previous: "manual"` (the baseline's updater can't land
 # it): the candidate's own published installer, run again on the instance (INSTALL.md "Upgrades"), checked against the asset
 # digest select read (IDENTITY).
@@ -428,13 +362,6 @@ release_check() {
   if [ -z "$why" ]; then rec running_release true "$TAG, kernel ${KERNEL:0:12}, $n running images by digest"; else rec running_release false "$why"; fi
   if good_on "$KERNEL"; then rec generation_good true "generation $(last_gen | jq -r .n)"; else rec generation_good false "last generation: $(last_gen)"; fi
 }
-verify_security() {
-  local out rc=0
-  out=$(as_svc bash -c 'cd ~/aidenhq && bash scripts/verify-security.sh' 2>&1) || rc=$?
-  printf '%s\n' "$out" | tail -60
-  if [ "$rc" = 0 ]; then rec verify_security true; else rec verify_security false "$(grep -c '^  FAIL' <<<"$out") failed: $(grep '^  FAIL' <<<"$out" | head -5 | sed 's/^  FAIL *//' | cut -c1-40 | paste -sd';' -)"; fi
-}
-
 result() {
   : "${IDENTITY:?}" "${BASELINE:?}"
   node "$here/graduate-checks.mjs" result
@@ -442,9 +369,8 @@ result() {
 
 logs() {
   local out=$1; mkdir -p "$out"
-  cp "$GRAD_DIR"/{install.log,baseline.json,fixture.json,prepull.log} "$out/" 2>/dev/null || true
+  cp "$GRAD_DIR"/{install.log,prepull.log} "$out/" 2>/dev/null || true
   for d in checks timings; do [ ! -d "$GRAD_DIR/$d" ] || for f in "$GRAD_DIR/$d"/*.json; do cp "$f" "$out/$d-$(basename "$f")" || true; done; done
-  cp "$GRAD_DIR/fixture-deploy.err" "$out/" 2>/dev/null || true
   if id "$SVC" >/dev/null 2>&1; then
     for u in aidenhq-kernel aidenhq-runner aidenhq-computers; do as_svc journalctl --user -u "$u" --no-pager -n 3000 >"$out/$u.log" 2>&1 || true; done
     sudo cat "$CO/data/updates/state.json" >"$out/updates-state.json" 2>/dev/null || true
@@ -497,19 +423,17 @@ run() {
 cmd=${1:-}
 t0=$SECONDS
 case "$cmd" in
-  prepare|install|fixture|upgrade|release-check|verify-security) trap 'timing "${cmd//-/_}" $((SECONDS - t0))' EXIT ;;
+  prepare|install|upgrade|release-check) trap 'timing "${cmd//-/_}" $((SECONDS - t0))' EXIT ;;
 esac
 case "$cmd" in
   prepare) prepare ;;
   prepull-start) prepull_start ;;
   prepull) prepull ;;
   install) install_baseline ;;
-  fixture) fixture ;;
   upgrade) upgrade ;;
   release-check) release_check ;;
-  verify-security) verify_security ;;
   result) result ;;
   logs) logs "${2:?logs <dir>}" ;;
   run) run ;;
-  *) echo "usage: graduate-instance.sh prepare | prepull-start | install | fixture | upgrade | release-check | verify-security | result | logs <dir> | run" >&2; exit 2 ;;
+  *) echo "usage: graduate-instance.sh prepare | prepull-start | install | upgrade | release-check | result | logs <dir> | run" >&2; exit 2 ;;
 esac

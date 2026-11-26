@@ -72,7 +72,7 @@ test("the rejected mark is one line, added once", () => {
 
 test("the test's result is accepted only when it names the selected release and baseline, has exactly the checks, all true", () => {
   const id = checkIdentity(identityOf(rel("2026.11.19", { id: 7 }), SHA, K));
-  const good = { release: "2026.11.19", release_id: 7, tag_sha: SHA, kernel: K, baseline: "2026.11.18.1", passed: true, checks: Object.fromEntries(CHECKS.map((c) => [c, true])), notes: ["hello app: grad-hello"], timings: { install: 540, upgrade: 300 } };
+  const good = { release: "2026.11.19", release_id: 7, tag_sha: SHA, kernel: K, baseline: "2026.11.18.1", passed: true, checks: Object.fromEntries(CHECKS.map((c) => [c, true])), notes: ["generation 12 good"], timings: { install: 540, upgrade: 300 } };
   assert.equal(validateResult(good, id, "2026.11.18.1"), good);
   assert.throws(() => validateResult({ ...good, release: "2026.11.20" }, id, "2026.11.18.1"), /another release/);
   assert.throws(() => validateResult({ ...good, kernel: "3".repeat(40) }, id, "2026.11.18.1"), /another release/);
