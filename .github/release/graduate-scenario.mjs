@@ -219,7 +219,8 @@ const NOT_READY = ["error", "verifying", "pending_approval"];
 async function roster() {
   const r = await board("GET", "/api/agents/roster");
   want(r.status === 200 && Array.isArray(r.json?.roster), `GET /api/agents/roster: ${r.status}`);
-  return r.json.roster.map((a) => ({ name: a.name, status: a.status }));
+  // An agent is matched by its definition key: its name is the owner's to change (teammates are renamed), its key is not.
+  return r.json.roster.map((a) => ({ id: a.key ?? a.name, name: a.name, status: a.status ?? a.state }));
 }
 
 // ------------------------------------------------------------------------------------------------ the two phases
@@ -251,7 +252,7 @@ async function baseline() {
     console.log(`::warning::the baseline has no hello app, so hello_app_serves can't test the upgrade: ${a.note.slice(0, 300)}`);
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `**No hello app on the baseline**: hello_app_serves passes without testing it. ${a.note.slice(0, 300)}\n`);
   }
-  writeJson("baseline.json", { agents: agents.filter((x) => !NOT_READY.includes(x.status)).map((x) => x.name), hello: a.ok ? app : null, hello_note: a.note });
+  writeJson("baseline.json", { agents: agents.filter((x) => !NOT_READY.includes(x.status)).map((x) => x.id), hello: a.ok ? app : null, hello_note: a.note });
   writeTiming(DIR, "scenario", (Date.now() - t0) / 1000);
   if (!c.ok) process.exitCode = 1;
 }
@@ -269,7 +270,7 @@ async function smoke() {
     { names: ["agents_ready"], ms: 5 * MIN, run: async () => {
       const agents = await roster();
       const bad = agents.filter((a) => NOT_READY.includes(a.status));
-      const gone = base.agents.filter((n) => !agents.some((a) => a.name === n));
+      const gone = base.agents.filter((n) => !agents.some((a) => a.id === n));
       return [{ name: "agents_ready", ok: !bad.length && !gone.length && agents.length > 0, note: `${agents.map((a) => `${a.name} ${a.status}`).join(", ")}${gone.length ? `; missing since the baseline: ${gone.join(", ")}` : ""}` }];
     } },
     { names: ["chat_reply"], ms: 22 * MIN, run: async () => [{ name: "chat_reply", ...(await chatReply("after the upgrade")) }] },
