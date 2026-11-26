@@ -126,7 +126,7 @@ Chief of staff Slack Google Meetings
 
 ### Engineering team
 
-Engineers, reviewers, UI design and review, DevOps and security, wired to GitHub and Jira.
+Engineers, reviewers, UI design and review, app deploys and security, wired to GitHub and Jira.
 
 Engineering GitHub Jira Security
 

@@ -4,7 +4,7 @@
 
 An AI workforce of specialists that plan, build, ship, maintain and follow up on their own, around the clock, with the tools, data and instructions to finish the job. Need someone new? Describe them in a sentence and the Agent Architect builds them.
 
-_Animation: the team at work: Aiden hands a task to the Researcher, the Follow-up Tracker chases a reply, the Meeting Librarian files notes, and the DevOps Engineer confirms every app is healthy_
+_Animation: the team at work: Aiden hands a task to Rhea (Researcher), Tess (Follow-up chaser) chases a reply, Nora (Meeting notes) files notes, and Iris (App builder) confirms every app is healthy_
 
 ## Named teammates, each with clear instructions.
 
@@ -32,7 +32,7 @@ Every request becomes coordinated teamwork. Aiden, the chief of staff, routes it
 - **Peer review:** agents check each other's work before anything ships.
 - **Fan-out:** big jobs split into parallel tasks that come back together.
 
-_Animation: one request moves through a team of agents: Aiden routes it to the Researcher, the Researcher hands findings to an Engineer, the UI Reviewer sends back two fixes, the Engineer resolves them, and DevOps ships it live_
+_Animation: one request moves through a team of agents: Aiden routes it to Rhea (Researcher), Rhea hands findings to an Engineer, the UI Reviewer sends back two fixes, the Engineer resolves them, and Iris (App builder) ships it live_
 
 ## Always on, and wide awake when work arrives.
 
@@ -84,7 +84,7 @@ A short profile of how you like to read, decide and be asked, followed by every 
 
 ## Agents that remember, and get better every week.
 
-Agents keep long-term memory of people, decisions and your preferences, and carry it into every task. Each correction you make becomes a rule and an eval. The Agent Coach studies how the team works, proposes sharper handbooks and skills, and prunes what no longer helps. Evals gate every change, so the team only ever levels up.
+Agents keep long-term memory of people, decisions and your preferences, and carry it into every task. Each correction you make becomes a rule and an eval. Archie, the Agent Architect, studies how the team works, proposes sharper handbooks and skills, and prunes what no longer helps. Evals gate every change, so the team only ever levels up.
 
 - **Long-term memory** of people, projects, decisions and preferences.
 - **Learn once:** corrections turn into rules and automatic checks.
@@ -92,7 +92,7 @@ Agents keep long-term memory of people, decisions and your preferences, and carr
 - **Evals gate every change** to an agent's instructions.
 - **Done means graded** against a clear definition of done.
 
-_Animation: you correct an agent once; it saves the preference to long-term memory, the Agent Coach proposes a handbook change, the evals pass, and every agent follows the new rule_
+_Animation: you correct an agent once; it saves the preference to long-term memory, Archie (Agent Architect) proposes a handbook change, the evals pass, and every agent follows the new rule_
 
 **Autonomy with guardrails**
 Agents make their own decisions, and deterministic guardrails in code check every action they take. Each agent works with exactly the tools you grant it, every change passes approvals, and changes to an agent's own instructions are reviewed like any other change. [More on safety](https://aidenhq.ai/safety/index.md)

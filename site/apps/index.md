@@ -4,7 +4,7 @@
 
 Vibe coding, with a team that ships and maintains it. Trackers, dashboards, forms, review queues: describe the tool your team needs. Agents design it, build it, put it live behind your company login, and look after it for as long as it runs.
 
-_Animation: you ask for a roadmap tracker; Aiden offers three layouts, you pick one, an Engineer builds it, the AI reviewer approves it, DevOps deploys it, and the live app appears_
+_Animation: you ask for a roadmap tracker; Aiden offers three layouts, you pick one, an Engineer builds it, the AI reviewer approves it, Iris (App builder) deploys it, and the live app appears_
 
 ## Four steps, one of them yours.
 
@@ -35,7 +35,7 @@ Most AI-built apps are demos that rot. Yours are watched around the clock. When 
 - **Kept up to date.** Dependencies and known security holes are patched as reviewed changes.
 - **Visual checks.** A UI Reviewer compares screenshots of every change before it ships.
 
-_Animation: an app's error rate jumps after a deploy; the DevOps Engineer rolls it back, an Engineer opens a fix, the AI reviewer approves it, and the fixed version deploys with errors back to zero_
+_Animation: an app's error rate jumps after a deploy; Iris (App builder) rolls it back, an Engineer opens a fix, the AI reviewer approves it, and the fixed version deploys with errors back to zero_
 
 ## Real apps, on your data, for your team.
 

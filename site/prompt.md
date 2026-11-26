@@ -239,8 +239,8 @@ is done before suggesting anything, then pick up from there one thing at a time.
 4. **Where the team reaches them.** If onboarding skipped it, recommend Telegram: `connect` with
    `module: "channel-telegram"` gives the setup link (Slack DM: `module: "slack"`). Then set the order with
    `change_settings` (`changes: [{"kind":"setting","key":"notify_transports","value":["channel-telegram"]}]`; `[]`
-   means only the board). Test it: `ask` Aiden to send them a short test message there, and check with the user that
-   it arrived.
+   means only the board). Test it with `notify_test` and the transport (`telegram` or `slack`): it sends one test card
+   there and returns that transport's own answer; check with the user that it arrived.
 5. **Names.** To rename a teammate, `change_settings` with
    `changes: [{"kind":"agent","agent":"<key>","field":"name","value":"<name>"}]` (1 to 24 characters, unique among
    teammates). Routing uses keys, so a rename breaks nothing.
