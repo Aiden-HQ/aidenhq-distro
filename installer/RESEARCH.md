@@ -54,8 +54,8 @@ We read the full source of nine one-line installers (fetched 2026-11-16, not run
 ## Deliberate departures
 
 - **Line count.** The lean-core spec (§6.8, A37) asks for an installer of 150 lines or fewer. Platform detection,
-  resource checks, release and checkout verification, uninstall and the handover take about 630, and the macOS VM path about 300 more (the host packages are the
-  kernel's setup, not ours). Every
+  resource checks, release and checkout verification, uninstall, the handover and the macOS VM path take about 1,100 (the host
+  packages are the kernel's setup, not ours). Every
   extra line is a check or a pin, not a feature; the length is the cost of "minimal user intervention".
 - **`kernel_repo` in the release file.** The spec's release schema has no `kernel_repo`; it needs to land in the spec.
 
@@ -112,11 +112,3 @@ installer writes straight to the terminal and the Mac reads the link back from a
 process assertion held only while the VM runs and only on AC power, gone with the agent; no `pmset` change (system-wide,
 needs sudo). Closing a laptop's lid sleeps it regardless, and sleep pauses every agent. `caffeinate` passes SIGTERM on to its child
 (tested), so a bootout or logout still stops the VM cleanly. A LaunchAgent runs at login, not at boot.
-
-**Found on the way (product, not fixed here):** `ops/vm/setup.sh` installs the amd64 `gh` .deb on every host, so it
-fails on arm64 (Apple silicon VMs, and arm64 servers): `package architecture (amd64) does not match system (arm64)`. The
-test VM used the arm64 .deb (`cac3ff84…`). The product assumes amd64 hosts elsewhere too: `ops/vm/setup.sh` installs
-agent-browser's `linux-x64` binary and Chrome for Testing `linux64` (no error, but no browser on arm64),
-`ops/backup-offsite.sh` downloads restic `linux_amd64`, and `scripts/supply-chain/image-scan.mjs` says "CI and the hosts
-are amd64". Until those carry arm64 pins, a full install on Apple silicon stops in host setup; Intel Macs (amd64 guests)
-don't hit this.

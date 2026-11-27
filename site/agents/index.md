@@ -52,10 +52,10 @@ Agents set their own reminders: "check back on Thursday if Dana has not replied"
 
 ## Describe the agent you wish you had.
 
-Open Team › Hire and say who you need in plain words. Archie, the Agent Architect, looks in your team and your marketplaces first: often a teammate you have can take it on, or one is ready to install. Only when nothing fits does he design a new one: its instructions, the tools it may use, when it wakes and which model it runs on. It runs a trial, a grader checks the results, you name it, and once the work holds up it joins your team.
+Open Team › Hire and say who you need in plain words. Archie, the Agent Architect, looks in your team and your marketplaces first: often a teammate you have can take it on, or one is ready to install. Only when nothing fits does he design a new one: its instructions, the tools it may use, when it wakes and which model it runs on. It tries the new agent on your examples and watches its first real work, a grader checks the results, and once the work holds up you give your OK and it joins your team.
 
 - **No prompt writing.** You describe the outcome; Archie writes the instructions.
-- **Proven on trial.** New agents earn their full reach once their work is graded.
+- **Proven on real work.** Archie watches a new agent's first work and fixes its handbook until it runs on its own.
 - **Tools on demand.** When an agent needs a tool that does not exist, the team builds it as an MCP connection.
 - **One tap to keep it.** You approve the new agent like any other change, and can undo it later.
 - **Readable.** Every agent is a short file you can read, edit or hand to a colleague.

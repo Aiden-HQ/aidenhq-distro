@@ -8,7 +8,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 
 ## Browse modules
 
-38 modules ship with AidenHQ today, in 7 groups. Each declares up front what it can read and write. "Core" marks the modules that are always installed; the rest are added in one step.
+42 modules ship with AidenHQ today, in 7 groups. Each declares up front what it can read and write. "Core" marks the modules that are always installed; the rest are added in one step.
 
 ### Chief of staff and follow-ups
 
@@ -16,8 +16,10 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 |---|---|---|---|
 | Chief of staff | Aiden takes any request, hands it to the right agent and follows up until it is done. | Board, Telegram | Core |
 | Board | Your daily view: Home with what needs you, your named teammates, tasks, apps and insight. | Tasks, Approvals, Apps, Costs | Core |
-| Open loops | Tracks what others owe you and turns Slack and labelled email into your tasks. | Slack, Gmail, Calendar, Drive |  |
+| Intake | Turns what needs you in your inbox, Slack and Primer comments into deduplicated tasks. | Slack, Gmail, Primer |  |
+| Open loops | Tracks what others owe you and drafts the chasers. | Slack, Gmail, Calendar, Drive |  |
 | Meetings | Meeting memory: transcripts and an Obsidian vault your agents can search. | Obsidian vault, Transcripts |  |
+| Sessions | Long-lived work that waits on events or time, held as a real coding session that idles at no cost. | Always-on computer, GitHub |  |
 | Tasks | Every agent can read, create, delegate, comment on and close tasks as itself. | Paperclip tasks |  |
 | Fast chat lane | Agents with a chat answer in seconds with a light model, and can schedule their own wake-ups. | Board chat, Telegram | Core |
 
@@ -27,6 +29,7 @@ _Animation: a distro is assembled: the kernel at the base, then modules for chat
 |---|---|---|---|
 | Engineering | Engineers in a locked box write code, run checks and open pull requests. | Locked box, GitHub | Core |
 | Codex engine | The coding engine behind Engineer jobs. Engines are modules, so another can be added. | OpenRouter, Agent computer |  |
+| opencode engine | The coding engine behind long-lived sessions, on OpenRouter models. | OpenRouter, Always-on computer |  |
 | Code review | Reviews pull requests on the repos you list, or a whole repository on request. | GitHub, Credential-free box |  |
 | Maintainer | Watches your repos, validates labelled issues, hands fixes to an engineer and sees them to a merged PR. | GitHub |  |
 | Ship | Takes every pull request from opened to merged: fixes conflicts, chases failing checks and merges once review and CI pass. | GitHub |  |
@@ -138,7 +141,7 @@ Telegram Google Follow-ups
 
 ### Tested together
 
-Every release pins a kernel and each module to an exact version, so what you install is exactly what passed the tests. Release 2026.11 is the current one.
+Every release pins a kernel and each module to an exact version, so what you install is exactly what passed the tests. A release is cut only from a product commit whose CI passed, and becomes current once an install of the previous release upgrades to it and still works.
 
 ### Swap or add anything
 

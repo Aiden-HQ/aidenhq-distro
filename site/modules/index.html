@@ -85,15 +85,15 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <p class="eyebrow c-violet">Browse modules</p>
-      <h2>38 modules, one workspace.</h2>
+      <h2>42 modules, one workspace.</h2>
       <p>Every module below ships with AidenHQ today. Each one declares up front what it can read and write, and adding one takes a single approval. Open any card to see what it connects to and what to ask it.</p>
     </div>
     <div class="mk-bar">
       <label class="mk-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="mk-q" type="search" placeholder="Search modules, tools and agents" aria-label="Search modules" autocomplete="off"></label>
       <nav class="mk-tabs" aria-label="Categories">
-      <a class="mt on" href="#modules" data-cat="all" aria-current="true">All <small>38</small></a>
-      <a class="mt" href="#cat-chief" data-cat="chief" >Chief of staff and follow-ups <small>6</small></a>
-      <a class="mt" href="#cat-eng" data-cat="eng" >Engineering <small>8</small></a>
+      <a class="mt on" href="#modules" data-cat="all" aria-current="true">All <small>42</small></a>
+      <a class="mt" href="#cat-chief" data-cat="chief" >Chief of staff and follow-ups <small>8</small></a>
+      <a class="mt" href="#cat-eng" data-cat="eng" >Engineering <small>10</small></a>
       <a class="mt" href="#cat-tools" data-cat="tools" >Work tools <small>5</small></a>
       <a class="mt" href="#cat-data" data-cat="data" >Apps and data <small>5</small></a>
       <a class="mt" href="#cat-chan" data-cat="chan" >Channels <small>4</small></a>
@@ -134,18 +134,18 @@
     <h4>Try asking</h4><ul class="mc-prompts"><li>Fix the failing signup test and open a PR.</li><li>Add a CSV export to the invoices app.</li></ul>
   </div>
 </li>
-<li class="mc feat" data-cat="chief" data-q="open loops tracks what others owe you and turns slack and labelled email into your tasks. slack gmail calendar drive open loops intake" style="--c: var(--violet)">
+<li class="mc feat" data-cat="chief" data-q="open loops tracks what others owe you and drafts the chasers. slack gmail calendar drive open loops intake" style="--c: var(--violet)">
   <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Open loops: details">
     <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-5l2 2M19 12a7 7 0 0 1-12 5l-2-2M19 4v5h-5M5 20v-5h5"/></svg></span></span>
     <h3>Open loops</h3>
-    <p class="mc-pitch">Tracks what others owe you and turns Slack and labelled email into your tasks.</p>
+    <p class="mc-pitch">Tracks what others owe you and drafts the chasers.</p>
     <span class="mc-conn"><span class="tag r">Slack</span><span class="tag r">Gmail</span><span class="tag r">Calendar</span><span class="tag r">Drive</span></span>
     <span class="mc-ex">Who still owes me an answer from last week?</span>
   </button>
   <div class="mc-more" hidden>
-    <p>Waiting-on loops are joined to the conversation they came from, closed on evidence of delivery, and chased with drafts for anything overdue or quiet. Intake watches Slack and labelled email for work that needs you.</p>
+    <p>Waiting-on loops are joined to the conversation they came from, closed on evidence of delivery, and chased with drafts for anything overdue or quiet. The Intake module files the waiting-on tasks it chases.</p>
     <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Slack</span> <span class="tag r">Gmail</span> <span class="tag r">Calendar</span> <span class="tag r">Drive</span></p>
-    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Open Loops</span> <span class="tag on">Intake</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Open Loops</span></p>
     <h4>Try asking</h4><ul class="mc-prompts"><li>Who still owes me an answer from last week?</li><li>Turn my pinned Slack messages into tasks.</li></ul>
   </div>
 </li>
@@ -200,18 +200,18 @@
     <h4>Try asking</h4><ul class="mc-prompts"><li>Pin a panel for this week's deploys.</li><li>Show what needs my approval.</li></ul>
   </div>
 </li>
-<li class="mc" id="m-open-loops" data-cat="chief" data-q="open loops tracks what others owe you and turns slack and labelled email into your tasks. slack gmail calendar drive open loops intake" style="--c: var(--violet)">
+<li class="mc" id="m-open-loops" data-cat="chief" data-q="open loops tracks what others owe you and drafts the chasers. slack gmail calendar drive open loops intake" style="--c: var(--violet)">
   <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Open loops: details">
     <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-5l2 2M19 12a7 7 0 0 1-12 5l-2-2M19 4v5h-5M5 20v-5h5"/></svg></span></span>
     <h3>Open loops</h3>
-    <p class="mc-pitch">Tracks what others owe you and turns Slack and labelled email into your tasks.</p>
+    <p class="mc-pitch">Tracks what others owe you and drafts the chasers.</p>
     <span class="mc-conn"><span class="tag r">Slack</span><span class="tag r">Gmail</span><span class="tag r">Calendar</span><span class="tag r">Drive</span></span>
     <span class="mc-ex">Who still owes me an answer from last week?</span>
   </button>
   <div class="mc-more" hidden>
-    <p>Waiting-on loops are joined to the conversation they came from, closed on evidence of delivery, and chased with drafts for anything overdue or quiet. Intake watches Slack and labelled email for work that needs you.</p>
+    <p>Waiting-on loops are joined to the conversation they came from, closed on evidence of delivery, and chased with drafts for anything overdue or quiet. The Intake module files the waiting-on tasks it chases.</p>
     <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Slack</span> <span class="tag r">Gmail</span> <span class="tag r">Calendar</span> <span class="tag r">Drive</span></p>
-    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Open Loops</span> <span class="tag on">Intake</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Open Loops</span></p>
     <h4>Try asking</h4><ul class="mc-prompts"><li>Who still owes me an answer from last week?</li><li>Turn my pinned Slack messages into tasks.</li></ul>
   </div>
 </li>
@@ -260,7 +260,37 @@
     <h4>Try asking</h4><ul class="mc-prompts"><li>Remind me about the contract on Friday morning.</li><li>What is on my plate right now?</li></ul>
   </div>
 </li>
-    </ul>
+    <li class="mc" id="m-intake" data-cat="chief" data-q="intake turns what needs you in your inbox, slack and primer comments into deduplicated tasks. slack gmail primer intake " style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Intake: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4l2 3h4l2-3h4M5 13 7 5h10l2 8v6H5z"/></svg></span></span>
+    <h3>Intake</h3>
+    <p class="mc-pitch">Turns what needs you in your inbox, Slack and Primer comments into deduplicated tasks.</p>
+    <span class="mc-conn"><span class="tag r">Slack</span><span class="tag r">Gmail</span><span class="tag r">Primer</span></span>
+    <span class="mc-ex">What came in overnight that needs me?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>Intake reads your inbox, Slack and Primer comments for work that needs you and files each as one task, without duplicates.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Slack</span> <span class="tag r">Gmail</span> <span class="tag r">Primer</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Intake</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>What came in overnight that needs me?</li><li>Turn this thread into a task.</li></ul>
+  </div>
+</li>
+<li class="mc" id="m-sessions" data-cat="chief" data-q="sessions long-lived work that waits on events or time, held as a real coding session that idles at no cost. always-on computer github session " style="--c: var(--violet)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="Sessions: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span></span>
+    <h3>Sessions</h3>
+    <p class="mc-pitch">Long-lived work that waits on events or time, held as a real coding session that idles at no cost.</p>
+    <span class="mc-conn"><span class="tag r">Always-on computer</span><span class="tag r">GitHub</span></span>
+    <span class="mc-ex">Watch this pull request and wake me when it changes.</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>The Session agent holds one task as a coding session in the always-on computer. It idles at no cost and wakes when a watched pull request changes or a timer is due.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">Always-on computer</span> <span class="tag r">GitHub</span></p>
+    <h4>Agents it brings</h4><p class="mc-conn"><span class="tag on">Session</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Watch this pull request and wake me when it changes.</li><li>Check back on this in three days.</li></ul>
+  </div>
+</li>
+</ul>
   </section>
   <section class="mg" id="cat-eng" data-cat="eng" style="--c: var(--blue)">
     <div class="mg-h"><h3>Engineering</h3><p>Write, review, ship and maintain code.</p></div>
@@ -400,7 +430,21 @@
     <h4>Try asking</h4><ul class="mc-prompts"><li>Why did the platform check fail?</li><li>Show the platform checks on the last merge.</li></ul>
   </div>
 </li>
-    </ul>
+    <li class="mc" id="m-engine-opencode" data-cat="eng" data-q="opencode engine the coding engine behind long-lived sessions, on openrouter models. openrouter always-on computer  " style="--c: var(--blue)">
+  <button type="button" class="mc-btn" aria-haspopup="dialog" aria-label="opencode engine: details">
+    <span class="mc-top"><span class="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></span></span>
+    <h3>opencode engine</h3>
+    <p class="mc-pitch">The coding engine behind long-lived sessions, on OpenRouter models.</p>
+    <span class="mc-conn"><span class="tag r">OpenRouter</span><span class="tag r">Always-on computer</span></span>
+    <span class="mc-ex">Which engine runs my sessions?</span>
+  </button>
+  <div class="mc-more" hidden>
+    <p>opencode on OpenRouter models, through the model gateway, in the standing session computer. It ships fully set up, so there is nothing to configure.</p>
+    <h4>Connects to</h4><p class="mc-conn"><span class="tag r">OpenRouter</span> <span class="tag r">Always-on computer</span></p>
+    <h4>Try asking</h4><ul class="mc-prompts"><li>Which engine runs my sessions?</li></ul>
+  </div>
+</li>
+</ul>
   </section>
   <section class="mg" id="cat-tools" data-cat="tools" style="--c: var(--sky)">
     <div class="mg-h"><h3>Work tools</h3><p>Your existing systems, connected once.</p></div>
@@ -838,7 +882,7 @@
       <li class="cap" style="--c: var(--teal)"><h3>Personal life admin</h3><p>Your personal inbox and calendar, bills and renewals chased, and a weekly plan on Telegram.</p><p style="margin-top:10px"><span class="tag r">Telegram</span> <span class="tag r">Google</span> <span class="tag r">Follow-ups</span></p></li>
     </ul>
     <ul class="caps" style="margin-top: 14px">
-      <li class="cap reveal" style="--c: var(--amber)"><h3>Tested together</h3><p>Every release pins a kernel and each module to an exact version, so what you install is exactly what passed the tests. Release 2026.11 is the current one.</p></li>
+      <li class="cap reveal" style="--c: var(--amber)"><h3>Tested together</h3><p>Every release pins a kernel and each module to an exact version, so what you install is exactly what passed the tests. A release is cut only from a product commit whose CI passed, and becomes current once an install of the previous release upgrades to it and still works.</p></li>
       <li class="cap reveal" style="--c: var(--sky)"><h3>Swap or add anything</h3><p>Start from a distro, then add Slack, swap the coding engine or trim it down to what you use. Your choices live in your own settings, with history.</p></li>
       <li class="cap reveal" style="--c: var(--pink)"><h3>Publish your own</h3><p>Built a setup that works for your team or your industry? Publish it as a distro so others can install it in one command.</p></li>
     </ul>

@@ -227,7 +227,7 @@ one thing at a time.
    someone new. Users rename teammates, so always take names from this list. Other agents (`fleet`) are staff behind
    the teammates; the user rarely needs them.
 3. **First teammate.** If no teammate is on the team yet, explain what `first` does (its job and sample), then
-   `set_up_teammate` with its `teammate_ref`: it turns its module on, runs its setup and a first trial on their own
+   `set_up_teammate` with its `teammate_ref`: it turns its module on, runs its setup and its first look once on their own
    data. Then offer the rest one at a time, the one that fits what they told you first; never set up several at once.
 4. **Connect what it needs.** For each flow the teammate still needs, `connect` with that `module` gives the board link
    and its state. Hand the user the link (sign-ins and keys happen only in their browser), then call `connect` again
@@ -245,7 +245,7 @@ one thing at a time.
    nothing.
 8. **Hiring.** For a new need, `ask` the `builder` (from `teammates`) with the user's own description, e.g. "someone to
    watch my PRs". He looks in their team and the installed marketplaces first and answers with a form: Extend
-   `<key>`, Install `<id>`, or Build new (proposal, build, trial on real data, then a name). Relay the options, and
+   `<key>`, Install `<id>`, or Build new (design, build, a try on their examples, then their OK). Relay the options, and
    send the user's pick back with `ask` on the same chat (`chat`). The board's Team › Hire
    (`<AIDENHQ_BOARD_URL>/#/team/hire`) runs the same flow. `modules` lists what is installed; `modules` with `name`
    shows one module's settings, and `change_settings` (`{"kind":"module","name":"<id>","on":false}`) turns one off.

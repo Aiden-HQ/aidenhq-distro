@@ -122,7 +122,7 @@ Other inputs:
 | journald cap | 1 GB; 2 GB on disks of 200 GB or more | 1G | 2G |
 
 The three sizing values go to the product's setup in its environment; setup writes them to `config/runner.yaml` and the
-CI runner units. Docker settings are added only where `daemon.json` doesn't already set them. The product's weekly
+CI runner units. Docker settings are added only where `daemon.json` doesn't already set them. The product's
 `prune-docker.timer` is turned on.
 
 ## Trust
@@ -175,8 +175,8 @@ publishes both as the release's assets (a draft until they are checked) as a Git
 
 A pre-release is not offered to anyone yet. `.github/workflows/graduate.yml` graduates it: a fresh install of the current
 latest release on a GitHub-hosted runner goes through a new owner's first run, upgrades to it with its own installed updater
-and passes smoke checks (agents ready, a fresh chat reply, apps still served and a new one deployed, the security checks).
-Only then does it become a full release and GitHub's latest, which installs update to and `get.aidenhq.ai` serves. A release
+and passes its checks (it runs the release, its last generation is good and a fresh chat with Aiden gets a reply; README
+"Release graduation"). Only then does it become a full release and GitHub's latest, which installs update to and `get.aidenhq.ai` serves. A release
 that fails stays a pre-release, marked `graduation: failed <run>` in its notes, and an issue is opened; delete that line to
 have it tested again. To graduate one by hand: `gh release edit <tag> -R Aiden-HQ/aidenhq-distro --prerelease=false --latest`
 (README "Release graduation").
