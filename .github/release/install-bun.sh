@@ -1,5 +1,5 @@
 #!/bin/sh
-# install-bun.sh: the pinned Bun (what the product's own hosts pin: ops/vm/pins.json), checked by sha256, on this runner.
+# install-bun.sh: the pinned Bun (what the product's own hosts pin: ops/lib/bun.sh (ensureBun)), checked by sha256, on this runner.
 # Bun 1.4.5 (released 2026-11-19), the official release zips. No-op when that version is already on PATH.
 # Always prints the bin dir holding the right bun as its last line (prepend it to PATH); with GITHUB_PATH set (Actions) it is added to PATH for later steps too.
 set -eu
