@@ -30,11 +30,13 @@ jobs:
             sc="$RUNNER_TEMP/shellcheck-v0.11.0/shellcheck"
           fi
           "$sc" --version | head -2
-          "$sc" install.sh installer/test.sh .github/release/test-set.sh .github/release/gh-get.sh .github/release/gh-get.test.sh .github/release/upgrade.sh .github/release/kpath.sh .github/release/graduate-instance.sh
+          "$sc" install.sh installer/test.sh .github/release/test-set.sh .github/release/gh-get.sh .github/release/gh-get.test.sh .github/release/upgrade.sh .github/release/kpath.sh .github/release/graduate-instance.sh .github/release/install-bun.sh .github/release/kinstall.sh
       - run: sh installer/test.sh
       - run: if command -v dash >/dev/null; then dash installer/test.sh; else echo "no dash on this runner"; fi
       - run: node --check .github/release/graduate-scenario.mjs && node --check .github/release/graduate-checks.mjs
-      - run: node --test .github/release/*.test.mjs
+      - name: Pinned Bun
+        run: sh .github/release/install-bun.sh
+      - run: bun test ./.github/release/graduate.test.mjs ./.github/release/image-key.test.mjs
       # release.yml runs on these runners too: the tools it needs are here.
       - name: Release tools on this runner
         run: for t in git jq python3 sha256sum curl base64 cmp; do command -v "$t" >/dev/null || { echo "::error::no $t on this runner (release.yml needs it)"; exit 1; }; done; git --version
@@ -51,4 +53,6 @@ jobs:
         with:
           node-version: 24.x
       - run: sh web/build.sh
-      - run: node --test web/worker.test.mjs
+      - name: Pinned Bun
+        run: sh .github/release/install-bun.sh
+      - run: bun test ./web/worker.test.mjs

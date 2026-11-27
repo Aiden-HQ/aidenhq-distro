@@ -10,7 +10,7 @@ an AI teammate that works 24/7. Or install agents someone else built, just like 
 curl -fsSL https://get.aidenhq.ai | sh
 ```
 
-One line on a fresh Ubuntu or Debian server, or a Mac; it installs Docker and Node itself. Using Claude Code, Codex or
+One line on a fresh Ubuntu or Debian server, or a Mac; it installs Docker, Node and Bun itself. Using Claude Code, Codex or
 another coding agent? Paste: `Set up AidenHQ on my server by following https://aidenhq.ai/prompt.md`.
 
 ## What you get
@@ -207,7 +207,7 @@ Operating it:
 - **See what it would do:** `GITHUB_TOKEN=$(gh auth token) node .github/release/graduate.mjs select` (read-only).
 - **Run it by hand on a VM** (the same scripts, outside GitHub; nothing is promoted or rejected). A fresh Ubuntu 24.04
   VM (it creates the `aidenhq` user, installs AidenHQ and changes the host: never one you use), 8 GB RAM or more, 70 GB
-  free, a sudoer with passwordless sudo, and `git`, `curl`, `jq` and Node 24 on the PATH. On a cloud image whose uid
+  free, a sudoer with passwordless sudo, and `git`, `curl`, `jq` and Node 24 on the PATH (the product setup installs its pinned Bun). On a cloud image whose uid
   1000 is taken (`ubuntu`), the service user gets another uid and the script warns. Then:
 
   ```sh
@@ -249,7 +249,7 @@ release run passes. The gate holds for an install once it runs a release with th
 The Worker ([`web/worker.js`](web/worker.js)) serves GitHub's `releases/latest/download/install.sh` as `text/plain`. It
 caches that file for five minutes and keeps the last good copy, which it serves when GitHub fails. A release changes
 nothing on the site, and the site needs no deploy for it. Pages and styles are still deployed by hand when they change
-(`sh web/build.sh && npx -y wrangler@4.160.0 deploy`).
+(`sh web/build.sh && bunx wrangler@4.160.0 deploy`).
 
 What it serves is exactly the asset GitHub published for the latest graduated release:
 

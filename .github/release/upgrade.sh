@@ -4,7 +4,7 @@
 # new compile refuses) is not cut.
 #   bash .github/release/upgrade.sh compile <new product checkout> <release> <its distro commit> <work dir>   (steps 1-3)
 #   bash .github/release/upgrade.sh review <product clone> <release> <its distro commit> <work dir>           (steps 1, 2, 4)
-# compile runs this release's code (its npm ci, compile, release.ts) and never sees a model key. review, the only mode given
+# compile runs this release's code (its dependency install, compile, release.ts) and never sees a model key. review, the only mode given
 # OPENROUTER_API_KEY, runs in its own job on a fresh runner and runs no code of this release: the product repository is
 # only read with git (the old setup.sh and the manifests), and only the old release's checkout and this repo's scripts run.
 # For that release (its tag is in this distro checkout: tags are what the updater reads):
@@ -34,13 +34,15 @@ set -euo pipefail
 here=$(cd "$(dirname "$0")/../.." && pwd)
 # shellcheck disable=SC1091 # kpath.sh is checked on its own
 . "$here/.github/release/kpath.sh"
+# shellcheck disable=SC1091 # kinstall.sh is checked on its own
+. "$here/.github/release/kinstall.sh"
 mode=$1 new=$(cd "$2" && pwd) rel=$3 relsha=$4 work=$5
 NAME='^[0-9]{4}\.[0-9]{1,2}(\.[0-9]+){0,2}$'
 [[ "$mode" =~ ^(compile|review)$ ]] && [[ "$rel" =~ $NAME ]] && [[ "$relsha" =~ ^[0-9a-f]{40}$ ]] || { echo "usage: upgrade.sh compile|review <product checkout> <release> <distro sha> <work dir>" >&2; exit 2; }
 for v in AIDENHQ_GITHUB_TOKEN GITHUB_TOKEN GH_TOKEN GIT_CONFIG_COUNT; do
   [ -z "${!v:-}" ] || { echo "refusing: $v is set; the upgrade test runs without GitHub credentials" >&2; exit 1; }
 done
-# The model key: review's alone, and handed to the review command only (never the old release's npm ci or compile).
+# The model key: review's alone, and handed to the review command only (never the old release's install or compile).
 review_key=${OPENROUTER_API_KEY:-}; unset OPENROUTER_API_KEY
 if [ "$mode" = review ]; then
   [ -n "$review_key" ] || { echo "::error::OPENROUTER_API_KEY is not set: the last release's AI reviewer judges the update (GRADUATE_OPENROUTER_KEY)" >&2; exit 1; }
@@ -51,7 +53,7 @@ kernel=$(git -C "$here" show "$relsha:releases/$rel.json" | jq -er .kernel)
 git -C "$new" cat-file -e "$kernel^{commit}" || { echo "::error::$new has no commit $kernel ($rel's kernel)"; exit 1; }
 if [ "$mode" = compile ]; then
   [ "$(git -C "$new" rev-parse HEAD)" = "$kernel" ] || { echo "::error::$new isn't at $rel's kernel $kernel"; exit 1; }
-  for p in scripts kernel; do [ -d "$new/$p/node_modules" ] || npm ci --ignore-scripts --no-audit --no-fund --prefix "$new/$p" >/dev/null; done
+  for p in scripts kernel; do [ -d "$new/$p/node_modules" ] || kinstall "$new/$p"; done
 fi
 mkdir -p "$work"
 export AIDENHQ_SOURCES_DIR="$work/sources" AIDENHQ_STATE_DIR="$work/state" AIDENHQ_DATA_DIR="$work/data"
@@ -114,7 +116,7 @@ if [ "$ok" = 1 ]; then
   old="$u/product"
   if ! { git init -q --bare -b main "$u/product.git" && git -C "$new" push -q "$u/product.git" "$kernel:refs/heads/main" \
       && git clone -q "$u/product.git" "$old" && git -C "$old" checkout -q --detach "$RK" \
-      && for p in scripts kernel; do npm ci --ignore-scripts --no-audit --no-fund --prefix "$old/$p" >/dev/null; done \
+      && for p in scripts kernel; do kinstall "$old/$p"; done \
       && { [ "$mode" = compile ] || (cd "$old" && node "$(kpath "$old" scripts/compile.mjs)" >"$u/compile.log" 2>&1); } \
       && git -C "$here" show "$relsha:releases/$rel.json" >"$u/new-release.json"; }; then
     tail -20 "$u/compile.log" 2>/dev/null || true; echo "::error::upgrade from $R: couldn't set up $R's product (${RK:0:12}) in $old"; ok=0

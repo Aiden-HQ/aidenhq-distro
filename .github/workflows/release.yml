@@ -210,7 +210,8 @@ jobs:
           . .github/release/kpath.sh
           lister=$(kpath "$set/kernel" scripts/release-images.mjs) || { echo "::error::$REL's kernel predates prebuilt images (no scripts/release-images.ts or .mjs)"; exit 1; }
           [ -f "$set/kernel/modules/marketplace.json" ] || { echo "::error::$REL's product has no modules/ (the official modules ship inside it)"; exit 1; }
-          npm ci --ignore-scripts --no-audit --no-fund --prefix "$set/kernel/scripts"
+          . .github/release/kinstall.sh
+          kinstall "$set/kernel/scripts"
           chains=$(env -u AIDENHQ_GITHUB_TOKEN node "$lister" list "$set/kernel" "$set/kernel/modules" \
             | jq -c --arg p "$set/kernel/" 'map(map(.context |= ltrimstr($p)))')
           echo "$chains" | jq -e 'length > 0' >/dev/null
