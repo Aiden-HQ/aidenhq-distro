@@ -28,7 +28,7 @@ Agents combine connections the way a person would, and every source feeds one sh
 
 | Tools | What your agents do with them | Installed by default |
 |---|---|---|
-| Telegram | Your chief of staff in your pocket: chat, voice notes and one-tap approvals. | Yes |
+| Telegram | Your chief of staff in your pocket: chat, voice notes and one-tap approvals. Voice notes need the separate Voice notes module. | Yes |
 | Slack | Agents in your channels, follow-ups on what people promised, and /aiden assign-channel. | Yes |
 | Gmail, Calendar, Drive | Follow-ups that never drop, meeting prep with every doc you need, and calendar changes on approval. | Yes |
 | GitHub | Engineers open changes, reviewers check them, and apps are built and deployed from them. | Yes |

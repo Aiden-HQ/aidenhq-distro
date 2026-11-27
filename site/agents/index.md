@@ -52,7 +52,7 @@ Agents set their own reminders: "check back on Thursday if Dana has not replied"
 
 ## Describe the agent you wish you had.
 
-Open Team › Hire and say who you need in plain words. Archie, the Agent Architect, looks in your team and your marketplaces first: often a teammate you have can take it on, or one is ready to install. Only when nothing fits does he design a new one: its instructions, the tools it may use, when it wakes and which model it runs on. It tries the new agent on your examples and watches its first real work, a grader checks the results, and once the work holds up you give your OK and it joins your team.
+Open Team › Hire and say who you need in plain words. Archie, the Agent Architect, looks in your team and your marketplaces first: often a teammate you have can take it on, or one is ready to install. Only when nothing fits does he design a new one: its instructions, the tools it may use, when it wakes and which model it runs on. You confirm the design and the change lands through an approval. Then Archie tries the new agent on your examples, watches its first real work, and a grader checks the results until it runs on its own.
 
 - **No prompt writing.** You describe the outcome; Archie writes the instructions.
 - **Proven on real work.** Archie watches a new agent's first work and fixes its handbook until it runs on its own.
