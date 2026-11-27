@@ -1,5 +1,5 @@
 // get.aidenhq.ai's installer: GitHub's latest published install.sh, cached, with the last good copy when GitHub fails.
-import { test } from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { installer, isCut } from "./worker.js";

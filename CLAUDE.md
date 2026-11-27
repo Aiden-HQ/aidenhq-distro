@@ -24,12 +24,12 @@ gitignored `CLAUDE.local.md`, never in this file.
 
 ## Build and test
 
-Offline, no token or key needed. Node 24.
+Offline, no token or key needed. Node 24 runs the scripts; Bun 1.4.5 (`sh .github/release/install-bun.sh`) runs the tests.
 
 ```sh
 sh installer/test.sh && dash installer/test.sh   # installer release checks (CI also runs shellcheck on every .sh)
-node --test .github/release/*.test.mjs
-sh web/build.sh && node --test web/worker.test.mjs   # site build + web/check-site.mjs (tags, links, twins, sitemap)
+bun test ./.github/release/graduate.test.mjs ./.github/release/image-key.test.mjs
+sh web/build.sh && bun test ./web/worker.test.mjs   # site build + web/check-site.mjs (tags, links, twins, sitemap)
 ```
 
 Run them before a PR that touches what they cover; CI (`.github/workflows/ci.yml`) runs all of them.
@@ -42,7 +42,11 @@ Run them before a PR that touches what they cover; CI (`.github/workflows/ci.yml
 - **Graduation is the gate.** Only `graduate.yml` (or a maintainer by hand) makes a release latest; never move latest
   to an older release.
 - **Site changes**: edit `site/`, run `sh web/build.sh`, keep each page's markdown twin and sitemap entry in step. Pages
-  deploy by hand (`sh web/build.sh && npx -y wrangler@4.160.0 deploy`); releases need no site deploy.
+  deploy by hand (`sh web/build.sh && bunx wrangler@4.160.0 deploy`); releases need no site deploy.
+- **Package managers**: Bun is the one (pinned 1.4.5, sha256-checked in `.github/release/install-bun.sh`; the product's
+  hosts get theirs from its setup). The one exception is `.github/release/kinstall.sh`: a release tree with a `bun.lock`
+  installs with `bun install --frozen-lockfile`, an older one (only `package-lock.json`, immutable) with `npm ci`, so
+  upgrade tests from old releases keep working. Keep it until no release before the Bun move can be a baseline.
 - **Supply chain**: actions by SHA, tools by version and checksum, nothing under 7 days old unless a security fix.
   Exceptions live in `.github/supply-chain-exceptions.yaml`.
 - **Keep in sync with the product**: `site/prompt.md` (its owner MCP tool names and setup steps) and the pages that

@@ -1,5 +1,5 @@
 // graduate.mjs on fixture release lists: which cut is tested, what result is accepted, when promotion goes ahead.
-import { test } from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

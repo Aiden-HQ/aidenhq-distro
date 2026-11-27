@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -46,4 +46,4 @@ test("isoWeek", () => {
   assert.equal(isoWeek(new Date("2024-12-30T00:00:00Z")), "2025-W01");
 });
 
-test.after(() => rmSync(kernel, { recursive: true }));
+afterAll(() => rmSync(kernel, { recursive: true }));
