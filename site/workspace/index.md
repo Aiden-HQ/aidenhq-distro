@@ -68,7 +68,7 @@ Questions, drafts and approval cards, each with the exact request: the email tex
 
 ### Since you last looked
 
-What each teammate finished or told you while you were away, grouped by teammate, with one idea from Aiden for what to do next.
+What each teammate finished or told you while you were away, grouped by teammate, so you see the outcome without opening every task.
 
 ### Your world
 

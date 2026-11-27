@@ -251,7 +251,7 @@ one thing at a time.
    shows one module's settings, and `change_settings` (`{"kind":"module","name":"<id>","on":false}`) turns one off.
 9. **Schedules.** A new install starts quiet: nothing runs on a schedule and agents don't check in until the owner
    turns it on, and model spend stops at a daily limit. Setting up a teammate turns its own schedules on; Aiden offers
-   the rest as ideas on Home, one at a time. Ask which others they want (a morning brief, a weekly look at how the
+   the rest in chat, one at a time. Ask which others they want (a morning brief, a weekly look at how the
    agents work, an evening fleet digest). Aiden resumes a routine only on the owner's own words naming it, so pass
    their words through `ask` (e.g. "resume the daily brief"). Agent check-ins: ask how often: every 1, 2, 3, 4, 6, 8, 12
    or 24 hours (4 is a good default), then `change_settings` with
