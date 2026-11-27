@@ -24,7 +24,7 @@ gitignored `CLAUDE.local.md`, never in this file.
 
 ## Build and test
 
-Offline, no token or key needed. Node 24 runs the scripts; Bun 1.4.5 (`sh .github/release/install-bun.sh`) runs the tests.
+Offline, no token or key needed. Node 24 runs the scripts; Bun 1.4.5 runs the tests (`PATH="$(sh .github/release/install-bun.sh | tail -1):$PATH"` installs it, sha256-checked).
 
 ```sh
 sh installer/test.sh && dash installer/test.sh   # installer release checks (CI also runs shellcheck on every .sh)

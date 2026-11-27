@@ -1,7 +1,7 @@
 #!/bin/sh
 # install-bun.sh: the pinned Bun (what the product's own hosts pin: ops/vm/pins.json), checked by sha256, on this runner.
 # Bun 1.4.5 (released 2026-11-19), the official release zips. No-op when that version is already on PATH.
-# Prints the bin dir's path to stdout last; with GITHUB_PATH set (Actions) it is added to PATH for later steps too.
+# Always prints the bin dir holding the right bun as its last line (prepend it to PATH); with GITHUB_PATH set (Actions) it is added to PATH for later steps too.
 set -eu
 V=1.4.5
 case "$(uname -s)-$(uname -m)" in
@@ -11,8 +11,9 @@ case "$(uname -s)-$(uname -m)" in
   Darwin-arm64) f=bun-darwin-aarch64.zip sum=b5d6bc2e13caf14e57c89661e89efd073ff16165b41bfe43882616410609cd10 ;;
   *) echo "install-bun: no pinned Bun for $(uname -s) $(uname -m)" >&2; exit 1 ;;
 esac
-if [ "$(bun --version 2>/dev/null || true)" = "$V" ]; then exit 0; fi
-dir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/bun-$V"
+if [ "$(bun --version 2>/dev/null || true)" = "$V" ]; then dirname "$(command -v bun)"; exit 0; fi
+# RUNNER_TEMP is private to the job; anywhere else gets a fresh private directory (nothing shared is trusted).
+dir="${RUNNER_TEMP:-$(mktemp -d)}/bun-$V"
 if [ ! -x "$dir/bin/bun" ]; then
   rm -rf "$dir"; mkdir -p "$dir/bin"
   curl -fsSL -o "$dir/$f" "https://github.com/oven-sh/bun/releases/download/bun-v$V/$f"

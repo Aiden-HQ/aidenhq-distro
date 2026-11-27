@@ -8,8 +8,8 @@ kinstall() {
   self="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if [ -f "$d/bun.lock" ]; then
     local bin
-    bin=$(sh "$self/install-bun.sh" | tail -1) || return 1
-    [ -z "$bin" ] || [ ! -d "$bin" ] || PATH="$bin:$PATH"
+    bin=$(sh "$self/install-bun.sh") || return 1
+    PATH="${bin##*$'\n'}:$PATH"
     (cd "$d" && bun install --frozen-lockfile --ignore-scripts >/dev/null)
   else
     npm ci --ignore-scripts --no-audit --no-fund --prefix "$d" >/dev/null
