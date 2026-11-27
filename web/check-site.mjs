@@ -83,6 +83,12 @@ for (const page of pages) {
 
   const twin = urlOf(page) + "index.md";
   if (!all.includes(twin)) fail(page, `no markdown twin ${twin}`);
+  else if (existsSync(join(root, twin))) {
+    // Twins are written by hand; a conversion of the logo chips once left "#**Slack** :**" and empty "``" lines behind.
+    const md = readFileSync(join(root, twin), "utf8");
+    for (const [re, what] of [[/^#\*\*/m, "line starting #**"], [/\*\* :\*\*/, "stray ** :** markup"], [/^``$/m, "empty `` line"]])
+      if (re.test(md)) fail(twin, `garbled markdown: ${what}`);
+  }
   for (const u of [url, ORIGIN + twin]) if (!locs.includes(u)) fail("sitemap.xml", `missing ${u}`);
 }
 for (const f of ["/llms.txt", "/llms-full.txt", "/prompt.md"]) if (!all.includes(f) || !locs.includes(ORIGIN + f)) fail("sitemap.xml", `missing ${f}`);

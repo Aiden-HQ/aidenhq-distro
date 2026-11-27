@@ -96,7 +96,7 @@ Most workspaces start as one person and their agents. When you want colleagues i
 _People in the workspace: you as owner, a teammate who joined and commented on a doc, an invited colleague with app access only, and your AI teammates_
 
 **Secure by default**
-The board and your docs live on your private network, behind a password and a one-time code. Text from emails, chats and documents is fenced as information, so agents take orders from you alone. [More on safety](https://aidenhq.ai/safety/index.md)
+The board and your docs sit behind a password and a one-time code, on your private network or your server's own HTTPS address. Text from emails, chats and documents is fenced as information, so agents take orders from you alone. [More on safety](https://aidenhq.ai/safety/index.md)
 
 ---
 

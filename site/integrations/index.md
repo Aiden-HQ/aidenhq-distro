@@ -8,37 +8,35 @@ _Animation: tools are connected once, then each agent is granted read or write a
 
 ## Works with the tools you already use.
 
-Each integration is an add-on: turn on the ones you need. The ones marked core come with every install.
+Most integrations are in the default install, so you only connect them; Grafana and ClickHouse are added in one step.
 
 ### Talk and message
 
-#**Slack** :** Gmail** :** Telegram**
+Slack, Gmail, Telegram
 
 ### Work and documents
 
-**Calendar** :** Drive** :** Jira** :** GitHub** G:** Glean**
+Calendar, Drive, Jira, GitHub, Glean
 
 ### Data and models
 
-**Grafana** :** ClickHouse** :** OpenRouter** :** Warehouse**
+Grafana, ClickHouse, OpenRouter, Warehouse
 
 ## Tools work best together.
 
 Agents combine connections the way a person would, and every source feeds one shared database your apps can build on.
 
-| Tools | What your agents do with them | Included |
+| Tools | What your agents do with them | Installed by default |
 |---|---|---|
-| Telegram | Your chief of staff in your pocket: chat, voice notes and one-tap approvals. | Core |
-| Slack | Agents in your channels, follow-ups on what people promised, and /aiden assign-channel. | Add-on |
-| Gmail, Calendar, Drive | Follow-ups that never drop, meeting prep with every doc you need, and calendar changes on approval. | Add-on |
-| GitHub | Engineers open changes, reviewers check them, and apps are built and deployed from them. | Core |
-| Jira | A live status board of what every team is working on. | Add-on |
-| Glean | Answers from across your company's documents when an agent needs context. | Add-on |
-| Grafana, ClickHouse | Incident digests with the graphs attached, and metrics for your dashboards. | Add-on |
-| OpenRouter | The AI models your agents run on: pick any model for any agent. | Core |
-| Warehouse | One shared database every source feeds and every app can read, each with its own private space. | Core |
-
-``
+| Telegram | Your chief of staff in your pocket: chat, voice notes and one-tap approvals. Voice notes need the separate Voice notes module. | Yes |
+| Slack | Agents in your channels, follow-ups on what people promised, and /aiden assign-channel. | Yes |
+| Gmail, Calendar, Drive | Follow-ups that never drop, meeting prep with every doc you need, and calendar changes on approval. | Yes |
+| GitHub | Engineers open changes, reviewers check them, and apps are built and deployed from them. | Yes |
+| Jira | A live status board of what every team is working on. | Yes |
+| Glean | Answers from across your company's documents when an agent needs context. | Yes |
+| Grafana, ClickHouse | Incident digests with the graphs attached, and metrics for your dashboards. | No |
+| OpenRouter | The AI models your agents run on: pick any model for any agent. | Yes |
+| Warehouse | One shared database every source feeds and every app can read, each with its own private space. | Yes |
 
 ## Read for some, write for few.
 
