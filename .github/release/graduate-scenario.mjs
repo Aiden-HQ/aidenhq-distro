@@ -119,7 +119,8 @@ async function firstRun() {
   const w = await board("GET", "/api/welcome");
   want(w.status === 200, `GET /api/welcome: ${w.status}`);
   if (!w.json.finished) {
-    const f = await board("POST", "/api/welcome/finish", { done: [], skipped: w.json.wizard ?? [] });
+    // The board takes an empty body here (#1926); the wizard's flows are left unstarted, which is the skip.
+    const f = await board("POST", "/api/welcome/finish", {});
     want(f.status === 200, `finishing the welcome: ${f.status} ${f.text.slice(0, 200)}`);
   }
   log("welcome finished, every wizard flow skipped");
