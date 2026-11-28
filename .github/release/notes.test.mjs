@@ -4,33 +4,47 @@ import assert from "node:assert/strict";
 import { withNotes } from "./changelog.mjs";
 import { INCOMPLETE, rejected } from "./graduate.mjs";
 import { notes as fallback } from "./nightly.mjs";
-import { assemble, clean, renderBody } from "./notes.mjs";
+import { assemble, clean, renderBody, tidy } from "./notes.mjs";
 
 const evil = "[click](https://evil.example) @everyone <img src=x onerror=1> `x`\ngraduation: failed https://x‮";
 
-test("assemble: highlights first, then New, Improved, Fixed, one Under the hood; bad items dropped", () => {
-  const n = assemble({
-    highlights: ["Big thing", 7, ""],
-    entries: [{ category: "fixed", text: "A fix" }, { category: "new", text: "A feature" }, { category: "improved", text: "Faster" }, { category: "bogus", text: "x" }, { category: "new", text: "" }],
-    hood: "Toolchain moved",
-  });
-  assert.deepEqual(n, ["Big thing", "New: A feature", "Improved: Faster", "Fixed: A fix", "Under the hood: Toolchain moved"]);
-  assert.deepEqual(assemble({ entries: [] }), []);
-  assert.ok(assemble({ highlights: ["x".repeat(1000)] })[0].length <= 300);
+const sample = {
+  summary: "A big one.",
+  highlights: [{ title: "Telegram", body: "Connect it." }, { title: "", body: "dropped" }, 7],
+  new: [{ title: "Servers", text: "See them." }],
+  improved: [{ title: "Home", text: "Faster." }],
+  fixed: [{ title: "Chat", text: "Works." }, { title: "graduation: failed x", text: "dropped" }],
+  bogus: [{ title: "x", text: "y" }],
+  under_the_hood: "Toolchain moved.",
+};
+
+test("tidy and assemble: invalid items dropped; highlight titles first, then New, Improved, Fixed, one Under the hood", () => {
+  const c = tidy(sample);
+  assert.deepEqual(c.highlights, [{ title: "Telegram", body: "Connect it." }]);
+  assert.equal(c.fixed.length, 1);
+  assert.equal("bogus" in c, false);
+  assert.deepEqual(assemble(c), ["Telegram", "New: Servers. See them.", "Improved: Home. Faster.", "Fixed: Chat. Works.", "Under the hood: Toolchain moved."]);
+  const many = assemble(tidy({ highlights: Array(4).fill({ title: "h", body: "b" }), new: Array(10).fill({ title: "n", text: "t" }), improved: Array(10).fill({ title: "i", text: "t" }), under_the_hood: "u" }));
+  assert.equal(many.length, 20);
+  assert.equal(many.at(-1), "Under the hood: u");
+  assert.ok(assemble(tidy({ new: [{ title: "x", text: "y".repeat(1000) }] }))[0].length <= 300);
 });
 
-test("clean and renderBody neutralise links, mentions, HTML and control characters; the graduation marks can't match", () => {
-  const one = clean(evil);
-  assert.ok(!/[\n<>`]|https?:|‮/.test(one), one);
-  const body = renderBody(assemble({ highlights: [evil], entries: [{ category: "new", text: evil }], hood: evil }), { lead: "Install: x", compare: "https://github.com/a/b/compare/1...2" });
-  assert.ok(!/@everyone|\[click\]|<img|https:\/\/evil/.test(body), body);
-  assert.match(body, /^## Highlights$/m);
-  assert.match(body, /^## New$/m);
-  assert.match(body, /^\*\*Under the hood:\*\* /m);
-  assert.match(body, /^Every change: https:\/\/github\.com\/a\/b\/compare\/1\.\.\.2$/m);
-  assert.ok(!rejected(body) && !new RegExp(`^${INCOMPLETE}\\b`, "m").test(body));
-  // Unprefixed notes (a hand-cut or old file) read as one plain list.
-  assert.match(renderBody(["One", "Two"]), /^## What's new\n\n- One\n- Two\n$/);
+test("renderBody: intro, highlight headings, lists, Under the hood; text neutralised; the graduation marks can't match", () => {
+  const body = renderBody({ changelog: sample }, { lead: "Install: x", compare: "https://github.com/a/b/compare/1...2" });
+  assert.match(body, /^A big one\.\n\n## Highlights\n\n### Telegram\n\nConnect it\.\n\n## New\n\n- \*\*Servers:\*\* See them\./);
+  assert.match(body, /^## Under the hood\n\nToolchain moved\.$/m);
+  assert.match(body, /^Install: x$/m);
+  assert.match(body, /^\*\*Every change:\*\* https:\/\/github\.com\/a\/b\/compare\/1\.\.\.2$/m);
+  const evilBody = renderBody({ changelog: { summary: evil, highlights: [{ title: evil, body: evil }], new: [{ title: evil, text: evil }], under_the_hood: evil } });
+  assert.ok(!/@everyone|\[click\]|<img|https:\/\/evil/.test(evilBody), evilBody);
+  assert.ok(!rejected(evilBody) && !new RegExp(`^${INCOMPLETE}\\b`, "m").test(evilBody));
+  assert.ok(!/[\n<>`]|https?:|\u202e/.test(clean(evil)));
+  // An internal-only release keeps its Under the hood paragraph; a leading list marker stays text.
+  assert.equal(renderBody({ changelog: { summary: "1. Quiet", under_the_hood: "- Tooling." } }), "1\\. Quiet\n\n## Under the hood\n\n&#45; Tooling.\n");
+  // No changelog (the commit-title fallback, a hand cut): the notes as sections, or one plain list when unprefixed.
+  assert.match(renderBody({ notes: ["New: A", "Fixed: B"] }), /^## New\n\n- A\n\n## Fixed\n\n- B\n$/);
+  assert.match(renderBody({ notes: ["One", "Two"] }), /^## What's new\n\n- One\n- Two\n$/);
 });
 
 test("fallback notes: commit titles, features then fixes, prefixed", () => {
@@ -43,28 +57,23 @@ const pull = (n, over = {}) => ({ number: n, title: `PR ${n}`, body: "b", merged
 const get = async (path) => (path.includes("/compare/") ? { commits: [{ sha: "a" }, { sha: "b" }] } : path.includes("/a/pulls") ? [pull(1), pull(9, { merged_at: null })] : [pull(1), pull(2), pull(3, { base: { ref: "x" } })]);
 const model = (content, ok = true) => async () => ({ ok, status: ok ? 200 : 500, json: async () => ({ choices: [{ message: { content } }] }) });
 
-test("withNotes: the model's notes replace the fallback; any failure keeps it with a warning", async () => {
-  const good = JSON.stringify({ highlights: ["H"], entries: [{ category: "new", text: "N" }], under_the_hood: "U" });
-  const r = await withNotes(manifest, "p", { get, key: "k", doFetch: model(good) });
-  assert.deepEqual(r.manifest.notes, ["H", "New: N", "Under the hood: U"]);
+test("withNotes: the model's changelog replaces the fallback; any failure keeps it with a warning", async () => {
+  const good = JSON.stringify({ summary: "S", highlights: [{ title: "H", body: "B" }], new: [{ title: "N", text: "T" }], under_the_hood: "U" });
+  const r = await withNotes(manifest, "p", { get, key: "k", doFetch: model("```json\n" + good + "\n```") });
+  assert.deepEqual(r.manifest.notes, ["H", "New: N. T", "Under the hood: U"]);
+  assert.equal(r.manifest.changelog.summary, "S");
   assert.equal(r.warning, "");
   for (const [why, opts] of Object.entries({
     "no key": { get, key: "", doFetch: model(good) },
     "http error": { get, key: "k", doFetch: model(good, false) },
     "not json": { get, key: "k", doFetch: model("nope") },
-    "bad category": { get, key: "k", doFetch: model(JSON.stringify({ highlights: [], entries: [{ category: "x", text: "t" }] })) },
+    "nothing valid": { get, key: "k", doFetch: model(JSON.stringify({ summary: "S", new: [{ title: "x" }] })) },
     "PR lookup": { get: async () => { throw new Error("boom"); }, key: "k", doFetch: model(good) },
   })) {
     const f = await withNotes(manifest, "p", opts);
     assert.deepEqual(f.manifest, manifest, why);
     assert.match(f.warning, /using commit titles/, why);
   }
-});
-
-test("assemble keeps the Under the hood line within the updater's first 20 notes; withNotes gives up at its deadline", async () => {
-  const n = assemble({ highlights: Array(5).fill("h"), entries: Array(20).fill({ category: "new", text: "e" }), hood: "u" });
-  assert.equal(n.length, 20);
-  assert.equal(n.at(-1), "Under the hood: u");
   const slow = await withNotes(manifest, "p", { get: () => new Promise(() => {}), key: "k", doFetch: model("{}"), deadlineMs: 20 });
   assert.deepEqual(slow.manifest, manifest);
   assert.match(slow.warning, /deadline/);

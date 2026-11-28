@@ -339,7 +339,7 @@ async function mirror() {
   const prev = await previousKernel(id.tag, DISTRO, publicApi);
   // Latest only while it is distro's latest: a retry of an older release never moves the product's latest back.
   const latest = (await api(`repos/${DISTRO}/releases/latest`, { allow404: true }))?.tag_name === id.tag;
-  const body = renderBody(file.notes ?? [], { compare: compareLink(KERNEL, prev, id.kernel) });
+  const body = renderBody(file, { compare: compareLink(KERNEL, prev, id.kernel) });
   await api(`repos/${KERNEL}/releases`, { method: "POST", auth, body: { tag_name: id.tag, name: `AidenHQ ${id.tag}`, target_commitish: id.kernel, body, make_latest: String(latest) } });
   summary(`**Published ${id.tag}** as a release on ${KERNEL} (${id.kernel.slice(0, 12)}).`);
 }

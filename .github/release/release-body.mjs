@@ -23,5 +23,5 @@ if (import.meta.main) {
   const file = JSON.parse(readFileSync(process.argv[2], "utf8"));
   const repo = process.env.GITHUB_REPOSITORY, tag = process.env.TAG;
   const link = compareLink("Aiden-HQ/AidenHQ", await previousKernel(tag, repo), file.kernel);
-  process.stdout.write(renderBody(file.notes ?? [], { lead: `Install: \`curl -fsSL https://github.com/${repo}/releases/download/${tag}/install.sh | sh\``, compare: link }));
+  process.stdout.write(renderBody(file, { lead: `Install: \`curl -fsSL https://github.com/${repo}/releases/download/${tag}/install.sh | sh\``, compare: link }));
 }
