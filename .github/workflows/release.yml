@@ -418,6 +418,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
       # `suites` names what vouches for the kernel (product CI, checked in the test job); deployed updaters require a non-empty list.
       - name: Write tested, bake install.sh
         run: |
@@ -440,7 +443,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           api() { printf 'Authorization: Bearer %s\nAccept: application/vnd.github+json\n' "$GH_TOKEN" | curl -fsS -H @- "$@"; }
-          body=$(jq -n --arg t "$TAG" --arg n "Install: \`curl -fsSL https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/install.sh | sh\`. Tested: $(jq -c .tested "dist/$TAG.json")" \
+          # The notes are model/commit text rendered as escaped Markdown by release-body.mjs (graduation's line-start marks can't match).
+          notes=$(GITHUB_TOKEN="$GH_TOKEN" node .github/release/release-body.mjs "dist/$TAG.json")
+          body=$(jq -n --arg t "$TAG" --arg n "$notes"$'\n\n'"Tested: $(jq -c .tested "dist/$TAG.json")" \
             '{ tag_name: $t, name: "AidenHQ \($t)", body: $n, draft: true }')
           id=$(api -X POST "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases" -d "$body" | jq -er .id)
           for f in install.sh "$TAG.json"; do

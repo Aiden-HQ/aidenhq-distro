@@ -13,6 +13,8 @@
 #   promote  (contents: write) never runs a release's code or reads the instance: checks the result against select's identity,
 #            the test job's success and the release (tag commit, asset digests) through the API, then graduates it; refuses
 #            to move latest back; a re-run of a graduated release does nothing. It closes the open "didn't finish" issues, older rejected cuts' issues and the stall issue.
+#   mirror   (own job, after promote) the product repo's release for it, with the notes: a GitHub App token for that repo
+#            (contents: write), only when its secrets are set; a failure opens one issue and leaves the graduation alone.
 #   reject   (contents: write, issues: write) when test or promote failed: the rejected mark and one issue. A rejected
 #            release stays a pre-release; the next candidate is tested from the same baseline.
 # Triggers: release.yml dispatches it when its publish succeeds (its `graduate` job; not workflow_run, which never fires for
@@ -176,6 +178,55 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node .github/release/graduate.mjs promote "$RUNNER_TEMP/result/result.json"
+
+  # The graduated release on the product repo, so its releases page shows what changed. A job of its own (a failure opens one
+  # issue and never touches the graduation; re-run the job to retry). It runs only when PRODUCT_RELEASE_APP_ID and
+  # PRODUCT_RELEASE_APP_KEY (a GitHub App with contents: write on Aiden-HQ/AidenHQ only) are set, and only this job sees them.
+  mirror:
+    needs: [select, promote]
+    if: needs.promote.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    env:
+      IDENTITY: ${{ needs.select.outputs.identity }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - id: cfg
+        env:
+          APP_ID: ${{ secrets.PRODUCT_RELEASE_APP_ID }}
+          APP_KEY: ${{ secrets.PRODUCT_RELEASE_APP_KEY }}
+        run: |
+          if [ -n "$APP_ID" ] && [ -n "$APP_KEY" ]; then echo "on=true" >> "$GITHUB_OUTPUT"
+          else echo "::warning::PRODUCT_RELEASE_APP_ID or PRODUCT_RELEASE_APP_KEY isn't set: no release is created on the product repo"; fi
+      - if: steps.cfg.outputs.on == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - if: steps.cfg.outputs.on == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+      - if: steps.cfg.outputs.on == 'true'
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.PRODUCT_RELEASE_APP_ID }}
+          private-key: ${{ secrets.PRODUCT_RELEASE_APP_KEY }}
+          owner: Aiden-HQ
+          repositories: AidenHQ
+          permission-contents: write
+      - if: steps.cfg.outputs.on == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PRODUCT_TOKEN: ${{ steps.app.outputs.token }}
+        run: node .github/release/graduate.mjs mirror
+      - if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/release/graduate.mjs mirror-failed
 
   # Only the candidate's own failed checks reject it (the test failed after the upgrade started, verdict "failed"). A failure
   # before the upgrade (the baseline, the runner), an incomplete or missing verdict (a rate limit, a step or the job cut short

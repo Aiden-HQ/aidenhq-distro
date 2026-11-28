@@ -3,6 +3,8 @@
 //   node .github/release/graduate.mjs select        the candidate and its baseline (a dry run without $GITHUB_OUTPUT)
 //   node .github/release/graduate.mjs env [candidate] [baseline]   the test job's env as shell exports (a manual VM run)
 //   node .github/release/graduate.mjs promote <result.json>   (IDENTITY, RUN_ID) graduate it: not a pre-release, latest
+//   node .github/release/graduate.mjs mirror       (IDENTITY, PRODUCT_TOKEN) after promote: the product repo's release for it
+//   node .github/release/graduate.mjs mirror-failed (IDENTITY, RUN_URL) open the one issue when mirror failed
 //   node .github/release/graduate.mjs reject        (IDENTITY, RUN_URL, BASELINE, TEST_RESULT, REACHED, VERDICT,
 //                                                   PROMOTE_RESULT) mark it rejected and open one issue when its own checks
 //                                                   failed, or after its 3rd run that reached it without a verdict; anything
@@ -17,6 +19,9 @@
 import { createHash } from "node:crypto";
 import { appendFileSync, readFileSync } from "node:fs";
 import { isDeepStrictEqual } from "node:util";
+import { api as publicApi } from "./nightly.mjs";
+import { compareLink, renderBody } from "./notes.mjs";
+import { previousKernel } from "./release-body.mjs";
 
 export const DISTRO = process.env.GITHUB_REPOSITORY || "Aiden-HQ/aidenhq-distro";
 const KERNEL = "Aiden-HQ/AidenHQ";
@@ -184,10 +189,10 @@ export function rateLimitWait(status, h, now = Date.now()) {
   return status === 429 ? 60_000 : null; // a 403 without the limit's headers is a refusal, not a limit
 }
 
-async function api(path, { method = "GET", body, allow404 = false } = {}) {
+async function api(path, { method = "GET", body, allow404 = false, auth = token } = {}) {
   for (let i = 0, limited = 0; ; ) {
     const r = await fetch(`https://api.github.com/${path}`, {
-      method, headers: { accept: "application/vnd.github+json", "user-agent": "aidenhq-graduate", ...(token ? { authorization: `Bearer ${token}` } : {}), ...(body ? { "content-type": "application/json" } : {}) },
+      method, headers: { accept: "application/vnd.github+json", "user-agent": "aidenhq-graduate", ...(auth ? { authorization: `Bearer ${auth}` } : {}), ...(body ? { "content-type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(30_000),
     }).catch((e) => ({ ok: false, status: 0, headers: new Headers(), text: async () => String(e) }));
     if (allow404 && r.status === 404) return null;
@@ -208,10 +213,11 @@ async function allReleases() {
   }
 }
 /** The commit a tag names (an annotated tag is followed to its commit). */
-async function tagCommit(tag) {
-  let o = (await api(`repos/${DISTRO}/git/ref/tags/${tag}`)).object;
-  while (o.type === "tag") o = (await api(`repos/${DISTRO}/git/tags/${o.sha}`)).object;
-  return o.sha;
+async function tagCommit(tag, repo = DISTRO, opts = {}) {
+  const ref = await api(`repos/${repo}/git/ref/tags/${tag}`, opts);
+  let o = ref?.object;
+  while (o?.type === "tag") o = (await api(`repos/${repo}/git/tags/${o.sha}`, opts)).object;
+  return o?.sha ?? null;
 }
 /** The release's own <tag>.json asset, checked against its digest. */
 async function releaseFile(release) {
@@ -312,6 +318,38 @@ async function promote(file) {
   summary(`**Graduated ${id.tag}** from ${result.baseline}: it is the latest release; installs and get.aidenhq.ai take it.`);
 }
 
+/**
+ * The graduated release on the product repo (graduate.yml `mirror`, after promote; its own job so a retry never touches the
+ * graduation): a GitHub Release named and tagged with the release name at the verified kernel commit, with the notes and a link
+ * to every change since the previous published release. PRODUCT_TOKEN is an App token with contents: write on that repo only.
+ * An existing tag must already name that commit (GitHub ignores target_commitish for a tag that exists); a release that is
+ * already there is success.
+ */
+async function mirror() {
+  const id = checkIdentity(JSON.parse(process.env.IDENTITY ?? ""));
+  const auth = process.env.PRODUCT_TOKEN;
+  if (!auth) throw new Error("PRODUCT_TOKEN is not set");
+  const release = await api(`repos/${DISTRO}/releases/${id.release_id}`);
+  if (!isDeepStrictEqual(assetsOf(release), id.assets)) throw new Error(`${id.tag}'s assets changed since it was selected`);
+  const file = await releaseFile(release);
+  if (file.kernel !== id.kernel || file.release !== id.tag) throw new Error(`${id.tag}.json doesn't match the selected identity`);
+  const tagSha = await tagCommit(id.tag, KERNEL, { auth, allow404: true });
+  if (tagSha && tagSha !== id.kernel) throw new Error(`${KERNEL} already has a tag ${id.tag}, on ${tagSha.slice(0, 12)}, not the release's kernel ${id.kernel.slice(0, 12)}`);
+  if (await api(`repos/${KERNEL}/releases/tags/${id.tag}`, { auth, allow404: true })) { summary(`**${id.tag}** is already a release on ${KERNEL}.`); return; }
+  const prev = await previousKernel(id.tag, DISTRO, publicApi);
+  // Latest only while it is distro's latest: a retry of an older release never moves the product's latest back.
+  const latest = (await api(`repos/${DISTRO}/releases/latest`, { allow404: true }))?.tag_name === id.tag;
+  const body = renderBody(file.notes ?? [], { compare: compareLink(KERNEL, prev, id.kernel) });
+  await api(`repos/${KERNEL}/releases`, { method: "POST", auth, body: { tag_name: id.tag, name: `AidenHQ ${id.tag}`, target_commitish: id.kernel, body, make_latest: String(latest) } });
+  summary(`**Published ${id.tag}** as a release on ${KERNEL} (${id.kernel.slice(0, 12)}).`);
+}
+
+/** The mirror job failed: one issue (the graduation itself stands); re-run the job to retry. */
+async function mirrorFailed() {
+  const id = checkIdentity(JSON.parse(process.env.IDENTITY ?? ""));
+  await openIssue(`Product release for ${id.tag} didn't publish`, `${id.tag} graduated, but its release on ${KERNEL} wasn't created (the product token, or the tag there). The graduation stands. Re-run the failed \`mirror\` job of this run to retry: ${process.env.RUN_URL}`);
+}
+
 async function reject() {
   const id = checkIdentity(JSON.parse(process.env.IDENTITY ?? ""));
   const run = String(process.env.RUN_URL ?? "");
@@ -357,8 +395,10 @@ if (import.meta.main) {
     else if (cmd === "env") await env(arg, process.argv[4]);
     else if (cmd === "promote" && arg) await promote(arg);
     else if (cmd === "reject") await reject();
+    else if (cmd === "mirror") await mirror();
+    else if (cmd === "mirror-failed") await mirrorFailed();
     else if (cmd === "rejected") console.log((await allReleases()).filter((r) => r.prerelease && NAME.test(r.tag_name) && rejected(r.body)).map((r) => r.tag_name).join(" "));
-    else { console.error("usage: graduate.mjs select | env [candidate] [baseline] | promote <result.json> | reject | rejected"); process.exitCode = 2; }
+    else { console.error("usage: graduate.mjs select | env [candidate] [baseline] | promote <result.json> | mirror | mirror-failed | reject | rejected"); process.exitCode = 2; }
   } catch (e) {
     (cmd === "env" ? console.error : console.log)(`::error::${e.message}`); // env's stdout is eval'd
     process.exitCode = 1;
