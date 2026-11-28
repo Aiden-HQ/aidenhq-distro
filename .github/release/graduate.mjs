@@ -308,7 +308,7 @@ async function promote(file) {
   const [release, tagSha, latest] = await Promise.all([api(`repos/${DISTRO}/releases/${id.release_id}`), tagCommit(id.tag), api(`repos/${DISTRO}/releases/latest`, { allow404: true })]);
   const d = decide({ release, tagSha, latest: latest?.tag_name, id });
   if (d === "done") { summary(`**${id.tag} is already graduated** (latest).`); return; }
-  await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { prerelease: false, make_latest: String(latest) } });
+  await api(`repos/${DISTRO}/releases/${id.release_id}`, { method: "PATCH", body: { prerelease: false, make_latest: "true" } });
   const now = await api(`repos/${DISTRO}/releases/latest`);
   if (now.tag_name !== id.tag) throw new Error(`after promotion GitHub's latest is ${now.tag_name}, not ${id.tag}`);
   for (const i of closable(await api(`repos/${DISTRO}/issues?state=open&creator=github-actions%5Bbot%5D&per_page=100`), id.tag)) {
@@ -340,7 +340,7 @@ async function mirror() {
   // Latest only while it is distro's latest: a retry of an older release never moves the product's latest back.
   const latest = (await api(`repos/${DISTRO}/releases/latest`, { allow404: true }))?.tag_name === id.tag;
   const body = renderBody(file.notes ?? [], { compare: compareLink(KERNEL, prev, id.kernel) });
-  await api(`repos/${KERNEL}/releases`, { method: "POST", auth, body: { tag_name: id.tag, name: `AidenHQ ${id.tag}`, target_commitish: id.kernel, body, make_latest: "true" } });
+  await api(`repos/${KERNEL}/releases`, { method: "POST", auth, body: { tag_name: id.tag, name: `AidenHQ ${id.tag}`, target_commitish: id.kernel, body, make_latest: String(latest) } });
   summary(`**Published ${id.tag}** as a release on ${KERNEL} (${id.kernel.slice(0, 12)}).`);
 }
 

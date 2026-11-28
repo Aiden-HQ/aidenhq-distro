@@ -82,4 +82,5 @@ if (import.meta.main) {
   writeFileSync(process.argv[2], `${JSON.stringify(manifest)}\n`);
   console.log(manifest.notes.map((n) => `  ${n}`).join("\n"));
   if (warning) { console.log(`::warning::${warning}`); if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${warning}\n`); }
+  process.exit(0); // a deadline leaves requests in flight: end the step now
 }
