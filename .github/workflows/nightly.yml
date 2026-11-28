@@ -5,7 +5,7 @@
 # upgrades a test instance to it; only a release that graduates is what get.aidenhq.ai and the updaters serve.
 # 18:00 UTC: built and published (about 20 minutes) before installs update, 02:00-05:00 in their own timezone.
 # Hold the nightlies: `gh workflow disable nightly.yml -R Aiden-HQ/aidenhq-distro` (enable to resume).
-# No secrets: the built-in token commits the release file to main (the main ruleset only blocks deletion and force-push), pushes
+# One secret, GRADUATE_OPENROUTER_KEY, only for the `cut` job's release-notes step (changelog.mjs). The built-in token commits the release file to main (the main ruleset only blocks deletion and force-push), pushes
 # the tag and dispatches release.yml on it (a tag pushed with GITHUB_TOKEN starts no workflow; a dispatch does, and the updater
 # accepts a release.yml run dispatched on the tag). Every job runs from main only (a dispatch from another branch does nothing).
 name: nightly
@@ -34,6 +34,7 @@ jobs:
     outputs:
       go: ${{ steps.decide.outputs.go }}
       name: ${{ steps.decide.outputs.name }}
+      prev: ${{ steps.decide.outputs.prev }}
       manifest: ${{ steps.decide.outputs.manifest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -78,13 +79,27 @@ jobs:
       REL: ${{ needs.decide.outputs.name }}
       MANIFEST: ${{ needs.decide.outputs.manifest }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: images.json
           path: built
+      # User-facing notes from the product PRs since the previous published release, ranked by one model call; any failure keeps
+      # the commit-title notes (a warning in the summary). Only this step sees the model key.
+      - name: Release notes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENROUTER_API_KEY: ${{ secrets.GRADUATE_OPENROUTER_KEY }}
+          PREV: ${{ needs.decide.outputs.prev }}
+        run: node .github/release/changelog.mjs manifest.json
       - name: The release file, with its images
         run: |
-          printf '%s\n' "$MANIFEST" | jq -S --slurpfile i built/images.json '. + $i[0]' > release.json
+          jq -S --slurpfile i built/images.json '. + $i[0]' manifest.json > release.json
           jq -e --arg r "$REL" '.release == $r and (.images | length > 0) and (.notes | type == "array")' release.json >/dev/null
           cat release.json
       # A new file on main (refused if it exists), the tag on that commit, then the tag run. The token goes to curl on stdin.

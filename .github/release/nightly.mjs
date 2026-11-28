@@ -3,6 +3,7 @@
 //   node .github/release/nightly.mjs            print the decision and the release file it would cut (a dry run)
 //   node .github/release/nightly.mjs <file>     also write the release file there and the decision to $GITHUB_OUTPUT
 // Cut when product main's sha moved since the newest published release and its `ci-required` check passed on that commit.
+// `prev` is the newest published release's kernel: the changelog step (changelog.mjs) reads the product's merged PRs between it and `kernel`.
 // One product sha is the whole set: the official modules are its own modules/ tree. The release file has no `images` (the
 // build adds them) and no `tested` (publish).
 import { appendFileSync, writeFileSync } from "node:fs";
@@ -37,8 +38,8 @@ export function note(subject) {
   return s && s[0].toUpperCase() + s.slice(1);
 }
 
-/** Up to 20 notes (the updater shows 20, the owner's message the first 5): authority, features, fixes, then host setup. */
-export function notes(commits, { authority = [], host = [] } = {}) {
+/** The commit-title fallback notes (the nightly's changelog step replaces them when it can): features, then fixes, deduplicated, at most 20. */
+export function notes(commits) {
   const seen = new Set(), feats = [], fixes = [];
   for (const c of commits) {
     const n = note(c.commit.message.split("\n")[0]);
@@ -46,17 +47,7 @@ export function notes(commits, { authority = [], host = [] } = {}) {
     seen.add(n.toLowerCase());
     (/^feat/i.test(c.commit.message) ? feats : fixes).push(n);
   }
-  return [...[...authority, ...feats, ...fixes].slice(0, 20 - host.length), ...host];
-}
-
-/** Cheap, approximate flags from the product's changed files (the kernel's authority diff is the real check, at apply). */
-export function flagsOf(files) {
-  const out = { authority: [], host: [] };
-  const authority = /^\+\s*(writes|privileged|default_grants|roles|isolation|secrets|connections)\s*:|^\+.*:\s*write\s*$/m;
-  const mods = [...new Set(files.filter((f) => /^modules\/[^/]+\/module\.yaml$/.test(f.filename) && (!f.patch || authority.test(f.patch))).map((f) => f.filename.split("/")[1]))];
-  if (mods.length) out.authority.push(`May add authority (grants, writes, roles or secrets) in: ${mods.join(", ")}. Auto-updates accept it; turn them off to review first.`);
-  if (files.some((f) => /^ops\/(setup\.sh|vm\/)/.test(f.filename))) out.host.push("Host setup changed (ops/setup.sh or ops/vm): an update runs apply only, so running the installer again may be needed (curl -fsSL https://get.aidenhq.ai | sh).");
-  return out;
+  return [...feats.map((n) => `New: ${n}`), ...fixes.map((n) => `Fixed: ${n}`)].slice(0, 20);
 }
 
 /** The release name for `day`: Y.M.D, then Y.M.D.1, .2 … while a tag or a release file already has it. */
@@ -109,8 +100,8 @@ export async function decide({ now = new Date(), waitMin = 0, get = api, kernel 
     const re = src && /const NAME = \/(.+)\/;/.exec(Buffer.from(src.content, "base64").toString("utf8"))?.[1];
     if (!re || !new RegExp(re).test(name)) return { go: false, why: `${name} is a day's second cut, and the kernel at ${head.slice(0, 12)} doesn't accept four-part names yet`, ...base };
   }
-  const release = { release: name, kernel: head, kernel_repo: KERNEL, notes: notes([...pc.commits].reverse(), flagsOf(pc.files ?? [])) };
-  return { go: true, why: `${KERNEL} ${prev.kernel.slice(0, 12)}..${head.slice(0, 12)} (${pc.ahead_by} commits)`, name, release, ...base };
+  const release = { release: name, kernel: head, kernel_repo: KERNEL, notes: notes([...pc.commits].reverse()) };
+  return { go: true, why: `${KERNEL} ${prev.kernel.slice(0, 12)}..${head.slice(0, 12)} (${pc.ahead_by} commits)`, name, release, prev: prev.kernel, ...base };
 }
 
 if (import.meta.main) {
@@ -119,6 +110,6 @@ if (import.meta.main) {
   console.log(`${d.go ? `cut ${d.name}` : "skip"}: ${d.why} (since ${d.last}; main ${d.head})`);
   if (d.go) console.log(JSON.stringify(d.release, null, 2));
   if (out && d.go) writeFileSync(out, `${JSON.stringify(d.release, null, 2)}\n`);
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `go=${d.go}\nname=${d.name ?? ""}\nwhy=${d.why.replace(/\n/g, " ")}\nmanifest=${d.go ? JSON.stringify(d.release) : ""}\n`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `go=${d.go}\nname=${d.name ?? ""}\nprev=${d.prev ?? ""}\nwhy=${d.why.replace(/\n/g, " ")}\nmanifest=${d.go ? JSON.stringify(d.release) : ""}\n`);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${d.go ? `**Cutting ${d.name}**` : "**No release tonight**"}: ${d.why}\n${d.go ? `\n${d.release.notes.map((n) => `- ${n}`).join("\n")}\n` : ""}`);
 }

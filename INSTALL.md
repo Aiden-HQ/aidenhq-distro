@@ -181,8 +181,8 @@ that fails stays a pre-release, marked `graduation: failed <run>` in its notes, 
 have it tested again. To graduate one by hand: `gh release edit <tag> -R Aiden-HQ/aidenhq-distro --prerelease=false --latest`
 (README "Release graduation").
 
-A release file may carry `notes`: an array of strings saying what changed (and whether the release adds new
-authority to any module). Installs show them when the release is available, and in the message after it installs.
+A release file may carry `notes`: an array of strings saying what changed (the nightly writes them: Highlights first, then `New:`, `Improved:` and
+`Fixed:` items and one `Under the hood:` line). Installs show them when the release is available, and in the message after it installs.
 
 Installs pick a new release up on their own (the product's `kernel/src/updates.ts`): they read the newest release tag
 over https from this repository that is a graduated release (published and not a pre-release, from GitHub's Releases API),

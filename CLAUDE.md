@@ -16,7 +16,7 @@ gitignored `CLAUDE.local.md`, never in this file.
 - `installer/`: `test.sh` (offline test of the release checks) and `RESEARCH.md` (design notes).
 - `releases/<name>.json`: one manifest per release. Cut by the nightly or by hand (README "Cut one by hand").
 - `.github/workflows/`: `ci` (installer + site), `nightly` (decide, build, cut), `release` (tag run: verify, test,
-  publish as pre-release), `graduate` (upgrade a test instance, promote to latest). Their scripts are in
+  publish as pre-release), `graduate` (upgrade a test instance, promote to latest, mirror the release to the product repo). Their scripts are in
   `.github/release/`.
 - `site/`: the aidenhq.ai pages. Plain HTML with `<!--#include NAME-->` partials from `site/_partials/`; every page has
   a markdown twin (`index.md`) and a sitemap entry.
@@ -28,7 +28,7 @@ Offline, no token or key needed. Node 24 runs the scripts; Bun 1.4.5 runs the te
 
 ```sh
 sh installer/test.sh && dash installer/test.sh   # installer release checks (CI also runs shellcheck on every .sh)
-bun test ./.github/release/graduate.test.mjs ./.github/release/image-key.test.mjs
+bun test ./.github/release/graduate.test.mjs ./.github/release/image-key.test.mjs ./.github/release/notes.test.mjs
 sh web/build.sh && bun test ./web/worker.test.mjs   # site build + web/check-site.mjs (tags, links, twins, sitemap)
 ```
 

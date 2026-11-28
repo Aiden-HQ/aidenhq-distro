@@ -82,10 +82,9 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    If it equals the newest published release's `kernel`, it stops. It also skips while product main has no
    `modules/marketplace.json` (the official modules not yet in the product). Otherwise it waits up to 45 minutes for
    product main's `ci-required` check and skips the night unless that check passed. The release file pins that one
-   product sha. Its `notes` come from the product's `feat`, `fix` and `perf` commit subjects since the last release's
-   kernel sha: features first, deduplicated, at most 20. The notes start with a flag when a release may add module
-   authority, read approximately from `modules/<name>/module.yaml` diffs. They end with a flag when it touches
-   host setup (`ops/setup.sh` or `ops/vm/`). A day's second cut waits until product main's kernel accepts four-part
+   product sha. Its `notes` start as the product's `feat` and `fix` commit titles since the last published release's kernel
+   sha (`New:` then `Fixed:`, deduplicated, at most 20); the cut step replaces them (3).
+   A day's second cut waits until product main's kernel accepts four-part
    names.
 2. **Build.** It calls [`release.yml`](.github/workflows/release.yml)'s plan, images and collect jobs. Together they give
    every image the product checkout builds (its kernel and its `modules/`) for amd64 and arm64, but build only what
@@ -95,15 +94,23 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    digest. A changed image builds each platform on its own native runner (`ubuntu-latest` for amd64,
    `ubuntu-24.04-arm` for arm64, no emulation) and collect merges the two. A new week rebuilds everything once, so
    unpinned base images and apt packages pick up security updates; bump `KEY_VERSION` to force a full rebuild.
-3. **Cut.** It commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
+3. **Cut.** First [`changelog.mjs`](.github/release/changelog.mjs) writes user-facing notes: it lists the merged product PRs
+   between the newest *published* release's kernel and this one's (that release may be a rejected pre-release, so an
+   upgrader skipping it gets the compare link in the release body for the full set) and makes one tool-free call to
+   `~deepseek/deepseek-flash-latest` (the `GRADUATE_OPENROUTER_KEY` secret) that ranks them: a few Highlights, then `New:`,
+   `Improved:` and `Fixed:` items and one `Under the hood:` line. PR text is untrusted data; the answer only becomes
+   `notes` text ([`notes.mjs`](.github/release/notes.mjs) strips links and control characters). Any failure keeps the
+   commit-title notes and warns in the step summary; a dry run never calls the model. Then it commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
    on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
    A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
    `release.yml` run on the tag, whether a push or a dispatch.
 4. **Check and publish.** The tag run is the same as for a hand cut: fetch, verify and check it on a fresh runner, then publish it
-   as a pre-release. Nothing takes it yet.
+   as a pre-release. Its body lists the notes as sections (Highlights, New, Improved, Fixed, Under the hood, all escaped) and a
+   link to every product change since the previous published release. Nothing takes it yet.
 5. **Graduate.** [`graduate.yml`](.github/workflows/graduate.yml) upgrades a test instance to it (below). Once it
    graduates, installs' updaters pick it up that night, between 02:00 and 05:00 in their own timezone, and get.aidenhq.ai
-   serves it within minutes.
+   serves it within minutes. Its own `mirror` job then creates the same release (notes and compare link) on the product
+   repo, tagged at the kernel commit, so the product's releases page shows what changed; see Release graduation.
 
 A tag run that doesn't publish deletes its tag and any draft release, then opens an issue, so nothing untested is ever
 offered. A failed nightly before the tag only opens an issue. A failed release leaves its file on main, and its name is
@@ -186,6 +193,12 @@ release the nightly started with `GITHUB_TOKEN`), and runs every 6 hours to catc
    selected release and baseline with every check passed; through the API, this run's test job succeeded and the
    release's tag commit and asset digests are still the ones selected. Then the release is made a full release and
    latest. It refuses to move latest back to an older release; a re-run on a graduated release does nothing.
+3a. **Mirror** (`graduate.mjs mirror`, its own job after promote): creates a GitHub Release on Aiden-HQ/AidenHQ named and
+   tagged with the release name at the verified kernel commit, with the notes and the compare link (an existing tag there
+   must name that commit; a release already there is success). It reads the graduated release file through the same
+   digest-checked reader. It uses a GitHub App token for that repo (`contents: write`) made from the secrets
+   `PRODUCT_RELEASE_APP_ID` and `PRODUCT_RELEASE_APP_KEY`, seen by this job only; without them it is skipped with a
+   warning. A failure opens one issue and leaves the graduation alone; re-run the `mirror` job to retry.
 4. **Reject**, only for the candidate's own failure: the test failed after the upgrade started and one of its checks
    ran and said no. The line `graduation: failed <run url>` is added to the release's notes and one issue is opened. A
    rejected release stays a pre-release for good; the next candidate is tested from the same baseline, and release.yml's
