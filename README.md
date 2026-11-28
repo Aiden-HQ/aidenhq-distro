@@ -97,16 +97,19 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
 3. **Cut.** First [`changelog.mjs`](.github/release/changelog.mjs) writes user-facing notes: it lists the merged product PRs
    between the newest *published* release's kernel and this one's (that release may be a rejected pre-release, so the release body's compare link starts at the last
    graduated release instead and covers everything an upgrader gets) and makes one tool-free call to
-   `~deepseek/deepseek-flash-latest` (the `GRADUATE_OPENROUTER_KEY` secret) that ranks them: a few Highlights, then `New:`,
-   `Improved:` and `Fixed:` items and one `Under the hood:` line. PR text is untrusted data; the answer only becomes
-   `notes` text ([`notes.mjs`](.github/release/notes.mjs) strips links and control characters). Any failure keeps the
+   `google/gemini-4-neon` (the `GRADUATE_OPENROUTER_KEY` secret) that writes the release's `changelog`: an intro paragraph,
+   the 1 to 4 most important changes as highlights with a short write-up each, then New, Improved and Fixed items ranked by
+   how much they matter to a user, and one Under the hood paragraph. Its `notes` (the updater's list) are derived from it:
+   highlight titles, then `New:`, `Improved:` and `Fixed:` items and one `Under the hood:` line. PR text is untrusted data;
+   the answer only becomes plain text fields ([`notes.mjs`](.github/release/notes.mjs) strips links and control characters,
+   and escapes every field when rendering). Any failure keeps the
    commit-title notes and warns in the step summary; a dry run never calls the model. Then it commits `releases/<name>.json` with its `images` to main, tags that commit and dispatches `release.yml`
    on the tag. It does all three with the built-in `GITHUB_TOKEN`; the main ruleset only blocks deletion and force-push.
    A tag pushed with that token starts no workflow, so the run is a dispatch on the tag. Installs' updaters accept a
    `release.yml` run on the tag, whether a push or a dispatch.
 4. **Check and publish.** The tag run is the same as for a hand cut: fetch, verify and check it on a fresh runner, then publish it
-   as a pre-release. Its body lists the notes as sections (Highlights, New, Improved, Fixed, Under the hood, all escaped) and a
-   link to every product change since the last graduated release. Nothing takes it yet.
+   as a pre-release. Its body is the changelog (intro, highlights, New, Improved, Fixed, Under the hood; the notes as sections when there is
+   no changelog), the install line and a link to every product change since the last graduated release. Nothing takes it yet.
 5. **Graduate.** [`graduate.yml`](.github/workflows/graduate.yml) upgrades a test instance to it (below). Once it
    graduates, installs' updaters pick it up that night, between 02:00 and 05:00 in their own timezone, and get.aidenhq.ai
    serves it within minutes. Its own `mirror` job then creates the same release (notes and compare link) on the product
