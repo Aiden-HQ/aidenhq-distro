@@ -60,3 +60,12 @@ test("withNotes: the model's notes replace the fallback; any failure keeps it wi
     assert.match(f.warning, /using commit titles/, why);
   }
 });
+
+test("assemble keeps the Under the hood line within the updater's first 20 notes; withNotes gives up at its deadline", async () => {
+  const n = assemble({ highlights: Array(5).fill("h"), entries: Array(20).fill({ category: "new", text: "e" }), hood: "u" });
+  assert.equal(n.length, 20);
+  assert.equal(n.at(-1), "Under the hood: u");
+  const slow = await withNotes(manifest, "p", { get: () => new Promise(() => {}), key: "k", doFetch: model("{}"), deadlineMs: 20 });
+  assert.deepEqual(slow.manifest, manifest);
+  assert.match(slow.warning, /deadline/);
+});

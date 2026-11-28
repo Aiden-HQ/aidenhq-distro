@@ -197,9 +197,10 @@ jobs:
       - id: cfg
         env:
           APP_ID: ${{ secrets.PRODUCT_RELEASE_APP_ID }}
+          APP_KEY: ${{ secrets.PRODUCT_RELEASE_APP_KEY }}
         run: |
-          if [ -n "$APP_ID" ]; then echo "on=true" >> "$GITHUB_OUTPUT"
-          else echo "::warning::PRODUCT_RELEASE_APP_ID isn't set: no release is created on the product repo"; fi
+          if [ -n "$APP_ID" ] && [ -n "$APP_KEY" ]; then echo "on=true" >> "$GITHUB_OUTPUT"
+          else echo "::warning::PRODUCT_RELEASE_APP_ID or PRODUCT_RELEASE_APP_KEY isn't set: no release is created on the product repo"; fi
       - if: steps.cfg.outputs.on == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

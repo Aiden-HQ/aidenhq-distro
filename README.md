@@ -95,8 +95,8 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    `ubuntu-24.04-arm` for arm64, no emulation) and collect merges the two. A new week rebuilds everything once, so
    unpinned base images and apt packages pick up security updates; bump `KEY_VERSION` to force a full rebuild.
 3. **Cut.** First [`changelog.mjs`](.github/release/changelog.mjs) writes user-facing notes: it lists the merged product PRs
-   between the newest *published* release's kernel and this one's (that release may be a rejected pre-release, so an
-   upgrader skipping it gets the compare link in the release body for the full set) and makes one tool-free call to
+   between the newest *published* release's kernel and this one's (that release may be a rejected pre-release, so the release body's compare link starts at the last
+   graduated release instead and covers everything an upgrader gets) and makes one tool-free call to
    `~deepseek/deepseek-flash-latest` (the `GRADUATE_OPENROUTER_KEY` secret) that ranks them: a few Highlights, then `New:`,
    `Improved:` and `Fixed:` items and one `Under the hood:` line. PR text is untrusted data; the answer only becomes
    `notes` text ([`notes.mjs`](.github/release/notes.mjs) strips links and control characters). Any failure keeps the
@@ -106,7 +106,7 @@ Every day at 18:00 UTC, [`nightly.yml`](.github/workflows/nightly.yml) does the 
    `release.yml` run on the tag, whether a push or a dispatch.
 4. **Check and publish.** The tag run is the same as for a hand cut: fetch, verify and check it on a fresh runner, then publish it
    as a pre-release. Its body lists the notes as sections (Highlights, New, Improved, Fixed, Under the hood, all escaped) and a
-   link to every product change since the previous published release. Nothing takes it yet.
+   link to every product change since the last graduated release. Nothing takes it yet.
 5. **Graduate.** [`graduate.yml`](.github/workflows/graduate.yml) upgrades a test instance to it (below). Once it
    graduates, installs' updaters pick it up that night, between 02:00 and 05:00 in their own timezone, and get.aidenhq.ai
    serves it within minutes. Its own `mirror` job then creates the same release (notes and compare link) on the product

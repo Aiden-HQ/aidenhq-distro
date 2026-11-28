@@ -56,21 +56,30 @@ export async function rank(prs, key, doFetch = fetch) {
 }
 
 /** The manifest with the model's notes, or the manifest as it was and why. */
-export async function withNotes(manifest, prev, { get = api, key = "", doFetch = fetch } = {}) {
+export async function withNotes(manifest, prev, { get = api, key = "", doFetch = fetch, deadlineMs = 240_000 } = {}) {
+  let timer;
   try {
-    const prs = await pullsBetween(get, prev, manifest.kernel);
-    if (!prs.length) throw new Error("no merged PRs in the range");
-    const notes = assemble(await rank(prs, key, doFetch));
-    if (!notes.length) throw new Error("the model gave no notes");
-    return { manifest: { ...manifest, notes }, warning: "" };
+    if (!key) throw new Error("no OpenRouter key");
+    // One deadline for the PR lookups and the model call, so a slow range can't hold the cut (which has to tag and dispatch).
+    return await Promise.race([generate(manifest, prev, { get, key, doFetch }), new Promise((_, no) => { timer = setTimeout(() => no(new Error("deadline")), deadlineMs); })]);
   } catch (e) {
     return { manifest, warning: `release notes: the model-ranked changelog failed (${String(e.message).slice(0, 160)}); using commit titles` };
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+async function generate(manifest, prev, { get, key, doFetch }) {
+  const prs = await pullsBetween(get, prev, manifest.kernel);
+  if (!prs.length) throw new Error("no merged PRs in the range");
+  const notes = assemble(await rank(prs, key, doFetch));
+  if (!notes.length) throw new Error("the model gave no notes");
+  return { manifest: { ...manifest, notes }, warning: "" };
 }
 
 if (import.meta.main) {
   const { manifest, warning } = await withNotes(JSON.parse(process.env.MANIFEST), process.env.PREV, { key: process.env.OPENROUTER_API_KEY });
   writeFileSync(process.argv[2], `${JSON.stringify(manifest)}\n`);
-  console.log(manifest.notes.join("\n"));
+  console.log(manifest.notes.map((n) => `  ${n}`).join("\n"));
   if (warning) { console.log(`::warning::${warning}`); if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${warning}\n`); }
 }

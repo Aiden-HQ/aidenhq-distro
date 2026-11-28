@@ -23,8 +23,9 @@ export function assemble({ highlights = [], entries = [], hood = "" }) {
   for (const [key, label] of Object.entries(CATEGORIES)) {
     for (const e of entries) if (e?.category === key && text(e.text)) out.push(`${label}: ${text(e.text)}`);
   }
-  if (text(hood)) out.push(`${HOOD}: ${text(hood)}`);
-  return out;
+  // The updater reads the first 20: the Under the hood line keeps the last slot.
+  const last = text(hood) ? [`${HOOD}: ${text(hood)}`] : [];
+  return [...out.slice(0, 20 - last.length), ...last];
 }
 
 /** Notes back into sections. An item with no known prefix is a highlight (or, with no prefixed items at all, a plain change). */
