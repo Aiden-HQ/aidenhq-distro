@@ -1,0 +1,165 @@
+{
+  "changelog": {
+    "fixed": [
+      {
+        "text": "Removed hourly limits that could silently drop incoming Slack messages during busy periods before Intake could triage them.",
+        "title": "Slack triage"
+      },
+      {
+        "text": "Unauthenticated GitHub lookups no longer trigger a rate limit that could freeze code reviews, Ship merges, and pushes across your fleet.",
+        "title": "GitHub"
+      },
+      {
+        "text": "Stopped empty messages and raw no-reply markers from slipping into your private chat with Aiden.",
+        "title": "Chat notifications"
+      },
+      {
+        "text": "Assigning someone to a pull request no longer causes Ship to silently stop working on it.",
+        "title": "Ship"
+      },
+      {
+        "text": "Deal reports now recognize HubSpot pipeline names and won stages accurately, and agents state which definition they used.",
+        "title": "HubSpot reports"
+      },
+      {
+        "text": "Pull request review comments now keep their current status instead of resetting to not started on every push.",
+        "title": "Code review"
+      },
+      {
+        "text": "While a follow-up draft awaits your approval, Open Loops no longer posts repeated waiting messages on the same item.",
+        "title": "Open Loops"
+      },
+      {
+        "text": "You can now add new servers without errors, and scheduled patches respect your quiet window and active package updates.",
+        "title": "Server Manager"
+      }
+    ],
+    "highlights": [
+      {
+        "body": "Tag or cc any teammate in your Slack or Telegram chats, and they jump right in with the conversation context. They react to confirm they saw you, reply in the same thread with your chosen signature, and keep progress notes out of your private chat. Turn it on and set your signature under Settings, Notifications.",
+        "title": "Summon teammates in your chats"
+      },
+      {
+        "body": "Your team can now talk to colleagues through your Slack bot, their own dedicated Slack apps, or dedicated Gmail addresses. Teammates reply as themselves, and anyone writing to the main Slack bot is routed to the right specialist automatically. Check the new How to reach card on each teammate's page to see active channels and set them up.",
+        "title": "Let colleagues reach teammates directly"
+      },
+      {
+        "body": "Aria is now an official module you can install to schedule meetings around your working hours, time zones, and colleagues' availability. She comes with her own settings page for call windows, meeting preferences, and an optional nightly calendar tidy-up. Install Aria from Settings, Modules after connecting Google, and reconnect Google if prompted to view colleagues' availability.",
+        "title": "Meet Aria, your scheduling teammate"
+      },
+      {
+        "body": "General Settings has been reorganized into four focused areas: You, Agents, Connect, and System. Rarely used options and the separate Kill switches page are gone, and each module's settings now live directly on its own page. Every page lets you review changes together before saving or discarding.",
+        "title": "A cleaner Settings experience"
+      }
+    ],
+    "improved": [
+      {
+        "text": "Teammates' messages in Slack and Telegram now render cleanly with native bold, italics, links, quotes, and lists that read well on a phone.",
+        "title": "Native chat formatting"
+      },
+      {
+        "text": "Repeated context is now cached across multi-step runs, noticeably lowering your AI spend on the Costs page.",
+        "title": "Lower AI run costs"
+      },
+      {
+        "text": "Agents now ask for a second opinion before answering complex questions that combine multiple sources, comparisons, or judgment calls.",
+        "title": "Better multi-step answers"
+      },
+      {
+        "text": "Creating or moving a calendar event now rechecks your schedule first to prevent accidental double-bookings and duplicate invites.",
+        "title": "Safer Google Calendar updates"
+      },
+      {
+        "text": "API keys, passwords, and private keys posted in chat conversations are now automatically masked before being saved to tasks or sent to agents.",
+        "title": "Secret masking in chats"
+      },
+      {
+        "text": "When a required check fails on a pull request, Ship now re-runs the failed jobs once before waking an Engineer.",
+        "title": "Automatic check retries"
+      },
+      {
+        "text": "Ship now updates one status comment on every wait, conflict resolution, or check fix so you always know what it is doing.",
+        "title": "Clearer Ship status updates"
+      },
+      {
+        "text": "On every preset, Ship now waits for a ship label or comment before taking a person's pull request unless you opt in per repository.",
+        "title": "Explicit Ship hand-off"
+      }
+    ],
+    "new": [],
+    "summary": "This release makes your team far easier to work with right where conversations already happen. You can now pull teammates straight into your Slack and Telegram chats, give them their own email addresses and Slack apps for colleagues to reach directly, and add Aria to manage your calendar. We also redesigned Settings to be simpler and cleaner, alongside reliability and cost improvements across the office.",
+    "under_the_hood": "Agents now receive smaller, task-focused prompts and read only new updates from GitHub and tasks, reducing token use and speeding up runs. We also tightened task-completion checks around pending approvals, updated internal agent guidelines and build checks, and renewed routine security-scan maintenance."
+  },
+  "images": {
+    "ai-reviewer-ai-reviewer": "ghcr.io/aiden-hq/ai-reviewer-ai-reviewer@sha256:af9790fb193e1d087afa9455283982a7218e75d11c8addb90ab7526eef59cd46",
+    "apps-mcp": "ghcr.io/aiden-hq/apps-mcp@sha256:4b411f8eae5d1b1b59b0de5d72de6366b3c1b1023b90a06f21522a29461ca680",
+    "aria-aria": "ghcr.io/aiden-hq/aria-aria@sha256:543c9aae802cdb27e5299dc2f53a2f27fdefa33c08244c9ccf4fd1a7b71399a2",
+    "board": "ghcr.io/aiden-hq/board@sha256:c950add3e671b2539f0ef1751b2e23c4b38ba9f3cc0e908dc7bfd186bb725c80",
+    "channel-telegram-telegram": "ghcr.io/aiden-hq/channel-telegram-telegram@sha256:6be9d05f14c0960e77f5aad31ba52665d80c3ba404cb18c4ed9973c27411e2e8",
+    "chat-lane-lane": "ghcr.io/aiden-hq/chat-lane-lane@sha256:077755df2f55f1888a17940931ac2a945067b09c0c6c764534209b7f1b7225b5",
+    "ci-runner": "ghcr.io/aiden-hq/ci-runner@sha256:6914ad6757096d6630db9b863d469f52955352f8ca3dd51344d6bf30ef3f3f7c",
+    "clickhouse-mcp": "ghcr.io/aiden-hq/clickhouse-mcp@sha256:aac04313b0184e3604c4dc017dd7491f33718582813b0bd8349df227633ad612",
+    "code-review-code-review": "ghcr.io/aiden-hq/code-review-code-review@sha256:7f3d1742005f26f22c72b3cac098d80f9ca44ae7bd5da134a6541a0d267d407b",
+    "computer-agent-base": "ghcr.io/aiden-hq/computer-agent-base@sha256:ad38d41b7e02af4b126c072ed293a6f0954815f339094f177d9671cb34cc2c70",
+    "computer-browser": "ghcr.io/aiden-hq/computer-browser@sha256:83a6e540dc03a70320239669415569397d4a5920e3bb22a3d5b5fc25141d600e",
+    "computer-engineer": "ghcr.io/aiden-hq/computer-engineer@sha256:c9e53df8d83f683447872ca2b55f1457c51b6ccba02179221d4f9ded6df198dd",
+    "computer-session": "ghcr.io/aiden-hq/computer-session@sha256:766992f7ac1f72d9d4c18da5a21b0dabb9a3d462d54410a717dac394bebc5bf0",
+    "design-design": "ghcr.io/aiden-hq/design-design@sha256:8b53d1b05594b7339ffc57b094ceb2e17654d38d1f39e21a03631e5205372ee4",
+    "dispatch-dispatch": "ghcr.io/aiden-hq/dispatch-dispatch@sha256:77c1f855d3e65809f4a23eeae16c217bd08f29e136726ad2ab49f9b809cf6f16",
+    "fleet-steward-fleet-steward": "ghcr.io/aiden-hq/fleet-steward-fleet-steward@sha256:12b073df2010405595b24f6ee301aa1ab13ef004259bedb834ba06206f007e37",
+    "github-github": "ghcr.io/aiden-hq/github-github@sha256:3fe89f1e2b85a7c5c969eb10b816947aa1037040bd8cf727c9f2ea947e2ccf17",
+    "glean-mcp": "ghcr.io/aiden-hq/glean-mcp@sha256:b32a3350c81a368bf9ebeab19ccaafc9c758a6e3caa6d33afaa30813a8957351",
+    "google-workspace-mcp": "ghcr.io/aiden-hq/google-workspace-mcp@sha256:74f79eb90fa3ee09617352f0ac72bee3ca1b67af5b2b02087306ec5429336359",
+    "grading-grading": "ghcr.io/aiden-hq/grading-grading@sha256:629bd8c2259c778eb7ba337b177ac6dc2a027feaf74a7376890a25ae7d3828cd",
+    "grafana-mcp": "ghcr.io/aiden-hq/grafana-mcp@sha256:c2bae050200df5f9632f2ea35f5c199bf2d43e5bfa6fb4aa1f37aeb8ad4e55aa",
+    "hubspot-mcp": "ghcr.io/aiden-hq/hubspot-mcp@sha256:53d88ce9e35fe9a48973a6637512e9184fc66a6641e1f2de3456b6f92825d13a",
+    "jira-mcp": "ghcr.io/aiden-hq/jira-mcp@sha256:a75059e59a736c4af7e789b2d3c86b18fea0e8bf340a7b321d76c8e62a531150",
+    "maintainer-watcher": "ghcr.io/aiden-hq/maintainer-watcher@sha256:b8dad6233538354d1d7804c9ac5d5c1227d06d028140cc0e151fdcf62964c3fa",
+    "meetings-ops-mcp": "ghcr.io/aiden-hq/meetings-ops-mcp@sha256:6b4026a838635c23ce9be0b21c669b95d9e36525d9044828fc7fc6dd4f8c314a",
+    "monitoring-alertmanager": "ghcr.io/aiden-hq/monitoring-alertmanager@sha256:788aa2452a1f71b104cf1b33b73bb993f8e980fea43cf4c3d62c0d451ae2217d",
+    "monitoring-cadvisor": "ghcr.io/aiden-hq/monitoring-cadvisor@sha256:c2b72234405b02876c83c571b43df57dfd569726b232ca2aae0bf811b6657782",
+    "monitoring-grafana": "ghcr.io/aiden-hq/monitoring-grafana@sha256:3f38281f577580c37b10e1c6ca1ed33032fa18f2ccce71d15fd501e63037c9d5",
+    "monitoring-mcp-grafana": "ghcr.io/aiden-hq/monitoring-mcp-grafana@sha256:1d755deebf57f2cd260a4e6538855e8cc4b71d26741ea43440aca9396204f69b",
+    "monitoring-node-exporter": "ghcr.io/aiden-hq/monitoring-node-exporter@sha256:c64813deb96799a16c747330ff24280733d12f30166ab76f4a22edfe24493f80",
+    "monitoring-prometheus": "ghcr.io/aiden-hq/monitoring-prometheus@sha256:b59cea5f74a3c81d45bb70fc20cbbfc2e6330a6c187d07f985e4400c0b862784",
+    "owner-channel-notify": "ghcr.io/aiden-hq/owner-channel-notify@sha256:3cac050012372feba45962959dc503a05cf2462f88f32963c3d89ccbb7e4564d",
+    "primer-db": "ghcr.io/aiden-hq/primer-db@sha256:30ad68c1e82755a547e4ee168d71fb01a883631990b6387b7126da737854678c",
+    "primer-mcp": "ghcr.io/aiden-hq/primer-mcp@sha256:c32a9c89fb474474ab21d71fcc437b94a673dbad8d091673d2e7417b5fc770d6",
+    "primer-server": "ghcr.io/aiden-hq/primer-server@sha256:774cf7dcac72eeac1198b1ed28cfb8674c6c60c841428c8a8e3778a1abe1ed8b",
+    "security-scanner": "ghcr.io/aiden-hq/security-scanner@sha256:56aaba835087c23523a5871499d70190fb54bdddcbc18f0692cb4c1c197497b7",
+    "server-manager-ssh": "ghcr.io/aiden-hq/server-manager-ssh@sha256:9e543cb95b11f0de6c9b580f4c35fb3f83a46ff9a09565078e01cdf7ff5215a2",
+    "sessions-sessions": "ghcr.io/aiden-hq/sessions-sessions@sha256:571849297352b0e8b84bef7f9204f102ef50861cbe1548659d5d0e19c10fd5c5",
+    "ship-ship": "ghcr.io/aiden-hq/ship-ship@sha256:1488e69ece165726cae332ed42f0236659cb5c3a733e3da54db0c68f0ead3552",
+    "slack-live": "ghcr.io/aiden-hq/slack-live@sha256:8c08b284621b7d5b2ce360918377844e6338850e53bbb6f06772e12c50416cc9",
+    "slack-mcp": "ghcr.io/aiden-hq/slack-mcp@sha256:d0971227a0b8afc8d29df7cb1fefbb921c8c8a73a26bc66646429f5405b4c6e3",
+    "tasks-mcp": "ghcr.io/aiden-hq/tasks-mcp@sha256:90b7e8d66c2e6f9a14961243b7fd351d093b2fc87b18ff5d2aa70227d686a5ec",
+    "telegram-live": "ghcr.io/aiden-hq/telegram-live@sha256:8f760de11d3c60bd5ea497213b86c04cc1c69ed9a95090b8d3b3a3fe01ef980e",
+    "voice-whisper": "ghcr.io/aiden-hq/voice-whisper@sha256:11e0af4a87f37c45ff9bf05c7cc86760337d82969ff999fbe10e5d4228b9ac79",
+    "warehouse-search": "ghcr.io/aiden-hq/warehouse-search@sha256:30e2bd98a4ce090840b6e8c101b2998c7c882ae7d45c8c22997b9ba1caea476a"
+  },
+  "kernel": "c6473d0a3209df1ee915aa6d18044188091fcec3",
+  "kernel_repo": "Aiden-HQ/AidenHQ",
+  "notes": [
+    "Summon teammates in your chats",
+    "Let colleagues reach teammates directly",
+    "Meet Aria, your scheduling teammate",
+    "A cleaner Settings experience",
+    "Improved: Native chat formatting. Teammates' messages in Slack and Telegram now render cleanly with native bold, italics, links, quotes, and lists that read well on a phone.",
+    "Improved: Lower AI run costs. Repeated context is now cached across multi-step runs, noticeably lowering your AI spend on the Costs page.",
+    "Improved: Better multi-step answers. Agents now ask for a second opinion before answering complex questions that combine multiple sources, comparisons, or judgment calls.",
+    "Improved: Safer Google Calendar updates. Creating or moving a calendar event now rechecks your schedule first to prevent accidental double-bookings and duplicate invites.",
+    "Improved: Secret masking in chats. API keys, passwords, and private keys posted in chat conversations are now automatically masked before being saved to tasks or sent to agents.",
+    "Improved: Automatic check retries. When a required check fails on a pull request, Ship now re-runs the failed jobs once before waking an Engineer.",
+    "Improved: Clearer Ship status updates. Ship now updates one status comment on every wait, conflict resolution, or check fix so you always know what it is doing.",
+    "Improved: Explicit Ship hand-off. On every preset, Ship now waits for a ship label or comment before taking a person's pull request unless you opt in per repository.",
+    "Fixed: Slack triage. Removed hourly limits that could silently drop incoming Slack messages during busy periods before Intake could triage them.",
+    "Fixed: GitHub. Unauthenticated GitHub lookups no longer trigger a rate limit that could freeze code reviews, Ship merges, and pushes across your fleet.",
+    "Fixed: Chat notifications. Stopped empty messages and raw no-reply markers from slipping into your private chat with Aiden.",
+    "Fixed: Ship. Assigning someone to a pull request no longer causes Ship to silently stop working on it.",
+    "Fixed: HubSpot reports. Deal reports now recognize HubSpot pipeline names and won stages accurately, and agents state which definition they used.",
+    "Fixed: Code review. Pull request review comments now keep their current status instead of resetting to not started on every push.",
+    "Fixed: Open Loops. While a follow-up draft awaits your approval, Open Loops no longer posts repeated waiting messages on the same item.",
+    "Under the hood: Agents now receive smaller, task-focused prompts and read only new updates from GitHub and tasks, reducing token use and speeding up runs. We also tightened task-completion checks around pending approvals, updated internal agent guidelines and build checks, and renewed routine securi"
+  ],
+  "release": "2026.11.28.1"
+}
