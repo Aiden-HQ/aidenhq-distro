@@ -6,7 +6,7 @@
 // PR titles and bodies are untrusted data: the model's answer only becomes plain text fields (notes.mjs tidy/assemble).
 import { appendFileSync, writeFileSync } from "node:fs";
 import { api } from "./nightly.mjs";
-import { assemble, CATEGORIES, tidy } from "./notes.mjs";
+import { assemble, hasContent, tidy } from "./notes.mjs";
 
 const KERNEL = "Aiden-HQ/AidenHQ";
 const MODEL = "google/gemini-4-neon";
@@ -72,7 +72,7 @@ export async function rank(prs, key, doFetch = fetch) {
   if (!r.ok) throw new Error(`model call: ${r.status}`);
   const content = String((await r.json()).choices?.[0]?.message?.content ?? "").replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, "");
   const c = tidy(JSON.parse(content));
-  if (!c.highlights.length && !Object.keys(CATEGORIES).some((k) => c[k].length)) throw new Error("the model gave no notes");
+  if (!hasContent(c)) throw new Error("the model gave no notes");
   return c;
 }
 

@@ -54,14 +54,20 @@ export function sections(notes) {
 /** Markdown-safe text: every character that could start a link, mention, reference, HTML or emphasis becomes an entity. */
 export const escape = (t) => clean(t, 1000).replace(/[\\*_\[\]<>#!|~&@`]/g, (c) => `&#${c.charCodeAt(0)};`);
 
+/** A changelog with anything to say: a highlight, an item or the Under the hood paragraph. */
+export const hasContent = (c) => Boolean(c.highlights.length || Object.keys(CATEGORIES).some((k) => c[k].length) || c.under_the_hood);
+
+/** Escaped text that starts its own block: a leading list or rule marker stays text too. */
+const para = (t) => escape(t).replace(/^(\d+)([.)])/, "$1\\$2").replace(/^[-+=]/, (c) => `&#${c.charCodeAt(0)};`);
+
 /** The changelog as Markdown: the intro, a heading per highlight, then the lists and Under the hood. */
 function renderChangelog(c) {
-  const parts = [c.summary && escape(c.summary)];
-  if (c.highlights.length) parts.push("## Highlights", ...c.highlights.map((h) => `### ${escape(h.title)}\n\n${escape(h.body)}`));
+  const parts = [c.summary && para(c.summary)];
+  if (c.highlights.length) parts.push("## Highlights", ...c.highlights.map((h) => `### ${escape(h.title)}\n\n${para(h.body)}`));
   for (const [k, label] of Object.entries(CATEGORIES)) {
     if (c[k].length) parts.push(`## ${label}\n\n${c[k].map((i) => `- **${escape(i.title)}:** ${escape(i.text)}`).join("\n")}`);
   }
-  if (c.under_the_hood) parts.push(`## ${HOOD}\n\n${escape(c.under_the_hood)}`);
+  if (c.under_the_hood) parts.push(`## ${HOOD}\n\n${para(c.under_the_hood)}`);
   return parts.filter(Boolean);
 }
 
@@ -82,7 +88,7 @@ function renderNotes(notes) {
 /** The GitHub release body for a release file: its changelog (or its notes), then the lead and the compare link. */
 export function renderBody(file, { lead = "", compare = "" } = {}) {
   const c = file?.changelog ? tidy(file.changelog) : null;
-  const parts = c && (c.highlights.length || Object.keys(CATEGORIES).some((k) => c[k].length)) ? renderChangelog(c) : renderNotes(file?.notes ?? []);
+  const parts = c && hasContent(c) ? renderChangelog(c) : renderNotes(file?.notes ?? []);
   if (lead.trim()) parts.push(lead.trim());
   if (compare) parts.push(`**Every change:** ${compare}`);
   return `${parts.join("\n\n")}\n`;

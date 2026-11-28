@@ -40,6 +40,8 @@ test("renderBody: intro, highlight headings, lists, Under the hood; text neutral
   assert.ok(!/@everyone|\[click\]|<img|https:\/\/evil/.test(evilBody), evilBody);
   assert.ok(!rejected(evilBody) && !new RegExp(`^${INCOMPLETE}\\b`, "m").test(evilBody));
   assert.ok(!/[\n<>`]|https?:|\u202e/.test(clean(evil)));
+  // An internal-only release keeps its Under the hood paragraph; a leading list marker stays text.
+  assert.equal(renderBody({ changelog: { summary: "1. Quiet", under_the_hood: "- Tooling." } }), "1\\. Quiet\n\n## Under the hood\n\n&#45; Tooling.\n");
   // No changelog (the commit-title fallback, a hand cut): the notes as sections, or one plain list when unprefixed.
   assert.match(renderBody({ notes: ["New: A", "Fixed: B"] }), /^## New\n\n- A\n\n## Fixed\n\n- B\n$/);
   assert.match(renderBody({ notes: ["One", "Two"] }), /^## What's new\n\n- One\n- Two\n$/);
